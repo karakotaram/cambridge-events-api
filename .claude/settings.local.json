@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "WebFetch(domain:www.lilypadinman.com)",
+      "WebFetch(domain:mideastclub.com)",
+      "WebFetch(domain:www.ticketweb.com)",
+      "Bash(tee:*)",
+      "WebFetch(domain:lamplighterbrewing.com)",
+      "WebFetch(domain:porticobrewing.com)",
+      "WebFetch(domain:www.harvard.com)",
+      "WebFetch(domain:portersquarebooks.com)",
+      "WebFetch(domain:artsatthearmory.org)",
+      "WebFetch(domain:www.cambridgema.gov)",
+      "Bash(if grep -q \"Saved.*total events\" /tmp/cambridge_scrape.log)",
+      "Bash(else echo \"Still scraping...\")",
+      "WebFetch(domain:hrdctheater.org)",
+      "WebFetch(domain:www.theatreatfirst.org)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
