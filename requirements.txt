@@ -4,6 +4,8 @@ requests==2.31.0
 python-dateutil==2.8.2
 pydantic==2.5.0
 fastapi==0.104.1
-uvicorn==0.24.0
+uvicorn[standard]==0.24.0
 sqlalchemy==2.0.23
 alembic==1.12.1
+email-validator==2.1.0
+python-multipart==0.0.6
