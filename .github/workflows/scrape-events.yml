@@ -34,6 +34,7 @@ jobs:
 
       - name: Run scraper
         run: |
+          mkdir -p logs data
           python3 scrape.py
           echo "Scraper completed successfully"
 
