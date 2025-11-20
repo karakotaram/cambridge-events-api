@@ -78,6 +78,8 @@ async def get_events(
     city: Optional[str] = None,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
+    upcoming_only: bool = Query(False, description="Show only upcoming events"),
+    sort_order: str = Query("asc", regex="^(asc|desc)$", description="Sort order: asc or desc"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0)
 ):
@@ -89,10 +91,17 @@ async def get_events(
     - city: Filter by city
     - start_date: Filter events starting after this date
     - end_date: Filter events starting before this date
+    - upcoming_only: If true, only show events from today forward
+    - sort_order: Sort by date (asc = oldest first, desc = newest first)
     - limit: Maximum number of events to return
     - offset: Number of events to skip
     """
     events = load_events()
+
+    # Filter upcoming events if requested
+    if upcoming_only:
+        now = datetime.utcnow()
+        events = [e for e in events if e.start_datetime >= now]
 
     # Apply filters
     if category:
@@ -108,7 +117,7 @@ async def get_events(
         events = [e for e in events if e.start_datetime <= end_date]
 
     # Sort by start date
-    events.sort(key=lambda x: x.start_datetime)
+    events.sort(key=lambda x: x.start_datetime, reverse=(sort_order == "desc"))
 
     # Apply pagination
     total = len(events)
