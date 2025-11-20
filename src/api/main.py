@@ -18,12 +18,8 @@ app = FastAPI(
 # Enable CORS for Lovable app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://cambridge-event-compass.lovable.app",
-        "http://localhost:5173",  # For local development
-        "http://localhost:3000",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins for now
+    allow_credentials=False,  # Must be False when using allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
