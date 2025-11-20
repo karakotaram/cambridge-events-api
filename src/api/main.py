@@ -28,19 +28,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Data storage path
-DATA_DIR = "data"
-EVENTS_FILE = os.path.join(DATA_DIR, "events.json")
+# Data storage path - use absolute path for Railway deployment
+import pathlib
+BASE_DIR = pathlib.Path(__file__).parent.parent.parent
+DATA_DIR = BASE_DIR / "data"
+EVENTS_FILE = DATA_DIR / "events.json"
 
 
 def load_events() -> List[Event]:
     """Load events from JSON file"""
-    if not os.path.exists(EVENTS_FILE):
+    if not EVENTS_FILE.exists():
+        print(f"Warning: Events file not found at {EVENTS_FILE}")
         return []
 
-    with open(EVENTS_FILE, 'r') as f:
-        data = json.load(f)
-        return [Event(**event) for event in data]
+    try:
+        with open(EVENTS_FILE, 'r') as f:
+            data = json.load(f)
+            return [Event(**event) for event in data]
+    except Exception as e:
+        print(f"Error loading events: {e}")
+        return []
 
 
 @app.get("/")
