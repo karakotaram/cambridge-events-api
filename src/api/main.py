@@ -79,6 +79,7 @@ async def get_events(
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     upcoming_only: bool = Query(False, description="Show only upcoming events"),
+    family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
     sort_order: str = Query("asc", regex="^(asc|desc)$", description="Sort order: asc or desc"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0)
@@ -92,6 +93,7 @@ async def get_events(
     - start_date: Filter events starting after this date
     - end_date: Filter events starting before this date
     - upcoming_only: If true, only show events from today forward
+    - family_friendly: If true, only show family-friendly events
     - sort_order: Sort by date (asc = oldest first, desc = newest first)
     - limit: Maximum number of events to return
     - offset: Number of events to skip
@@ -115,6 +117,9 @@ async def get_events(
 
     if end_date:
         events = [e for e in events if e.start_datetime <= end_date]
+
+    if family_friendly is not None:
+        events = [e for e in events if getattr(e, 'family_friendly', False) == family_friendly]
 
     # Sort by start date
     events.sort(key=lambda x: x.start_datetime, reverse=(sort_order == "desc"))

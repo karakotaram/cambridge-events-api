@@ -92,7 +92,49 @@ class EventValidator:
         if not event.state:
             event.state = "MA"
 
+        # Auto-detect family-friendly events
+        event.family_friendly = EventValidator.is_family_friendly(event)
+
         return event
+
+    @staticmethod
+    def is_family_friendly(event: EventCreate) -> bool:
+        """Detect if an event is family-friendly based on keywords"""
+        # Combine title and description for searching
+        text = f"{event.title} {event.description}".lower()
+
+        # Keywords that indicate family-friendly events
+        family_keywords = [
+            # Age-related
+            'kids', 'kid', 'children', 'child', 'babies', 'baby', 'toddler', 'toddlers',
+            'infant', 'infants', 'youth', 'teen', 'teens', 'teenager',
+            # Program types
+            'story time', 'storytime', 'story hour', 'lapsit', 'lap sit',
+            'family program', 'family event', 'family fun', 'family day',
+            'puppet', 'puppets', 'puppet show',
+            # Age indicators
+            'all ages', 'all-ages', 'family friendly', 'family-friendly',
+            'ages 0', 'ages 1', 'ages 2', 'ages 3', 'ages 4', 'ages 5',
+            'ages 6', 'ages 7', 'ages 8', 'ages 9', 'ages 10',
+            'ages 0-', 'ages 1-', 'ages 2-', 'ages 3-', 'ages 4-', 'ages 5-',
+            # Activities
+            'craft', 'crafts', 'arts and crafts',
+            'sing along', 'sing-along', 'singalong',
+            'read aloud', 'read-aloud',
+            'playgroup', 'play group', 'playdate', 'play date',
+            # Specific programs
+            'pajama', 'pj storytime',
+            'preschool', 'pre-school',
+            'kindergarten',
+            'young readers', 'young reader',
+            'parent and child', 'parent & child', 'caregiver',
+        ]
+
+        for keyword in family_keywords:
+            if keyword in text:
+                return True
+
+        return False
 
     @staticmethod
     def clean_text(text: str) -> str:

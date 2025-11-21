@@ -40,6 +40,7 @@ class Event(BaseModel):
     # Categorization & metadata
     category: Optional[EventCategory] = Field(None, description="Event category")
     tags: List[str] = Field(default_factory=list, description="Event tags")
+    family_friendly: bool = Field(default=False, description="Suitable for families with children")
     age_restrictions: Optional[str] = Field(None, description="Age restrictions")
     cost: Optional[str] = Field(None, description="Cost information")
     registration_required: bool = Field(default=False, description="Registration required")
@@ -79,6 +80,7 @@ class EventCreate(BaseModel):
 
     category: Optional[EventCategory] = None
     tags: List[str] = Field(default_factory=list)
+    family_friendly: bool = False
     age_restrictions: Optional[str] = None
     cost: Optional[str] = None
     registration_required: bool = False
