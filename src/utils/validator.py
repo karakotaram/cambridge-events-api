@@ -105,26 +105,40 @@ class EventValidator:
     @staticmethod
     def is_food_and_drink_event(event: EventCreate) -> bool:
         """Detect if an event should be categorized as food and drink"""
-        # Check venue name for food/drink establishments
         venue_lower = (event.venue_name or "").lower()
         source_lower = (event.source_name or "").lower()
 
-        # Venues that are inherently food and drink
-        food_drink_venues = [
-            'brewing', 'brewery', 'brewpub', 'brew pub',
-            'lamplighter', 'portico', 'aeronaut', 'night shift', 'idle hands',
-            'taproom', 'tap room', 'beer garden', 'beer hall',
-            'winery', 'wine bar', 'distillery',
-            'restaurant', 'cafe', 'café', 'bistro', 'diner',
-            'bar', 'pub', 'tavern', 'lounge',
-            'kitchen', 'grill', 'eatery',
-            'coffee', 'coffeehouse', 'coffee house',
-            'bakery', 'patisserie',
+        # Exclude libraries and other non-food venues
+        excluded_venues = ['library', 'branch', 'museum', 'theater', 'theatre', 'school', 'church']
+        for excluded in excluded_venues:
+            if excluded in venue_lower:
+                return False
+
+        # Venues that are inherently food and drink (specific names)
+        food_drink_venue_names = [
+            'lamplighter', 'portico brewing', 'aeronaut', 'night shift', 'idle hands',
+            'lamplighter cx', 'lamplighter brewing',
         ]
 
-        # Check if venue or source is a food/drink establishment
-        for venue_keyword in food_drink_venues:
-            if venue_keyword in venue_lower or venue_keyword in source_lower:
+        for venue_name in food_drink_venue_names:
+            if venue_name in venue_lower or venue_name in source_lower:
+                return True
+
+        # Venue type keywords (must be word boundaries to avoid "Central Square Branch" matching "bar")
+        import re
+        food_drink_venue_types = [
+            r'\bbrewing\b', r'\bbrewery\b', r'\bbrewpub\b',
+            r'\btaproom\b', r'\btap room\b', r'\bbeer garden\b', r'\bbeer hall\b',
+            r'\bwinery\b', r'\bwine bar\b', r'\bdistillery\b',
+            r'\brestaurant\b', r'\bcafe\b', r'\bcafé\b', r'\bbistro\b', r'\bdiner\b',
+            r'\bbar\b', r'\bpub\b', r'\btavern\b', r'\blounge\b',
+            r'\bgrill\b', r'\beatery\b',
+            r'\bcoffeehouse\b', r'\bcoffee house\b',
+            r'\bbakery\b', r'\bpatisserie\b',
+        ]
+
+        for pattern in food_drink_venue_types:
+            if re.search(pattern, venue_lower) or re.search(pattern, source_lower):
                 return True
 
         # Check title and description for food/drink keywords
@@ -132,15 +146,13 @@ class EventValidator:
 
         food_drink_keywords = [
             # Drinks
-            'beer', 'wine', 'cocktail', 'cocktails', 'spirits', 'whiskey', 'bourbon',
-            'happy hour', 'tasting', 'wine tasting', 'beer tasting',
-            'brew', 'brews', 'craft beer', 'ipa', 'lager', 'ale', 'stout',
-            'cider', 'mead', 'seltzer',
-            # Food
-            'dinner', 'brunch', 'lunch', 'breakfast', 'supper',
+            'beer', 'wine tasting', 'cocktail', 'cocktails', 'spirits', 'whiskey', 'bourbon',
+            'happy hour', 'beer tasting',
+            'craft beer', 'ipa', 'lager', 'stout',
+            'cider', 'mead',
+            # Food events
             'food truck', 'foodtruck', 'pop-up dinner', 'popup dinner',
-            'chef', 'cooking class', 'culinary',
-            'pizza', 'tacos', 'bbq', 'barbecue',
+            'cooking class', 'culinary',
             'farmers market', "farmer's market", 'food festival',
         ]
 
