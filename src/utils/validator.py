@@ -95,7 +95,60 @@ class EventValidator:
         # Auto-detect family-friendly events
         event.family_friendly = EventValidator.is_family_friendly(event)
 
+        # Auto-categorize as food and drink if no category or if venue is food/drink related
+        if EventValidator.is_food_and_drink_event(event):
+            from src.models.event import EventCategory
+            event.category = EventCategory.FOOD_DRINK
+
         return event
+
+    @staticmethod
+    def is_food_and_drink_event(event: EventCreate) -> bool:
+        """Detect if an event should be categorized as food and drink"""
+        # Check venue name for food/drink establishments
+        venue_lower = (event.venue_name or "").lower()
+        source_lower = (event.source_name or "").lower()
+
+        # Venues that are inherently food and drink
+        food_drink_venues = [
+            'brewing', 'brewery', 'brewpub', 'brew pub',
+            'lamplighter', 'portico', 'aeronaut', 'night shift', 'idle hands',
+            'taproom', 'tap room', 'beer garden', 'beer hall',
+            'winery', 'wine bar', 'distillery',
+            'restaurant', 'cafe', 'café', 'bistro', 'diner',
+            'bar', 'pub', 'tavern', 'lounge',
+            'kitchen', 'grill', 'eatery',
+            'coffee', 'coffeehouse', 'coffee house',
+            'bakery', 'patisserie',
+        ]
+
+        # Check if venue or source is a food/drink establishment
+        for venue_keyword in food_drink_venues:
+            if venue_keyword in venue_lower or venue_keyword in source_lower:
+                return True
+
+        # Check title and description for food/drink keywords
+        text = f"{event.title} {event.description}".lower()
+
+        food_drink_keywords = [
+            # Drinks
+            'beer', 'wine', 'cocktail', 'cocktails', 'spirits', 'whiskey', 'bourbon',
+            'happy hour', 'tasting', 'wine tasting', 'beer tasting',
+            'brew', 'brews', 'craft beer', 'ipa', 'lager', 'ale', 'stout',
+            'cider', 'mead', 'seltzer',
+            # Food
+            'dinner', 'brunch', 'lunch', 'breakfast', 'supper',
+            'food truck', 'foodtruck', 'pop-up dinner', 'popup dinner',
+            'chef', 'cooking class', 'culinary',
+            'pizza', 'tacos', 'bbq', 'barbecue',
+            'farmers market', "farmer's market", 'food festival',
+        ]
+
+        for keyword in food_drink_keywords:
+            if keyword in text:
+                return True
+
+        return False
 
     @staticmethod
     def is_family_friendly(event: EventCreate) -> bool:
