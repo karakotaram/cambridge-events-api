@@ -18,11 +18,13 @@ class PorticoScraper(BaseScraper):
             use_selenium=True  # JavaScript-rendered content
         )
 
-    def fetch_event_description(self, event_url: str) -> str:
-        """Fetch the full description from an event detail page"""
+    def fetch_event_details(self, event_url: str) -> tuple:
+        """Fetch the full description and image from an event detail page
+        Returns (description, image_url)
+        """
         try:
             if not self.driver:
-                return ""
+                return "", None
 
             # Navigate to event page
             full_url = event_url if event_url.startswith('http') else f"https://porticobrewing.com{event_url}"
@@ -33,6 +35,27 @@ class PorticoScraper(BaseScraper):
             # Parse the page
             html = self.driver.page_source
             soup = self.parse_html(html)
+
+            # Extract image
+            image_url = None
+
+            # Try og:image first (Squarespace usually has good og:image)
+            og_image = soup.find('meta', property='og:image')
+            if og_image and og_image.get('content'):
+                image_url = og_image['content']
+
+            # If no og:image, look for event image
+            if not image_url:
+                event_img = soup.find('img', class_=lambda x: x and 'event' in x.lower() if x else False)
+                if event_img:
+                    image_url = event_img.get('src') or event_img.get('data-src')
+
+            # Normalize image URL
+            if image_url and not image_url.startswith('http'):
+                if image_url.startswith('//'):
+                    image_url = f'https:{image_url}'
+                else:
+                    image_url = f"https://porticobrewing.com{image_url}"
 
             # Find description paragraphs
             description_parts = []
@@ -66,6 +89,7 @@ class PorticoScraper(BaseScraper):
                     if len(text) > 20:
                         description_parts.append(text)
 
+            description = ""
             if description_parts:
                 full_description = ' '.join(description_parts)
 
@@ -88,11 +112,11 @@ class PorticoScraper(BaseScraper):
                 if earliest_pos < len(full_description):
                     full_description = full_description[:earliest_pos].strip()
 
-                return full_description[:2000] if len(full_description) > 2000 else full_description
+                description = full_description[:2000] if len(full_description) > 2000 else full_description
 
-            return ""
+            return description, image_url
         except Exception as e:
-            return ""
+            return "", None
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Portico Brewing"""
@@ -159,10 +183,11 @@ class PorticoScraper(BaseScraper):
                 if link:
                     event_url = link['href']
 
-                # Fetch description from detail page if available
+                # Fetch description and image from detail page if available
                 description = ""
+                image_url = None
                 if event_url:
-                    description = self.fetch_event_description(event_url)
+                    description, image_url = self.fetch_event_details(event_url)
 
                 # Fallback description from list page
                 if not description or len(description) < 20:
@@ -216,7 +241,8 @@ class PorticoScraper(BaseScraper):
                     state=state,
                     zip_code=zip_code,
                     category=category,
-                    cost=cost
+                    cost=cost,
+                    image_url=image_url
                 )
                 events.append(event)
 

@@ -18,11 +18,13 @@ class LamplighterScraper(BaseScraper):
             use_selenium=True  # JavaScript-rendered content
         )
 
-    def fetch_event_description(self, event_url: str) -> str:
-        """Fetch the full description from an event detail page"""
+    def fetch_event_details(self, event_url: str) -> tuple:
+        """Fetch the full description and image from an event detail page
+        Returns (description, image_url)
+        """
         try:
             if not self.driver:
-                return ""
+                return "", None
 
             # Navigate to event page
             full_url = event_url if event_url.startswith('http') else f"https://lamplighterbrewing.com{event_url}"
@@ -33,6 +35,27 @@ class LamplighterScraper(BaseScraper):
             # Parse the page
             html = self.driver.page_source
             soup = self.parse_html(html)
+
+            # Extract image - look for product/event image
+            image_url = None
+
+            # Try og:image first
+            og_image = soup.find('meta', property='og:image')
+            if og_image and og_image.get('content'):
+                image_url = og_image['content']
+
+            # If no og:image, look for product image
+            if not image_url:
+                product_img = soup.find('img', class_=lambda x: x and 'product' in x.lower() if x else False)
+                if product_img:
+                    image_url = product_img.get('src') or product_img.get('data-src')
+
+            # Normalize image URL
+            if image_url and not image_url.startswith('http'):
+                if image_url.startswith('//'):
+                    image_url = f'https:{image_url}'
+                else:
+                    image_url = f"https://lamplighterbrewing.com{image_url}"
 
             # Find description paragraphs in the RTE (Rich Text Editor) div
             description_parts = []
@@ -58,14 +81,14 @@ class LamplighterScraper(BaseScraper):
 
                     description_parts.append(text)
 
+            description = ""
             if description_parts:
                 full_description = ' '.join(description_parts)
-                # Return full description, not truncated
-                return full_description[:2000] if len(full_description) > 2000 else full_description
+                description = full_description[:2000] if len(full_description) > 2000 else full_description
 
-            return ""
+            return description, image_url
         except Exception as e:
-            return ""
+            return "", None
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Lamplighter Brewing"""
@@ -185,8 +208,8 @@ class LamplighterScraper(BaseScraper):
                     street_address = "110 N First St"
                     zip_code = "02141"
 
-                # Fetch description from detail page
-                description = self.fetch_event_description(event_url)
+                # Fetch description and image from detail page
+                description, image_url = self.fetch_event_details(event_url)
 
                 # Fallback if description fetch failed
                 if not description or len(description) < 20:
@@ -213,7 +236,8 @@ class LamplighterScraper(BaseScraper):
                     state="MA",
                     zip_code=zip_code,
                     category=category,
-                    cost=cost
+                    cost=cost,
+                    image_url=image_url
                 )
                 events.append(event)
 

@@ -3,6 +3,10 @@ from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field, HttpUrl, EmailStr
 from enum import Enum
+import pytz
+
+# All events are in Eastern Time (Cambridge/Somerville, MA)
+EASTERN_TZ = pytz.timezone('America/New_York')
 
 
 class EventCategory(str, Enum):

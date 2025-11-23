@@ -6,8 +6,9 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 import json
 import os
+import pytz
 
-from src.models.event import Event, EventCategory
+from src.models.event import Event, EventCategory, EASTERN_TZ
 
 app = FastAPI(
     title="Cambridge-Somerville Event Scraper API",
@@ -100,10 +101,12 @@ async def get_events(
     """
     events = load_events()
 
-    # Filter upcoming events if requested
+    # Filter upcoming events if requested (using Eastern Time since all events are in Cambridge/Somerville)
     if upcoming_only:
-        now = datetime.utcnow()
-        events = [e for e in events if e.start_datetime >= now]
+        now = datetime.now(EASTERN_TZ)
+        # Compare as naive datetimes (event datetimes are stored as naive but are implicitly Eastern)
+        now_naive = now.replace(tzinfo=None)
+        events = [e for e in events if e.start_datetime >= now_naive]
 
     # Apply filters
     if category:

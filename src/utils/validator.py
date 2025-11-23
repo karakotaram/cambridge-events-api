@@ -2,7 +2,9 @@
 import re
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
-from src.models.event import EventCreate
+import pytz
+
+from src.models.event import EventCreate, EASTERN_TZ
 
 
 class EventValidator:
@@ -25,12 +27,13 @@ class EventValidator:
         if not event.start_datetime:
             return False, "Missing start datetime"
 
-        # Check date is not too far in past
-        if event.start_datetime < datetime.now() - timedelta(days=30):
+        # Check date is not too far in past (using Eastern Time since all events are in Cambridge/Somerville)
+        now_eastern = datetime.now(EASTERN_TZ).replace(tzinfo=None)  # Compare as naive datetimes
+        if event.start_datetime < now_eastern - timedelta(days=30):
             return False, "Event date is too far in the past"
 
         # Check date is not too far in future (likely data error)
-        if event.start_datetime > datetime.now() + timedelta(days=730):  # 2 years
+        if event.start_datetime > now_eastern + timedelta(days=730):  # 2 years
             return False, "Event date is too far in the future"
 
         # Check for garbage data in title

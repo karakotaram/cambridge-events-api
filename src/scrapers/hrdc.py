@@ -18,11 +18,13 @@ class HRDCScraper(BaseScraper):
             use_selenium=True
         )
 
-    def fetch_show_description(self, show_url: str) -> str:
-        """Fetch the description from a show detail page"""
+    def fetch_show_details(self, show_url: str) -> tuple:
+        """Fetch the description and image from a show detail page
+        Returns (description, image_url)
+        """
         try:
             if not self.driver:
-                return ""
+                return "", None
 
             self.driver.get(show_url)
             import time
@@ -31,32 +33,56 @@ class HRDCScraper(BaseScraper):
             html = self.driver.page_source
             soup = self.parse_html(html)
 
-            # Find main content area
+            # Extract image - look for show poster/image
+            image_url = None
+
+            # Try og:image first
+            og_image = soup.find('meta', property='og:image')
+            if og_image and og_image.get('content'):
+                image_url = og_image['content']
+
+            # If no og:image, look for show image in main content
+            if not image_url:
+                main = soup.find('main') or soup.find('article')
+                if main:
+                    img = main.find('img', src=True)
+                    if img:
+                        img_src = img.get('src') or img.get('data-src')
+                        if img_src and not any(skip in img_src.lower() for skip in ['logo', 'icon', 'avatar']):
+                            image_url = img_src
+
+            # Normalize image URL
+            if image_url and not image_url.startswith('http'):
+                if image_url.startswith('//'):
+                    image_url = f'https:{image_url}'
+                else:
+                    image_url = f"https://hrdctheater.org{image_url}"
+
+            # Find main content area for description
             main = soup.find('main') or soup.find('article')
-            if not main:
-                return ""
+            description = ""
+            if main:
+                # Get all paragraphs from main
+                paragraphs = main.find_all('p')
+                description_parts = []
 
-            # Get all paragraphs from main
-            paragraphs = main.find_all('p')
-            description_parts = []
+                for p in paragraphs:
+                    text = self.clean_text(p.get_text())
+                    # Look for substantive paragraphs (skip credits, dates, warnings)
+                    if len(text) > 100 and not any(skip in text.lower() for skip in [
+                        'director', 'producer', 'stage manager', 'music director',
+                        'wednesday,', 'thursday,', 'friday,', 'saturday,', 'sunday,',
+                        'run time:', 'content warning', 'free with huid'
+                    ]):
+                        description_parts.append(text)
 
-            for p in paragraphs:
-                text = self.clean_text(p.get_text())
-                # Look for substantive paragraphs (skip credits, dates, warnings)
-                if len(text) > 100 and not any(skip in text.lower() for skip in [
-                    'director', 'producer', 'stage manager', 'music director',
-                    'wednesday,', 'thursday,', 'friday,', 'saturday,', 'sunday,',
-                    'run time:', 'content warning', 'free with huid'
-                ]):
-                    description_parts.append(text)
+                if description_parts:
+                    # Use the first substantive paragraph as description
+                    description = description_parts[0][:2000]
 
-            if description_parts:
-                # Use the first substantive paragraph as description
-                return description_parts[0][:2000]
-
-            return ""
+            return description, image_url
         except Exception:
-            return ""
+            return "", None
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from HRDC calendar"""
@@ -132,8 +158,8 @@ class HRDCScraper(BaseScraper):
                             if venue_text and len(venue_text) < 100:
                                 venue_name = venue_text[:200]
 
-                    # Fetch description from show detail page
-                    description = self.fetch_show_description(event_url)
+                    # Fetch description and image from show detail page
+                    description, image_url = self.fetch_show_details(event_url)
                     if not description or len(description) < 50:
                         description = title
 
@@ -150,7 +176,8 @@ class HRDCScraper(BaseScraper):
                         street_address=street_address,
                         city="Cambridge",
                         state="MA",
-                        category=category
+                        category=category,
+                        image_url=image_url
                     )
                     events.append(event)
 
