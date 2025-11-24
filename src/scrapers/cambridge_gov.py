@@ -264,22 +264,35 @@ class CambridgeGovScraper(BaseScraper):
         """Categorize event based on keywords"""
         text = f"{title} {description}".lower()
 
-        # Check trivia first to ensure it takes priority
-        if any(word in text for word in ['trivia', 'quiz', 'jeopardy', 'bingo']):
-            return EventCategory.ARTS_CULTURE
-        elif any(word in text for word in ['concert', 'music', 'band', 'orchestra']):
-            return EventCategory.MUSIC
-        elif any(word in text for word in ['art', 'gallery', 'exhibit', 'museum']):
-            return EventCategory.ARTS_CULTURE
-        elif any(word in text for word in ['theater', 'play', 'performance', 'drama']):
-            return EventCategory.THEATER
-        elif any(word in text for word in ['lecture', 'talk', 'presentation', 'seminar']):
-            return EventCategory.LECTURES
-        elif any(word in text for word in ['sport', 'game', 'tournament', 'fitness']):
+        # Fitness/exercise classes should be sports (check before generic "game" keyword)
+        if any(word in text for word in ['zumba', 'yoga', 'pilates', 'tai chi', 'exercise', 'workout', 'dance class', 'aerobics']):
             return EventCategory.SPORTS
-        elif any(word in text for word in ['food', 'restaurant', 'dining', 'drink']):
+        # Concert/music events
+        elif any(word in text for word in ['concert', 'music', 'band', 'orchestra', 'jazz', 'rock', 'folk music']):
+            return EventCategory.MUSIC
+        # Children's activities (crafts, story time, sing-alongs)
+        elif any(word in text for word in ['story time', 'storytime', 'sing-along', 'craft', 'children', 'kids activity']):
+            return EventCategory.ARTS_CULTURE
+        # Trivia and games
+        elif any(word in text for word in ['trivia', 'quiz', 'jeopardy', 'bingo']):
+            return EventCategory.ARTS_CULTURE
+        # Art and culture
+        elif any(word in text for word in ['art', 'gallery', 'exhibit', 'museum', 'painting', 'sculpture']):
+            return EventCategory.ARTS_CULTURE
+        # Theater
+        elif any(word in text for word in ['theater', 'play', 'performance', 'drama', 'acting']):
+            return EventCategory.THEATER
+        # Lectures and educational
+        elif any(word in text for word in ['lecture', 'talk', 'presentation', 'seminar', 'workshop', 'class']):
+            return EventCategory.LECTURES
+        # Sports (check after fitness classes)
+        elif any(word in text for word in ['sport', 'tournament', 'competition', 'athletics']):
+            return EventCategory.SPORTS
+        # Food and drink (be specific to avoid false matches)
+        elif any(word in text for word in ['tasting', 'brewery', 'wine', 'beer', 'cocktail', 'dinner', 'brunch', 'lunch']):
             return EventCategory.FOOD_DRINK
-        elif any(word in text for word in ['community', 'meeting', 'council', 'public']):
+        # Community events
+        elif any(word in text for word in ['community', 'meeting', 'council', 'public hearing', 'town hall']):
             return EventCategory.COMMUNITY
         else:
             return EventCategory.OTHER
