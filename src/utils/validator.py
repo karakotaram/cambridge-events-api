@@ -167,38 +167,67 @@ class EventValidator:
 
     @staticmethod
     def is_family_friendly(event: EventCreate) -> bool:
-        """Detect if an event is family-friendly based on keywords"""
+        """Detect if an event is family-friendly based on keywords and time"""
+        import re
+
+        # Late night events (8pm or later) are unlikely to be family-friendly
+        # Unless they explicitly say "all ages" or "family"
+        if event.start_datetime and event.start_datetime.hour >= 20:
+            text = f"{event.title} {event.description}".lower()
+            # Only tag as family-friendly if explicitly mentioned
+            explicit_family = ['all ages', 'all-ages', 'family friendly', 'family-friendly',
+                              'family event', 'family program', 'family fun', 'family day']
+            if not any(phrase in text for phrase in explicit_family):
+                return False
+
         # Combine title and description for searching
         text = f"{event.title} {event.description}".lower()
 
-        # Keywords that indicate family-friendly events
-        family_keywords = [
-            # Age-related
-            'kids', 'kid', 'children', 'child', 'babies', 'baby', 'toddler', 'toddlers',
-            'infant', 'infants', 'youth', 'teen', 'teens', 'teenager',
+        # Keywords that require word boundary matching (to avoid false positives)
+        # e.g., 'teen' should not match 'nineteenth'
+        boundary_keywords = [
+            r'\bkids?\b',  # kid, kids
+            r'\bchildren\b', r'\bchild\b',
+            r'\bbab(y|ies)\b',  # baby, babies
+            r'\btoddlers?\b',  # toddler, toddlers
+            r'\binfants?\b',  # infant, infants
+            r'\byouth\b',
+            r'\bteens?\b', r'\bteenager\b',  # teen, teens, teenager (not nineteenth)
+            r'\bpuppets?\b',  # puppet, puppets (not muppet)
+            r'\bpajamas?\b',  # pajama, pajamas
+            r'\bcaregiver\b',
+            # Note: 'craft/crafts' removed - too generic (matches adult artisan markets)
+        ]
+
+        for pattern in boundary_keywords:
+            if re.search(pattern, text):
+                return True
+
+        # Multi-word phrases and specific terms (less likely to have false positives)
+        phrase_keywords = [
             # Program types
             'story time', 'storytime', 'story hour', 'lapsit', 'lap sit',
             'family program', 'family event', 'family fun', 'family day',
-            'puppet', 'puppets', 'puppet show',
+            'puppet show',
             # Age indicators
             'all ages', 'all-ages', 'family friendly', 'family-friendly',
             'ages 0', 'ages 1', 'ages 2', 'ages 3', 'ages 4', 'ages 5',
             'ages 6', 'ages 7', 'ages 8', 'ages 9', 'ages 10',
             'ages 0-', 'ages 1-', 'ages 2-', 'ages 3-', 'ages 4-', 'ages 5-',
             # Activities
-            'craft', 'crafts', 'arts and crafts',
+            'arts and crafts',
             'sing along', 'sing-along', 'singalong',
             'read aloud', 'read-aloud',
             'playgroup', 'play group', 'playdate', 'play date',
             # Specific programs
-            'pajama', 'pj storytime',
+            'pj storytime',
             'preschool', 'pre-school',
             'kindergarten',
             'young readers', 'young reader',
-            'parent and child', 'parent & child', 'caregiver',
+            'parent and child', 'parent & child',
         ]
 
-        for keyword in family_keywords:
+        for keyword in phrase_keywords:
             if keyword in text:
                 return True
 
