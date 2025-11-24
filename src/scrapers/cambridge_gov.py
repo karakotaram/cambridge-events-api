@@ -64,29 +64,26 @@ class CambridgeGovScraper(BaseScraper):
             return ""
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from Cambridge.gov city calendar for the current month"""
+        """Scrape events from Cambridge.gov city calendar starting from today"""
         events = []
         seen_urls = set()  # Track URLs to avoid duplicates
 
-        # Get events for the whole current month
+        # Start from today to avoid scraping old data
         today = datetime.now()
-        # Start from beginning of current month
-        start_date = today.replace(day=1)
-        # End at end of current month
-        if today.month == 12:
-            end_date = today.replace(year=today.year + 1, month=1, day=1) - timedelta(days=1)
-        else:
-            end_date = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
+        start_date = today
+        # Scrape for next 60 days
+        end_date = today + timedelta(days=60)
 
-        # Scrape each day of the month
+        # Scrape week by week using Week view (more efficient than day by day)
         current_date = start_date
         while current_date <= end_date:
             # Format: YYYYMMDDTHHMMSS
             date_str = current_date.strftime("%Y%m%dT000000")
-            day_url = f"{self.source_url}?start={date_str}&view=Day&page=1&resultsperpage=50"
+            # Use Week view with 200 results per page
+            week_url = f"{self.source_url}?start={date_str}&view=Week&page=1&resultsperpage=200"
 
             try:
-                html = self.fetch_html(day_url)
+                html = self.fetch_html(week_url)
                 soup = self.parse_html(html)
 
                 # Find event links for this day
@@ -170,8 +167,8 @@ class CambridgeGovScraper(BaseScraper):
             except Exception as e:
                 pass
 
-            # Move to next day
-            current_date += timedelta(days=1)
+            # Move to next week
+            current_date += timedelta(days=7)
 
         return events
 
