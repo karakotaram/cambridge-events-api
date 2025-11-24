@@ -73,6 +73,18 @@ async def health_check():
     }
 
 
+@app.get("/version")
+async def version_check():
+    """Version check endpoint to verify deployment"""
+    return {
+        "version": "1.1.0",
+        "commit": "ff2ca5a",
+        "default_limit": 1000,
+        "max_limit": 5000,
+        "message": "API limit increased to 1000 events by default"
+    }
+
+
 @app.get("/events", response_model=List[Event])
 async def get_events(
     category: Optional[EventCategory] = None,
