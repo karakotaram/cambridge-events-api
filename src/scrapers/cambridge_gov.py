@@ -264,8 +264,8 @@ class CambridgeGovScraper(BaseScraper):
         """Categorize event based on keywords"""
         text = f"{title} {description}".lower()
 
-        # Fitness/exercise classes should be sports (check before generic "game" keyword)
-        if any(word in text for word in ['zumba', 'yoga', 'pilates', 'tai chi', 'exercise', 'workout', 'dance class', 'aerobics']):
+        # Fitness/exercise classes and dance training should be sports (check before generic "game" keyword)
+        if any(word in text for word in ['zumba', 'yoga', 'pilates', 'tai chi', 'exercise', 'workout', 'dance class', 'aerobics', 'line dancing', 'swing dance', 'swing training', 'swing class']):
             return EventCategory.SPORTS
         # Concert/music events
         elif any(word in text for word in ['concert', 'music', 'band', 'orchestra', 'jazz', 'rock', 'folk music']):
