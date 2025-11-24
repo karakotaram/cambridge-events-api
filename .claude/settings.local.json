@@ -17,7 +17,12 @@
       "Bash(if grep -q \"Saved.*total events\" /tmp/cambridge_scrape.log)",
       "Bash(else echo \"Still scraping...\")",
       "WebFetch(domain:hrdctheater.org)",
-      "WebFetch(domain:www.theatreatfirst.org)"
+      "WebFetch(domain:www.theatreatfirst.org)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []
