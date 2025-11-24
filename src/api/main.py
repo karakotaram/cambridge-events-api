@@ -82,7 +82,7 @@ async def get_events(
     upcoming_only: bool = Query(False, description="Show only upcoming events"),
     family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
     sort_order: str = Query("asc", regex="^(asc|desc)$", description="Sort order: asc or desc"),
-    limit: int = Query(100, ge=1, le=1000),
+    limit: int = Query(1000, ge=1, le=5000),
     offset: int = Query(0, ge=0)
 ):
     """
