@@ -270,21 +270,21 @@ class CambridgeGovScraper(BaseScraper):
         # Concert/music events
         elif any(word in text for word in ['concert', 'music', 'band', 'orchestra', 'jazz', 'rock', 'folk music']):
             return EventCategory.MUSIC
+        # Lectures and educational (check before art/culture to catch information sessions)
+        elif any(word in text for word in ['lecture', 'talk', 'presentation', 'seminar', 'workshop', 'information session', 'training program']):
+            return EventCategory.LECTURES
         # Children's activities (crafts, story time, sing-alongs)
         elif any(word in text for word in ['story time', 'storytime', 'sing-along', 'craft', 'children', 'kids activity']):
             return EventCategory.ARTS_CULTURE
         # Trivia and games
         elif any(word in text for word in ['trivia', 'quiz', 'jeopardy', 'bingo']):
             return EventCategory.ARTS_CULTURE
-        # Art and culture
-        elif any(word in text for word in ['art', 'gallery', 'exhibit', 'museum', 'painting', 'sculpture']):
+        # Art and culture (matches after lectures to avoid false matches on "art" substring)
+        elif any(word in text for word in ['art ', ' art', 'gallery', 'exhibit', 'museum', 'painting', 'sculpture']):
             return EventCategory.ARTS_CULTURE
         # Theater
         elif any(word in text for word in ['theater', 'play', 'performance', 'drama', 'acting']):
             return EventCategory.THEATER
-        # Lectures and educational
-        elif any(word in text for word in ['lecture', 'talk', 'presentation', 'seminar', 'workshop', 'class']):
-            return EventCategory.LECTURES
         # Sports (check after fitness classes)
         elif any(word in text for word in ['sport', 'tournament', 'competition', 'athletics']):
             return EventCategory.SPORTS
