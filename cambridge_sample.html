@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambridge Events - Sample</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .event-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .event-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .event-content {
+            padding: 20px;
+        }
+        
+        .event-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+        
+        .event-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+        
+        .meta-icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+        
+        .event-description {
+            color: #718096;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .event-category {
+            display: inline-block;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .event-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        
+        .event-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 Cambridge Events</h1>
+        <p class="subtitle">Sample of 10 upcoming events in Cambridge, MA</p>
+        
+        <div class="events-grid">
+
+            <div class="event-card">
+                <img src="https://www.cambridgema.gov/-/media/Images/cambridgepubliclibrary/libcaleventimages/13674700.png" alt="One-on-One Tech Help at Main Library (CANCELLED)" class="event-image" onerror="this.style.display='none'">
+                <div class="event-content">
+                    <h2 class="event-title">One-on-One Tech Help at Main Library (CANCELLED)</h2>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>November 27, 2025 at 11:00 AM</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Main Library</span>
+                        </div>
+                        <div class="meta-item"><span style="margin-left: 24px; font-size: 0.85em;">449 Broadway, Cambridge, MA 02138</span></div>
+                    </div>
+                    <p class="event-description">Looking for some basic computer or mobile device guidance? Want to learn how to access audiobooks and eBooks? Stop by at the Main Library for our drop...</p>
+                    <span class="event-category">arts and culture</span>
+                    <a href="https://www.cambridgema.gov/citycalendar/view.aspx?guid=fde79618892c4c46a949d227ad1b5615" target="_blank" class="event-link">View Details →</a>
+                </div>
+            </div>
+    
+            <div class="event-card">
+                <img src="https://www.cambridgema.gov/-/media/Images/cambridgepubliclibrary/libcaleventimages/13674701.png" alt="One-on-One Tech Help at Main Library" class="event-image" onerror="this.style.display='none'">
+                <div class="event-content">
+                    <h2 class="event-title">One-on-One Tech Help at Main Library</h2>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>December 04, 2025 at 11:00 AM</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Main Library</span>
+                        </div>
+                        <div class="meta-item"><span style="margin-left: 24px; font-size: 0.85em;">449 Broadway, Cambridge, MA 02138</span></div>
+                    </div>
+                    <p class="event-description">Looking for some basic computer or mobile device guidance? Want to learn how to access audiobooks and eBooks? Stop by at the Main Library for our drop...</p>
+                    <span class="event-category">arts and culture</span>
+                    <a href="https://www.cambridgema.gov/citycalendar/view.aspx?guid=f5983fe8cbd94f61974c4896997486da" target="_blank" class="event-link">View Details →</a>
+                </div>
+            </div>
+    
+            <div class="event-card">
+                <img src="https://www.cambridgema.gov/-/media/Images/cambridgepubliclibrary/libcaleventimages/188341764873000.jpg" alt="Introduction to Acting for Older Adults" class="event-image" onerror="this.style.display='none'">
+                <div class="event-content">
+                    <h2 class="event-title">Introduction to Acting for Older Adults</h2>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>December 04, 2025 at 01:30 PM</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Cambridge Senior Center 806 Massachusetts Avenue Cambridge</span>
+                        </div>
+                        <div class="meta-item"><span style="margin-left: 24px; font-size: 0.85em;">MA 02139</span></div>
+                    </div>
+                    <p class="event-description">Introduction to Theatre is an interactive class where we will read from plays, act out scenes, analyze characters and the plots. No prior theatre expe...</p>
+                    <span class="event-category">other</span>
+                    <a href="https://www.cambridgema.gov/citycalendar/view.aspx?guid=bc5b739332654db79886359445e447df" target="_blank" class="event-link">View Details →</a>
+                </div>
+            </div>
+    
+            <div class="event-card">
+                <img src="https://www.cambridgema.gov/-/media/Images/cambridgepubliclibrary/libcaleventimages/13674702.png" alt="One-on-One Tech Help at Main Library" class="event-image" onerror="this.style.display='none'">
+                <div class="event-content">
+                    <h2 class="event-title">One-on-One Tech Help at Main Library</h2>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>December 11, 2025 at 11:00 AM</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Main Library</span>
+                        </div>
+                        <div class="meta-item"><span style="margin-left: 24px; font-size: 0.85em;">449 Broadway, Cambridge, MA 02138</span></div>
+                    </div>
+                    <p class="event-description">Looking for some basic computer or mobile device guidance? Want to learn how to access audiobooks and eBooks? Stop by at the Main Library for our drop...</p>
+                    <span class="event-category">arts and culture</span>
+                    <a href="https://www.cambridgema.gov/citycalendar/view.aspx?guid=ad0ae2c6ac1440adb6c40033ecda83f9" target="_blank" class="event-link">View Details →</a>
+                </div>
+            </div>
+    
+            <div class="event-card">
+                <img src="https://www.cambridgema.gov/-/media/Images/cambridgepubliclibrary/libcaleventimages/188341765477800.jpg" alt="Introduction to Acting for Older Adults" class="event-image" onerror="this.style.display='none'">
+                <div class="event-content">
+                    <h2 class="event-title">Introduction to Acting for Older Adults</h2>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>December 11, 2025 at 01:30 PM</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Cambridge Senior Center 806 Massachusetts Avenue Cambridge</span>
+                        </div>
+                        <div class="meta-item"><span style="margin-left: 24px; font-size: 0.85em;">MA 02139</span></div>
+                    </div>
+                    <p class="event-description">Introduction to Theatre is an interactive class where we will read from plays, act out scenes, analyze characters and the plots. No prior theatre expe...</p>
+                    <span class="event-category">other</span>
+                    <a href="https://www.cambridgema.gov/citycalendar/view.aspx?guid=1fb0cc3d70c84676a7a54c38c1ba6229" target="_blank" class="event-link">View Details →</a>
+                </div>
+            </div>
+    
+            <div class="event-card">
+                <img src="https://www.cambridgema.gov/-/media/Images/cambridgepubliclibrary/libcaleventimages/15102693.png" alt="Evening Family Story Time (Collins)" class="event-image" onerror="this.style.display='none'">
+                <div class="event-content">
+                    <h2 class="event-title">Evening Family Story Time (Collins)</h2>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>December 17, 2025 at 05:30 PM</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Collins Branch</span>
+                        </div>
+                        <div class="meta-item"><span style="margin-left: 24px; font-size: 0.85em;">64 Aberdeen Ave., Cambridge, MA 02138</span></div>
+                    </div>
+                    <p class="event-description">We invite children and their grown-ups to join us for a special evening story time event. This program will run for 20-25 minutes, with songs, stories...</p>
+                    <span class="event-category">other</span>
+                    <a href="https://www.cambridgema.gov/citycalendar/view.aspx?guid=696d228426db4d1b94a99d79bc82277a" target="_blank" class="event-link">View Details →</a>
+                </div>
+            </div>
+    
+            <div class="event-card">
+                <img src="https://www.cambridgema.gov/-/media/Images/cambridgepubliclibrary/libcaleventimages/13674703.png" alt="One-on-One Tech Help at Main Library" class="event-image" onerror="this.style.display='none'">
+                <div class="event-content">
+                    <h2 class="event-title">One-on-One Tech Help at Main Library</h2>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>December 18, 2025 at 11:00 AM</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Main Library</span>
+                        </div>
+                        <div class="meta-item"><span style="margin-left: 24px; font-size: 0.85em;">449 Broadway, Cambridge, MA 02138</span></div>
+                    </div>
+                    <p class="event-description">Looking for some basic computer or mobile device guidance? Want to learn how to access audiobooks and eBooks? Stop by at the Main Library for our drop...</p>
+                    <span class="event-category">arts and culture</span>
+                    <a href="https://www.cambridgema.gov/citycalendar/view.aspx?guid=5f09dc1547bc4c3e9014f50c39df443f" target="_blank" class="event-link">View Details →</a>
+                </div>
+            </div>
+    
+            <div class="event-card">
+                <img src="https://www.cambridgema.gov/-/media/Images/cambridgepubliclibrary/libcaleventimages/188341766082600.jpg" alt="Introduction to Acting for Older Adults" class="event-image" onerror="this.style.display='none'">
+                <div class="event-content">
+                    <h2 class="event-title">Introduction to Acting for Older Adults</h2>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>December 18, 2025 at 01:30 PM</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Cambridge Senior Center 806 Massachusetts Avenue Cambridge</span>
+                        </div>
+                        <div class="meta-item"><span style="margin-left: 24px; font-size: 0.85em;">MA 02139</span></div>
+                    </div>
+                    <p class="event-description">Introduction to Theatre is an interactive class where we will read from plays, act out scenes, analyze characters and the plots. No prior theatre expe...</p>
+                    <span class="event-category">other</span>
+                    <a href="https://www.cambridgema.gov/citycalendar/view.aspx?guid=479e32fdb4024915a22d37b4cc802b2c" target="_blank" class="event-link">View Details →</a>
+                </div>
+            </div>
+    
+            <div class="event-card">
+                <img src="https://www.cambridgema.gov/-/media/Images/cambridgepubliclibrary/libcaleventimages/13674704.png" alt="One-on-One Tech Help at Main Library" class="event-image" onerror="this.style.display='none'">
+                <div class="event-content">
+                    <h2 class="event-title">One-on-One Tech Help at Main Library</h2>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>December 25, 2025 at 11:00 AM</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Main Library</span>
+                        </div>
+                        <div class="meta-item"><span style="margin-left: 24px; font-size: 0.85em;">449 Broadway, Cambridge, MA 02138</span></div>
+                    </div>
+                    <p class="event-description">Looking for some basic computer or mobile device guidance? Want to learn how to access audiobooks and eBooks? Stop by at the Main Library for our drop...</p>
+                    <span class="event-category">arts and culture</span>
+                    <a href="https://www.cambridgema.gov/citycalendar/view.aspx?guid=be947b6fd16f4a19bf604d76dfa799b1" target="_blank" class="event-link">View Details →</a>
+                </div>
+            </div>
+    
+            <div class="event-card">
+                <img src="https://www.cambridgema.gov/-/media/Images/cambridgepubliclibrary/libcaleventimages/15000188.jpg" alt="Aging with Mindfulness (Virtual)" class="event-image" onerror="this.style.display='none'">
+                <div class="event-content">
+                    <h2 class="event-title">Aging with Mindfulness (Virtual)</h2>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>November 24, 2025 at 09:00 AM</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg class="meta-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Central Square Branch</span>
+                        </div>
+                        <div class="meta-item"><span style="margin-left: 24px; font-size: 0.85em;">45 Pearl St., Cambridge, MA 02139</span></div>
+                    </div>
+                    <p class="event-description">This program, led by Zeenat Potia, will introduce and utilize mindfulness techniques to help us examine and regulate everyday life changes with a focu...</p>
+                    <span class="event-category">arts and culture</span>
+                    <a href="https://www.cambridgema.gov/citycalendar/view.aspx?guid=232afb621a1f49158b959be24191b553" target="_blank" class="event-link">View Details →</a>
+                </div>
+            </div>
+    
+        </div>
+    </div>
+</body>
+</html>

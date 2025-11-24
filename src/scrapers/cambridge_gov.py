@@ -173,6 +173,10 @@ class CambridgeGovScraper(BaseScraper):
                         if len(title) < 5:
                             continue
 
+                        # Skip cancelled events
+                        if 'CANCELLED' in title.upper() or 'CANCELED' in title.upper():
+                            continue
+
                         # Extract event URL
                         event_url = link.get('href', '')
                         if event_url.startswith('/'):

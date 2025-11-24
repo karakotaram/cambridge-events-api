@@ -22,7 +22,15 @@
       "Bash(git commit:*)",
       "Bash(git push)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(if grep -q \"Saved.*events to data/events.json\" /tmp/fresh_scrape.log)",
+      "Bash(else echo \"Still scraping... Current progress:\")",
+      "Bash(timeout 30 python3:*)",
+      "Bash(if grep -q \"Saved.*events to data/events.json\" /tmp/enhanced_scrape.log)",
+      "Bash(if [ -f \"/tmp/final_working_scrape.log\" ])",
+      "Bash(then echo \"Using previous scrape from final_working_scrape.log\")",
+      "Bash(else echo \"No completed scrape found\")",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
