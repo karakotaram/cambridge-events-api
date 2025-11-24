@@ -125,10 +125,9 @@ class CambridgeGovScraper(BaseScraper):
                                     except:
                                         pass
 
-                        # Fetch description from detail page
-                        description = self.fetch_event_description(event_url)
-                        if not description or len(description) < 20:
-                            description = title
+                        # Skip fetching detail pages for now (too slow)
+                        # description = self.fetch_event_description(event_url)
+                        description = title  # Use title as description for now
 
                         # Extract location from parent if available
                         venue_name = None
