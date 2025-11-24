@@ -170,12 +170,12 @@ class EventValidator:
         """Detect if an event is family-friendly based on keywords and time"""
         import re
 
-        # Late night events (8pm or later) are unlikely to be family-friendly
-        # Unless they explicitly say "all ages" or "family"
-        if event.start_datetime and event.start_datetime.hour >= 20:
+        # Evening events (7pm or later) are unlikely to be family-friendly
+        # Unless they explicitly say "family" (not just "all ages" which is ambiguous for concerts)
+        if event.start_datetime and event.start_datetime.hour >= 19:
             text = f"{event.title} {event.description}".lower()
-            # Only tag as family-friendly if explicitly mentioned
-            explicit_family = ['all ages', 'all-ages', 'family friendly', 'family-friendly',
+            # Only tag as family-friendly if explicitly mentioned as family event
+            explicit_family = ['family friendly', 'family-friendly',
                               'family event', 'family program', 'family fun', 'family day']
             if not any(phrase in text for phrase in explicit_family):
                 return False
