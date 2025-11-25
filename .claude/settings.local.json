@@ -30,7 +30,15 @@
       "Bash(if [ -f \"/tmp/final_working_scrape.log\" ])",
       "Bash(then echo \"Using previous scrape from final_working_scrape.log\")",
       "Bash(else echo \"No completed scrape found\")",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:centralsquaretheater.org)",
+      "WebFetch(domain:thecomedystudiocambridge.com)",
+      "WebFetch(domain:www.thedancecomplex.org)",
+      "WebFetch(domain:www.bostonswingcentral.org)",
+      "WebFetch(domain:www.unitysomerville.org)",
+      "WebSearch",
+      "WebFetch(domain:www.thecomedystudio.com)",
+      "WebFetch(domain:www.dancecomplex.org)"
     ],
     "deny": [],
     "ask": []

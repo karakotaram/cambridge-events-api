@@ -60,6 +60,8 @@ class ComedyStudioScraper(BaseScraper):
                             if description:
                                 # Remove HTML tags from description
                                 description = re.sub(r'<[^>]+>', '', description)
+                                # Remove "Ticket Link:" and associated URLs (case-insensitive)
+                                description = re.sub(r'TICKET\s+LINK:\s*https?://[^\s]+\s*', '', description, flags=re.IGNORECASE)
                                 description = self.clean_text(description)
 
                             # Extract image URL

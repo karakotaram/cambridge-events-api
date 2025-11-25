@@ -1,6 +1,7 @@
 """Custom scraper for The Dance Complex"""
 import json
 import re
+import html
 from datetime import datetime
 from typing import List
 from dateutil import parser as date_parser
@@ -68,6 +69,8 @@ class DanceComplexScraper(BaseScraper):
                         # Extract description
                         description = event_data.get('description', '')
                         if description:
+                            # Decode HTML entities first
+                            description = html.unescape(description)
                             # Remove HTML tags from description
                             description = re.sub(r'<[^>]+>', '', description)
                             description = self.clean_text(description)
