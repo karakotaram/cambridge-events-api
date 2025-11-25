@@ -138,6 +138,12 @@ class MideastClubScraper(BaseScraper):
                     if cost_match:
                         cost = cost_match.group()
 
+                # Extract image if available
+                image_url = None
+                img = element.find('img')
+                if img and img.get('src'):
+                    image_url = img.get('src')
+
                 # Create description (since we can't fetch from TicketWeb)
                 description = f"{title} at {venue_name} in Cambridge, MA"
                 if location_elem:
@@ -164,7 +170,8 @@ class MideastClubScraper(BaseScraper):
                     state=state,
                     zip_code=zip_code,
                     category=category,
-                    cost=cost
+                    cost=cost,
+                    image_url=image_url
                 )
                 events.append(event)
 
