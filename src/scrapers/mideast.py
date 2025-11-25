@@ -97,9 +97,12 @@ class MideastClubScraper(BaseScraper):
                     continue
 
                 # Extract time if available
-                time_elem = element.find('div', class_='tw-event-time')
+                # Time is in <span class="tw-event-time"> inside <div class="tw-date-time">
+                time_elem = element.find('span', class_='tw-event-time')
                 if time_elem:
                     time_text = self.clean_text(time_elem.get_text())
+                    # Remove "Show:" prefix if present
+                    time_text = time_text.replace('Show:', '').strip()
                     date_str += f" {time_text}"
 
                 # Parse the date
