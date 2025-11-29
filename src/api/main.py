@@ -151,8 +151,15 @@ async def get_events(
     if family_friendly is not None:
         events = [e for e in events if getattr(e, 'family_friendly', False) == family_friendly]
 
-    # Sort by start date
-    events.sort(key=lambda x: x.start_datetime, reverse=(sort_order == "desc"))
+    # Sort by start date (normalize timezone-aware vs naive datetimes for comparison)
+    def get_sort_key(event):
+        dt = event.start_datetime
+        # Convert to naive datetime for consistent sorting
+        if dt.tzinfo is not None:
+            return dt.replace(tzinfo=None)
+        return dt
+
+    events.sort(key=get_sort_key, reverse=(sort_order == "desc"))
 
     # Apply pagination
     total = len(events)
