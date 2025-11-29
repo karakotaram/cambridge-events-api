@@ -116,9 +116,24 @@ async def get_events(
     # Filter upcoming events if requested (using Eastern Time since all events are in Cambridge/Somerville)
     if upcoming_only:
         now = datetime.now(EASTERN_TZ)
-        # Compare as naive datetimes (event datetimes are stored as naive but are implicitly Eastern)
-        now_naive = now.replace(tzinfo=None)
-        events = [e for e in events if e.start_datetime >= now_naive]
+        # Normalize timezone comparison to handle both aware and naive datetimes
+        filtered_events = []
+        for e in events:
+            event_dt = e.start_datetime
+            # Ensure both datetimes have matching timezone awareness
+            if event_dt.tzinfo is None and now.tzinfo is not None:
+                # Event is naive, make comparison naive
+                now_compare = now.replace(tzinfo=None)
+            elif event_dt.tzinfo is not None and now.tzinfo is None:
+                # Event is aware, make comparison aware
+                now_compare = EASTERN_TZ.localize(now)
+            else:
+                # Both have same timezone awareness
+                now_compare = now if now.tzinfo is not None else now.replace(tzinfo=None)
+
+            if event_dt >= now_compare:
+                filtered_events.append(e)
+        events = filtered_events
 
     # Apply filters
     if category:
