@@ -17,6 +17,7 @@ from src.scrapers.hrdc import HRDCScraper
 from src.scrapers.boston_swing import BostonSwingCentralScraper
 from src.scrapers.comedy_studio import ComedyStudioScraper
 from src.scrapers.dance_complex import DanceComplexScraper
+from src.scrapers.bostonshows import BostonShowsScraper
 from src.scrapers.base_scraper import GenericScraper
 from src.models.event import EventCreate, Event
 from src.utils.validator import EventValidator
@@ -153,6 +154,7 @@ def main():
     orchestrator.register_scraper(BostonSwingCentralScraper())
     orchestrator.register_scraper(ComedyStudioScraper())
     orchestrator.register_scraper(DanceComplexScraper())
+    orchestrator.register_scraper(BostonShowsScraper())
 
     # Register additional sources with generic scraper
     sources = [
