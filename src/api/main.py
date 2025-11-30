@@ -89,6 +89,7 @@ async def version_check():
 async def get_events(
     category: Optional[EventCategory] = None,
     city: Optional[str] = None,
+    source: Optional[str] = Query(None, description="Filter by event source name"),
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     upcoming_only: bool = Query(False, description="Show only upcoming events"),
@@ -103,6 +104,7 @@ async def get_events(
     Parameters:
     - category: Filter by event category
     - city: Filter by city
+    - source: Filter by event source name
     - start_date: Filter events starting after this date
     - end_date: Filter events starting before this date
     - upcoming_only: If true, only show events from today forward
@@ -141,6 +143,9 @@ async def get_events(
 
     if city:
         events = [e for e in events if e.city and e.city.lower() == city.lower()]
+
+    if source:
+        events = [e for e in events if e.source_name and e.source_name.lower() == source.lower()]
 
     if start_date:
         events = [e for e in events if e.start_datetime >= start_date]
