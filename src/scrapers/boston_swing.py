@@ -69,6 +69,10 @@ class BostonSwingCentralScraper(BaseScraper):
                     if href.startswith('http'):
                         event_url = href
 
+                # Special case: Boot Camp uses Wufoo registration
+                if 'boot camp' in title.lower():
+                    event_url = "https://bostonswingcentral.wufoo.com/forms/bsc-swing-boot-camp-2025/"
+
                 # Find the content after the title
                 current = title_elem.find_next_sibling()
 
@@ -84,9 +88,11 @@ class BostonSwingCentralScraper(BaseScraper):
                         break
                     text = self.clean_text(current.get_text())
 
-                    # Look for time information (🗓 EVENING SCHEDULE)
-                    if '🗓' in text or 'EVENING SCHEDULE' in text.upper():
-                        # Extract time from next sibling or same element
+                    # Look for time information - check for noon first
+                    if 'noon' in text.lower() and not time_str:
+                        time_str = '12:00 PM'
+                    # Check for standard time patterns in schedule text
+                    elif ('🗓' in text or 'EVENING SCHEDULE' in text.upper() or 'SCHEDULE' in text.upper()) and not time_str:
                         time_match = re.search(r'(\d{1,2}:\d{2}\s*[ap]m)', text, re.IGNORECASE)
                         if time_match:
                             time_str = time_match.group(1)
