@@ -39,6 +39,9 @@ class AeronautScraper(BaseScraper):
             options.add_experimental_option('useAutomationExtension', False)
 
             self.driver = webdriver.Chrome(options=options)
+            # Set reasonable timeouts to avoid hanging in CI
+            self.driver.set_page_load_timeout(60)
+            self.driver.set_script_timeout(30)
 
             # Hide webdriver property
             self.driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {

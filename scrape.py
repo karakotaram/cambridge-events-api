@@ -56,6 +56,8 @@ class ScraperOrchestrator:
 
     def run_all(self) -> List[Event]:
         """Run all registered scrapers and process results"""
+        import gc
+
         all_events = []
 
         logger.info(f"Starting scrape of {len(self.scrapers)} sources")
@@ -67,6 +69,10 @@ class ScraperOrchestrator:
                 all_events.extend(events)
             except Exception as e:
                 logger.error(f"Scraper {scraper.source_name} failed: {str(e)}")
+            finally:
+                # Force garbage collection between scrapers to free memory
+                # This is especially important for Selenium scrapers in CI
+                gc.collect()
 
         logger.info(f"Total events scraped: {len(all_events)}")
 
@@ -146,26 +152,29 @@ def main():
 
     orchestrator = ScraperOrchestrator()
 
-    # Register high-priority scrapers with custom logic
-    orchestrator.register_scraper(CambridgeGovScraper())
-    orchestrator.register_scraper(LilyPadScraper())
-    orchestrator.register_scraper(MideastClubScraper())
+    # Register scrapers - non-Selenium scrapers first to reduce memory pressure
+    # Non-Selenium scrapers (use requests)
     orchestrator.register_scraper(LamplighterScraper())
-    orchestrator.register_scraper(PorticoScraper())
     orchestrator.register_scraper(HarvardBookStoreScraper())
-    orchestrator.register_scraper(PorterSquareBooksScraper())
-    orchestrator.register_scraper(ArtsAtTheArmoryScraper())
-    orchestrator.register_scraper(HRDCScraper())
     orchestrator.register_scraper(BostonSwingCentralScraper())
     orchestrator.register_scraper(ComedyStudioScraper())
     orchestrator.register_scraper(DanceComplexScraper())
     orchestrator.register_scraper(BostonShowsScraper())
-    orchestrator.register_scraper(CentralSquareTheaterScraper())
     orchestrator.register_scraper(TheatreAtFirstScraper())
-    orchestrator.register_scraper(AeronautScraper())
     orchestrator.register_scraper(FirstParishScraper())
     orchestrator.register_scraper(HarvardArtMuseumsScraper())
     orchestrator.register_scraper(BrattleTheaterScraper())
+
+    # Selenium scrapers (run after non-Selenium to reduce Chrome restarts)
+    orchestrator.register_scraper(CambridgeGovScraper())
+    orchestrator.register_scraper(LilyPadScraper())
+    orchestrator.register_scraper(MideastClubScraper())
+    orchestrator.register_scraper(PorticoScraper())
+    orchestrator.register_scraper(PorterSquareBooksScraper())
+    orchestrator.register_scraper(ArtsAtTheArmoryScraper())
+    orchestrator.register_scraper(HRDCScraper())
+    orchestrator.register_scraper(CentralSquareTheaterScraper())
+    orchestrator.register_scraper(AeronautScraper())
 
     # Run all scrapers
     events = orchestrator.run_all()
