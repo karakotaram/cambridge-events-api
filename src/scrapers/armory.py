@@ -107,11 +107,10 @@ class ArtsAtTheArmoryScraper(BaseScraper):
         # Wait for event elements to actually load
         if self.driver:
             try:
-                # Wait up to 15 seconds for filterDiv elements to appear
+                # Wait for filterDiv elements to appear
                 WebDriverWait(self.driver, 15).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "filterDiv"))
                 )
-                # Additional brief wait for all events to render
                 time.sleep(2)
             except Exception as e:
                 logger.warning(f"Timeout waiting for events to load: {e}")

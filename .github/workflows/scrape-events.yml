@@ -25,9 +25,10 @@ jobs:
 
       - name: Install Chrome for Selenium
         uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
 
-      - name: Install ChromeDriver
-        uses: nanasess/setup-chromedriver@master
+      # Note: ChromeDriver is handled automatically by Selenium 4.15+ Manager
 
       - name: Install Python dependencies
         run: |

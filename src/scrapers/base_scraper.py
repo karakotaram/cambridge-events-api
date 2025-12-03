@@ -32,11 +32,15 @@ class BaseScraper(ABC):
         """Initialize Selenium WebDriver with headless Chrome"""
         if self.driver is None:
             options = Options()
-            options.add_argument('--headless')
+            options.add_argument('--headless=new')  # New headless mode (more stable)
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-dev-shm-usage')
             options.add_argument('--disable-gpu')
+            options.add_argument('--window-size=1920,1080')
+            options.add_argument('--disable-extensions')
+            options.add_argument('--disable-software-rasterizer')
             self.driver = webdriver.Chrome(options=options)
+            self.driver.set_page_load_timeout(60)  # 60 second page load timeout
             logger.info(f"Selenium WebDriver initialized for {self.source_name}")
 
     def cleanup_selenium(self):

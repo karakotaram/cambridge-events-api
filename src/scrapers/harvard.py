@@ -81,7 +81,7 @@ class HarvardBookStoreScraper(BaseScraper):
         # Wait for event elements to actually load
         if self.driver:
             try:
-                # Wait up to 20 seconds for view-content to appear
+                # Wait for view-content to appear
                 WebDriverWait(self.driver, 20).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "view-content"))
                 )

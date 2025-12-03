@@ -20,6 +20,9 @@ from src.scrapers.dance_complex import DanceComplexScraper
 from src.scrapers.bostonshows import BostonShowsScraper
 from src.scrapers.central_square import CentralSquareTheaterScraper
 from src.scrapers.theatre_at_first import TheatreAtFirstScraper
+from src.scrapers.aeronaut import AeronautScraper
+from src.scrapers.first_parish import FirstParishScraper
+from src.scrapers.harvard_art_museums import HarvardArtMuseumsScraper
 from src.models.event import EventCreate, Event
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
@@ -158,6 +161,9 @@ def main():
     orchestrator.register_scraper(BostonShowsScraper())
     orchestrator.register_scraper(CentralSquareTheaterScraper())
     orchestrator.register_scraper(TheatreAtFirstScraper())
+    orchestrator.register_scraper(AeronautScraper())
+    orchestrator.register_scraper(FirstParishScraper())
+    orchestrator.register_scraper(HarvardArtMuseumsScraper())
 
     # Run all scrapers
     events = orchestrator.run_all()
