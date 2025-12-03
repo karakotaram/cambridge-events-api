@@ -104,16 +104,35 @@ class ArtsAtTheArmoryScraper(BaseScraper):
 
         html = self.fetch_html(self.source_url)
 
-        # Wait for filterDiv elements to load
+        # Wait for filterDiv elements to load with extended timeout and scrolling
         if self.driver:
             try:
-                WebDriverWait(self.driver, 15).until(
+                # First wait for basic page load
+                time.sleep(3)
+
+                # Scroll down to trigger lazy loading
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight / 2);")
+                time.sleep(2)
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(2)
+                self.driver.execute_script("window.scrollTo(0, 0);")
+                time.sleep(1)
+
+                # Wait for filterDiv elements with longer timeout
+                WebDriverWait(self.driver, 30).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "filterDiv"))
                 )
-                time.sleep(2)  # Extra wait for all elements
+                time.sleep(3)  # Extra wait for all elements to render
+
+                # Log page state for debugging
+                filter_divs = self.driver.find_elements(By.CLASS_NAME, "filterDiv")
+                logger.info(f"Found {len(filter_divs)} filterDiv elements via Selenium")
+
                 html = self.driver.page_source
             except Exception as e:
                 logger.warning(f"Timeout waiting for events to load: {e}")
+                # Try to get whatever content is available
+                html = self.driver.page_source if self.driver else html
 
         soup = self.parse_html(html)
 

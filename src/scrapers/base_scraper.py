@@ -39,6 +39,8 @@ class BaseScraper(ABC):
             options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-extensions')
             options.add_argument('--disable-software-rasterizer')
+            # Realistic user-agent to avoid bot detection
+            options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
             # Additional stability options for CI environments
             options.add_argument('--disable-setuid-sandbox')
             options.add_argument('--disable-features=VizDisplayCompositor')
@@ -51,9 +53,15 @@ class BaseScraper(ABC):
             options.add_argument('--mute-audio')
             options.add_argument('--no-first-run')
             options.add_argument('--safebrowsing-disable-auto-update')
+            # Disable automation flags that can be detected
+            options.add_argument('--disable-blink-features=AutomationControlled')
+            options.add_experimental_option('excludeSwitches', ['enable-automation'])
+            options.add_experimental_option('useAutomationExtension', False)
             # Memory constraints
             options.add_argument('--js-flags=--max-old-space-size=512')
             self.driver = webdriver.Chrome(options=options)
+            # Remove webdriver property to avoid detection
+            self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
             self.driver.set_page_load_timeout(60)  # 60 second page load timeout
             logger.info(f"Selenium WebDriver initialized for {self.source_name}")
 
