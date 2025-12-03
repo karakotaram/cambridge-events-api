@@ -1,9 +1,18 @@
 """Main scraping orchestrator"""
 import json
 import logging
+import os
 import uuid
 from datetime import datetime
 from typing import List
+
+# Sources that don't work in CI (blocked by cloud IP detection)
+# These should be run locally and their events will be preserved in CI runs
+CI_SKIP_SOURCES = [
+    "Harvard Book Store",
+    "Boston Swing Central",
+    "Aeronaut Brewing",
+]
 
 from src.scrapers.cambridge_gov import CambridgeGovScraper
 from src.scrapers.lilypad import LilyPadScraper
@@ -54,13 +63,15 @@ class ScraperOrchestrator:
         self.scrapers.append(scraper)
         logger.info(f"Registered scraper: {scraper.source_name}")
 
-    def run_all(self) -> List[Event]:
+    def run_all(self, skipped_sources: List[str] = None) -> List[Event]:
         """Run all registered scrapers and process results"""
         import gc
 
         all_events = []
 
         logger.info(f"Starting scrape of {len(self.scrapers)} sources")
+        if skipped_sources:
+            logger.info(f"Skipped sources (will preserve existing events): {skipped_sources}")
 
         for scraper in self.scrapers:
             try:
@@ -87,8 +98,8 @@ class ScraperOrchestrator:
         # Convert to full Event objects with IDs
         final_events = self.finalize_events(deduplicated_events)
 
-        # Save to file
-        self.save_events(final_events)
+        # Save to file (preserving events from skipped sources)
+        self.save_events(final_events, skipped_sources)
 
         return final_events
 
@@ -127,21 +138,38 @@ class ScraperOrchestrator:
 
         return final_events
 
-    def save_events(self, events: List[Event]):
-        """Save events to JSON file"""
-        output_file = f"data/events.json"
+    def save_events(self, events: List[Event], skipped_sources: List[str] = None):
+        """Save events to JSON file, preserving events from skipped sources"""
+        output_file = "data/events.json"
 
         # Create data directory if it doesn't exist
-        import os
         os.makedirs("data", exist_ok=True)
 
-        # Convert to dict for JSON serialization
+        # If we skipped some sources, preserve their events from existing file
+        preserved_events = []
+        if skipped_sources and os.path.exists(output_file):
+            try:
+                with open(output_file, 'r') as f:
+                    existing_events = json.load(f)
+                # Keep events from skipped sources
+                preserved_events = [
+                    e for e in existing_events
+                    if e.get('source_name') in skipped_sources
+                ]
+                logger.info(f"Preserved {len(preserved_events)} events from skipped sources: {skipped_sources}")
+            except Exception as e:
+                logger.warning(f"Could not load existing events: {e}")
+
+        # Convert new events to dict for JSON serialization
         events_dict = [event.model_dump(mode='json') for event in events]
 
-        with open(output_file, 'w') as f:
-            json.dump(events_dict, f, indent=2, default=str)
+        # Combine new events with preserved events
+        all_events = events_dict + preserved_events
 
-        logger.info(f"Saved {len(events)} events to {output_file}")
+        with open(output_file, 'w') as f:
+            json.dump(all_events, f, indent=2, default=str)
+
+        logger.info(f"Saved {len(all_events)} events to {output_file} ({len(events)} new, {len(preserved_events)} preserved)")
 
 
 def main():
@@ -150,13 +178,21 @@ def main():
     logger.info("Cambridge-Somerville Event Scraper")
     logger.info("=" * 80)
 
+    # Check if running in CI environment
+    is_ci = os.environ.get('CI', '').lower() == 'true' or os.environ.get('GITHUB_ACTIONS', '').lower() == 'true'
+    skipped_sources = CI_SKIP_SOURCES if is_ci else []
+
+    if is_ci:
+        logger.info(f"Running in CI - will skip and preserve events from: {skipped_sources}")
+
     orchestrator = ScraperOrchestrator()
 
     # Register scrapers - non-Selenium scrapers first to reduce memory pressure
     # Non-Selenium scrapers (use requests)
     orchestrator.register_scraper(LamplighterScraper())
-    orchestrator.register_scraper(HarvardBookStoreScraper())
-    orchestrator.register_scraper(BostonSwingCentralScraper())
+    if not is_ci:
+        orchestrator.register_scraper(HarvardBookStoreScraper())
+        orchestrator.register_scraper(BostonSwingCentralScraper())
     orchestrator.register_scraper(ComedyStudioScraper())
     orchestrator.register_scraper(DanceComplexScraper())
     orchestrator.register_scraper(BostonShowsScraper())
@@ -174,10 +210,11 @@ def main():
     orchestrator.register_scraper(ArtsAtTheArmoryScraper())
     orchestrator.register_scraper(HRDCScraper())
     orchestrator.register_scraper(CentralSquareTheaterScraper())
-    orchestrator.register_scraper(AeronautScraper())
+    if not is_ci:
+        orchestrator.register_scraper(AeronautScraper())
 
     # Run all scrapers
-    events = orchestrator.run_all()
+    events = orchestrator.run_all(skipped_sources=skipped_sources)
 
     logger.info("=" * 80)
     logger.info(f"SCRAPING COMPLETE - {len(events)} events collected")
