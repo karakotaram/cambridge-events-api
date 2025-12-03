@@ -16,6 +16,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install Chrome for Selenium
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
@@ -43,6 +48,19 @@ jobs:
           scraper = ArtsAtTheArmoryScraper()
           events = scraper.run()
           print(f'Arts at the Armory: {len(events)} events')
+          for e in events[:5]:
+              print(f'  - {e.title[:60]}')
+          "
+
+      - name: Test Aeronaut scraper
+        run: |
+          python3 -c "
+          from src.scrapers.aeronaut import AeronautScraper
+          import logging
+          logging.basicConfig(level=logging.INFO)
+          scraper = AeronautScraper()
+          events = scraper.run()
+          print(f'Aeronaut: {len(events)} events')
           for e in events[:5]:
               print(f'  - {e.title[:60]}')
           "

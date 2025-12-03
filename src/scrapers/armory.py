@@ -18,22 +18,25 @@ class ArtsAtTheArmoryScraper(BaseScraper):
         super().__init__(
             source_name="Arts at the Armory",
             source_url="https://artsatthearmory.org/upcoming-events/",
-            use_selenium=False  # HTML is server-rendered, no need for Selenium
+            use_selenium=True  # Need Selenium to bypass cloud IP blocking
         )
 
     def fetch_event_details(self, event_url: str) -> tuple:
         """Fetch the full description and image from an event detail page
         Returns (description, image_url)
         """
-        import requests
+        import time
 
         try:
+            if not self.driver:
+                return "", None
+
             # Navigate to event page
-            response = requests.get(event_url, timeout=30, headers=self.get_browser_headers())
-            response.raise_for_status()
+            self.driver.get(event_url)
+            time.sleep(2)  # Wait for page load
 
             # Parse the page
-            soup = self.parse_html(response.text)
+            soup = self.parse_html(self.driver.page_source)
 
             # Extract image
             image_url = None
