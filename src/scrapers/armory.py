@@ -97,7 +97,24 @@ class ArtsAtTheArmoryScraper(BaseScraper):
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Arts at the Armory"""
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        import time
+
         html = self.fetch_html(self.source_url)
+
+        # Wait for filterDiv elements to load
+        if self.driver:
+            try:
+                WebDriverWait(self.driver, 15).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "filterDiv"))
+                )
+                time.sleep(2)  # Extra wait for all elements
+                html = self.driver.page_source
+            except Exception as e:
+                logger.warning(f"Timeout waiting for events to load: {e}")
+
         soup = self.parse_html(html)
 
         events = []
@@ -105,6 +122,7 @@ class ArtsAtTheArmoryScraper(BaseScraper):
 
         # Find all event containers
         event_divs = soup.find_all('div', class_='filterDiv')
+        logger.info(f"Found {len(event_divs)} filterDiv elements")
 
         # Limit to reasonable number (20 upcoming events)
         event_divs = event_divs[:20]
