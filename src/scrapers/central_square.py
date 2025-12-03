@@ -19,51 +19,61 @@ class CentralSquareTheaterScraper(BaseScraper):
     def __init__(self):
         super().__init__(
             source_name="Central Square Theater",
-            source_url="https://www.centralsquaretheater.org/shows-events/",
-            use_selenium=False  # Use requests instead - less likely to be blocked
+            source_url="https://www.centralsquaretheater.org/calendar/",
+            use_selenium=True  # Calendar uses AJAX to load events
         )
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from Central Square Theater by finding show links and visiting detail pages"""
+        """Scrape events from Central Square Theater calendar"""
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        import time
+
         events = []
+        seen_events = set()
 
         try:
-            # Get the shows listing page
             logger.info(f"Fetching {self.source_url}")
             html = self.fetch_html(self.source_url)
 
-            if not html:
-                logger.error("Failed to fetch page")
+            if not self.driver:
                 return events
 
-            soup = BeautifulSoup(html, 'html.parser')
-
-            # Find all show links on the page
-            show_links = []
-            for link in soup.find_all('a', href=True):
-                href = link['href']
-                # Look for show detail pages
-                if '/shows/' in href and href not in show_links:
-                    # Make sure it's a full URL
-                    if not href.startswith('http'):
-                        href = f"https://www.centralsquaretheater.org{href}"
-                    show_links.append(href)
-
-            if not show_links:
-                logger.warning("No show links found on page")
-                return events
-
-            logger.info(f"Found {len(show_links)} show links, scraping detail pages...")
-
-            # Visit each show detail page and extract events
-            for show_url in show_links:
+            # Scrape multiple months (current + next 3 months)
+            for month_num in range(4):
                 try:
-                    show_events = self._scrape_show_detail(show_url)
-                    events.extend(show_events)
-                    logger.info(f"Found {len(show_events)} events from {show_url}")
+                    # Wait for calendar events to load
+                    WebDriverWait(self.driver, 15).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, "eventon_list_event"))
+                    )
+                    time.sleep(2)
+
+                    html = self.driver.page_source
+                    soup = BeautifulSoup(html, 'html.parser')
+
+                    # Find all event items in the EventON calendar
+                    event_items = soup.find_all('div', class_='eventon_list_event')
+                    logger.info(f"Found {len(event_items)} event items in month {month_num + 1}")
+
+                    for item in event_items:
+                        try:
+                            event = self._parse_calendar_event(item, seen_events)
+                            if event:
+                                events.append(event)
+                        except Exception as e:
+                            logger.warning(f"Error parsing event: {e}")
+                            continue
+
+                    # Click next month button if not last iteration
+                    if month_num < 3:
+                        next_btn = self.driver.find_element(By.ID, "evcal_next")
+                        next_btn.click()
+                        time.sleep(2)  # Wait for AJAX to load next month
+
                 except Exception as e:
-                    logger.error(f"Error scraping show {show_url}: {e}", exc_info=True)
-                    continue
+                    logger.warning(f"Error scraping month {month_num + 1}: {e}")
+                    break
 
             logger.info(f"Successfully parsed {len(events)} total events")
 
@@ -71,6 +81,82 @@ class CentralSquareTheaterScraper(BaseScraper):
             logger.error(f"Error scraping Central Square Theater: {e}")
 
         return events
+
+    def _parse_calendar_event(self, item, seen_events: set) -> Optional[EventCreate]:
+        """Parse a single event from the EventON calendar"""
+        try:
+            # Get event title
+            title_elem = item.find('span', class_='evcal_event_title')
+            if not title_elem:
+                return None
+            title = self.clean_text(title_elem.get_text())
+            if not title or len(title) < 3:
+                return None
+
+            # Get event URL
+            link_elem = item.find('a', class_='evcal_list_a')
+            event_url = link_elem.get('href') if link_elem else self.source_url
+
+            # Get date/time from data-time attribute (format: "start_unix-end_unix")
+            time_data = item.get('data-time')
+            if not time_data:
+                return None
+
+            try:
+                start_unix = time_data.split('-')[0]
+                start_datetime = datetime.fromtimestamp(int(start_unix))
+            except (ValueError, TypeError, IndexError):
+                return None
+
+            # Create unique key to avoid duplicates
+            event_key = f"{title}_{start_datetime.isoformat()}"
+            if event_key in seen_events:
+                return None
+            seen_events.add(event_key)
+
+            # Try to get description from JSON-LD schema
+            description = f"{title} at Central Square Theater"
+            script_elem = item.find('script', type='application/ld+json')
+            if script_elem:
+                try:
+                    schema_data = json.loads(script_elem.string)
+                    if schema_data.get('description'):
+                        description = self.clean_text(schema_data['description'])
+                except:
+                    pass
+
+            # Get image from schema or img element
+            image_url = None
+            if script_elem:
+                try:
+                    schema_data = json.loads(script_elem.string)
+                    if schema_data.get('image'):
+                        image_url = schema_data['image']
+                except:
+                    pass
+            if not image_url:
+                img_elem = item.find('img')
+                if img_elem:
+                    image_url = img_elem.get('src') or img_elem.get('data-src')
+
+            return EventCreate(
+                title=title,
+                description=description[:2000] if description else f"{title} at Central Square Theater",
+                start_datetime=start_datetime,
+                venue_name="Central Square Theater",
+                street_address="450 Massachusetts Avenue",
+                city="Cambridge",
+                state="MA",
+                zip_code="02139",
+                category=EventCategory.THEATER,
+                image_url=image_url,
+                source_name=self.source_name,
+                source_url=event_url
+            )
+
+        except Exception as e:
+            logger.warning(f"Error parsing calendar event: {e}")
+            return None
 
     def _scrape_show_detail(self, show_url: str) -> List[EventCreate]:
         """Scrape a single show detail page and create an event for the show"""
