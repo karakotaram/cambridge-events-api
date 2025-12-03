@@ -18,26 +18,25 @@ class LamplighterScraper(BaseScraper):
         super().__init__(
             source_name="Lamplighter Brewing",
             source_url="https://lamplighterbrewing.com/collections/events",
-            use_selenium=True  # JavaScript-rendered content
+            use_selenium=False  # HTML is server-rendered, no need for Selenium
         )
 
     def fetch_event_details(self, event_url: str) -> tuple:
         """Fetch the full description and image from an event detail page
         Returns (description, image_url)
         """
-        try:
-            if not self.driver:
-                return "", None
+        import requests
 
+        try:
             # Navigate to event page
             full_url = event_url if event_url.startswith('http') else f"https://lamplighterbrewing.com{event_url}"
-            self.driver.get(full_url)
-            import time
-            time.sleep(2)  # Wait for page load
+            response = requests.get(full_url, timeout=10, headers={
+                'User-Agent': 'Mozilla/5.0 (compatible; CambridgeEventScraper/1.0)'
+            })
+            response.raise_for_status()
 
             # Parse the page
-            html = self.driver.page_source
-            soup = self.parse_html(html)
+            soup = self.parse_html(response.text)
 
             # Extract image - look for product/event image
             image_url = None
@@ -95,25 +94,7 @@ class LamplighterScraper(BaseScraper):
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Lamplighter Brewing"""
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        import time
-
         html = self.fetch_html(self.source_url)
-
-        # Wait for product/event links to load
-        if self.driver:
-            try:
-                # Wait for product links to appear
-                WebDriverWait(self.driver, 15).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='/products/']"))
-                )
-                time.sleep(2)
-            except Exception as e:
-                logger.warning(f"Timeout waiting for events to load: {e}")
-            html = self.driver.page_source
-
         soup = self.parse_html(html)
 
         events = []

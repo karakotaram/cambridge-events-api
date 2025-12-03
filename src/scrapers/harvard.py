@@ -18,24 +18,23 @@ class HarvardBookStoreScraper(BaseScraper):
         super().__init__(
             source_name="Harvard Book Store",
             source_url="https://www.harvard.com/events",
-            use_selenium=True  # JavaScript-rendered content
+            use_selenium=False  # HTML is server-rendered, no need for Selenium
         )
 
     def fetch_event_description(self, event_url: str) -> str:
         """Fetch the full description from an event detail page"""
-        try:
-            if not self.driver:
-                return ""
+        import requests
 
+        try:
             # Navigate to event page
             full_url = event_url if event_url.startswith('http') else f"https://www.harvard.com{event_url}"
-            self.driver.get(full_url)
-            import time
-            time.sleep(2)  # Wait for page load
+            response = requests.get(full_url, timeout=10, headers={
+                'User-Agent': 'Mozilla/5.0 (compatible; CambridgeEventScraper/1.0)'
+            })
+            response.raise_for_status()
 
             # Parse the page
-            html = self.driver.page_source
-            soup = self.parse_html(html)
+            soup = self.parse_html(response.text)
 
             # Find description paragraphs
             description_parts = []
@@ -71,29 +70,7 @@ class HarvardBookStoreScraper(BaseScraper):
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Harvard Book Store"""
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        import time
-
         html = self.fetch_html(self.source_url)
-
-        # Wait for event elements to actually load
-        if self.driver:
-            try:
-                # Wait for view-content to appear
-                WebDriverWait(self.driver, 20).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "view-content"))
-                )
-                # Additional wait for event rows to render
-                WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "views-row"))
-                )
-                time.sleep(2)
-            except Exception as e:
-                logger.warning(f"Timeout waiting for events to load: {e}")
-            html = self.driver.page_source
-
         soup = self.parse_html(html)
 
         events = []

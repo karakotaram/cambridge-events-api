@@ -86,12 +86,34 @@ class PorterSquareBooksScraper(BaseScraper):
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Porter Square Books"""
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        import time
+        import logging
+
+        logger = logging.getLogger(__name__)
+
         html = self.fetch_html(self.source_url)
 
-        # Add extra wait for JavaScript to load
+        # Click list view button to show event articles
         if self.driver:
-            import time
-            time.sleep(5)  # Give JS time to render events
+            try:
+                time.sleep(3)  # Wait for initial page load
+
+                # Click the list view button
+                list_btn = self.driver.find_element(By.CSS_SELECTOR, 'a.events-views-nav__list')
+                list_btn.click()
+
+                # Wait for event-list articles to appear
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "article.event-list"))
+                )
+                time.sleep(2)
+
+            except Exception as e:
+                logger.warning(f"Error switching to list view: {e}")
+
             html = self.driver.page_source
 
         soup = self.parse_html(html)

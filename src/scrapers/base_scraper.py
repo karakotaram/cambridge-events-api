@@ -39,6 +39,20 @@ class BaseScraper(ABC):
             options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-extensions')
             options.add_argument('--disable-software-rasterizer')
+            # Additional stability options for CI environments
+            options.add_argument('--disable-setuid-sandbox')
+            options.add_argument('--disable-features=VizDisplayCompositor')
+            options.add_argument('--remote-debugging-port=9222')
+            options.add_argument('--disable-background-networking')
+            options.add_argument('--disable-default-apps')
+            options.add_argument('--disable-sync')
+            options.add_argument('--disable-translate')
+            options.add_argument('--metrics-recording-only')
+            options.add_argument('--mute-audio')
+            options.add_argument('--no-first-run')
+            options.add_argument('--safebrowsing-disable-auto-update')
+            # Memory constraints
+            options.add_argument('--js-flags=--max-old-space-size=512')
             self.driver = webdriver.Chrome(options=options)
             self.driver.set_page_load_timeout(60)  # 60 second page load timeout
             logger.info(f"Selenium WebDriver initialized for {self.source_name}")
