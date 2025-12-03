@@ -31,9 +31,7 @@ class FirstParishScraper(BaseScraper):
             import requests
             full_url = event_url if event_url.startswith('http') else f"{self.base_url}{event_url}"
 
-            response = requests.get(full_url, timeout=15, headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; CambridgeEventScraper/1.0)'
-            })
+            response = requests.get(full_url, timeout=30, headers=self.get_browser_headers())
             response.raise_for_status()
 
             soup = self.parse_html(response.text)

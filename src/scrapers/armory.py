@@ -29,9 +29,7 @@ class ArtsAtTheArmoryScraper(BaseScraper):
 
         try:
             # Navigate to event page
-            response = requests.get(event_url, timeout=10, headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; CambridgeEventScraper/1.0)'
-            })
+            response = requests.get(event_url, timeout=30, headers=self.get_browser_headers())
             response.raise_for_status()
 
             # Parse the page

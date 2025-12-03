@@ -25,9 +25,7 @@ class DanceComplexScraper(BaseScraper):
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from The Dance Complex iCal feed"""
         try:
-            response = requests.get(self.source_url, timeout=30, headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; CambridgeEventScraper/1.0)'
-            })
+            response = requests.get(self.source_url, timeout=30, headers=self.get_browser_headers())
             response.raise_for_status()
             ical_content = response.text
         except Exception as e:

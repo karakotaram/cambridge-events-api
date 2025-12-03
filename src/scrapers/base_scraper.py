@@ -64,26 +64,57 @@ class BaseScraper(ABC):
             self.driver = None
             logger.info(f"Selenium WebDriver closed for {self.source_name}")
 
-    def fetch_html(self, url: str) -> str:
-        """Fetch HTML content from URL"""
-        try:
-            if self.use_selenium:
-                self.setup_selenium()
-                self.driver.get(url)
-                # Wait for page to load
-                WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, "body"))
-                )
-                return self.driver.page_source
-            else:
-                response = requests.get(url, timeout=10, headers={
-                    'User-Agent': 'Mozilla/5.0 (compatible; CambridgeEventScraper/1.0)'
-                })
-                response.raise_for_status()
-                return response.text
-        except Exception as e:
-            logger.error(f"Error fetching {url}: {str(e)}")
-            raise
+    def get_browser_headers(self) -> dict:
+        """Return headers that mimic a real browser"""
+        return {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Cache-Control': 'max-age=0',
+        }
+
+    def fetch_html(self, url: str, retries: int = 3) -> str:
+        """Fetch HTML content from URL with retry logic"""
+        import time
+
+        last_error = None
+
+        for attempt in range(retries):
+            try:
+                if self.use_selenium:
+                    self.setup_selenium()
+                    self.driver.get(url)
+                    # Wait for page to load
+                    WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.TAG_NAME, "body"))
+                    )
+                    return self.driver.page_source
+                else:
+                    # Use longer timeout and browser-like headers
+                    response = requests.get(
+                        url,
+                        timeout=30,
+                        headers=self.get_browser_headers()
+                    )
+                    response.raise_for_status()
+                    return response.text
+            except Exception as e:
+                last_error = e
+                logger.warning(f"Attempt {attempt + 1}/{retries} failed for {url}: {str(e)}")
+                if attempt < retries - 1:
+                    # Exponential backoff
+                    sleep_time = (attempt + 1) * 2
+                    time.sleep(sleep_time)
+
+        logger.error(f"Error fetching {url} after {retries} attempts: {str(last_error)}")
+        raise last_error
 
     @abstractmethod
     def scrape_events(self) -> List[EventCreate]:
