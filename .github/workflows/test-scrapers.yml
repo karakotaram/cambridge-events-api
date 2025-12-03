@@ -1,0 +1,48 @@
+name: Test Problem Scrapers
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Test Harvard Book Store scraper
+        run: |
+          python3 -c "
+          from src.scrapers.harvard import HarvardBookStoreScraper
+          import logging
+          logging.basicConfig(level=logging.INFO)
+          scraper = HarvardBookStoreScraper()
+          events = scraper.run()
+          print(f'Harvard Book Store: {len(events)} events')
+          for e in events[:5]:
+              print(f'  - {e.title[:60]}')
+          "
+
+      - name: Test Arts at the Armory scraper
+        run: |
+          python3 -c "
+          from src.scrapers.armory import ArtsAtTheArmoryScraper
+          import logging
+          logging.basicConfig(level=logging.INFO)
+          scraper = ArtsAtTheArmoryScraper()
+          events = scraper.run()
+          print(f'Arts at the Armory: {len(events)} events')
+          for e in events[:5]:
+              print(f'  - {e.title[:60]}')
+          "
