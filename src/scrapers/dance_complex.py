@@ -1,178 +1,158 @@
 """Custom scraper for The Dance Complex"""
-import json
+import logging
 import re
-import html
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 from dateutil import parser as date_parser
-from urllib.parse import urljoin
+import requests
 
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
 
+logger = logging.getLogger(__name__)
+
 
 class DanceComplexScraper(BaseScraper):
-    """Custom scraper for The Dance Complex events"""
+    """Custom scraper for The Dance Complex events using iCal feed"""
 
     def __init__(self):
         super().__init__(
             source_name="The Dance Complex",
-            source_url="https://www.dancecomplex.org/",
-            use_selenium=False  # JSON-LD data available in static HTML
+            source_url="https://www.dancecomplex.org/events/?ical=1",
+            use_selenium=False  # Using iCal feed, no Selenium needed
         )
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from The Dance Complex using JSON-LD and HTML"""
-        html = self.fetch_html(self.source_url)
-        soup = self.parse_html(html)
+        """Scrape events from The Dance Complex iCal feed"""
+        try:
+            response = requests.get(self.source_url, timeout=30, headers={
+                'User-Agent': 'Mozilla/5.0 (compatible; CambridgeEventScraper/1.0)'
+            })
+            response.raise_for_status()
+            ical_content = response.text
+        except Exception as e:
+            logger.error(f"Failed to fetch iCal feed: {e}")
+            return []
 
         events = []
+        seen_urls = set()
 
-        # Find JSON-LD script tags
-        json_ld_scripts = soup.find_all('script', type='application/ld+json')
+        # Parse iCal content
+        current_event = {}
+        in_event = False
+        current_field = None
+        current_value = ""
 
-        for script in json_ld_scripts:
-            try:
-                data = json.loads(script.string)
+        for line in ical_content.split('\n'):
+            line = line.rstrip('\r')
 
-                # Handle both single Event and array of Events
-                event_list = []
-                if isinstance(data, dict):
-                    if data.get('@type') == 'Event':
-                        event_list = [data]
-                    elif '@graph' in data:
-                        # Check if @graph contains events
-                        for item in data['@graph']:
-                            if isinstance(item, dict) and item.get('@type') == 'Event':
-                                event_list.append(item)
-                elif isinstance(data, list):
-                    event_list = [item for item in data if isinstance(item, dict) and item.get('@type') == 'Event']
+            # Handle line continuations (lines starting with space or tab)
+            if line.startswith(' ') or line.startswith('\t'):
+                current_value += line[1:]
+                continue
 
-                # Limit to reasonable number
-                for event_data in event_list[:30]:
-                    try:
-                        # Extract title
-                        title = event_data.get('name', '').strip()
-                        if not title or len(title) < 3:
-                            continue
+            # Save previous field if we have one
+            if current_field and current_value:
+                current_event[current_field] = current_value
 
-                        # Extract date
-                        start_date_str = event_data.get('startDate')
-                        if not start_date_str:
-                            continue
+            # Parse new field
+            if ':' in line:
+                field_part, value = line.split(':', 1)
+                # Handle fields with parameters like DTSTART;TZID=America/New_York
+                if ';' in field_part:
+                    current_field = field_part.split(';')[0]
+                else:
+                    current_field = field_part
+                current_value = value
+            else:
+                current_field = None
+                current_value = ""
 
-                        try:
-                            start_datetime = date_parser.parse(start_date_str)
-                        except:
-                            continue
-
-                        # Extract description
-                        description = event_data.get('description', '')
-                        if description:
-                            # Decode HTML entities first
-                            description = html.unescape(description)
-                            # Remove HTML tags from description
-                            description = re.sub(r'<[^>]+>', '', description)
-                            description = self.clean_text(description)
-
-                        # Extract image URL
-                        image_url = None
-                        if 'image' in event_data:
-                            if isinstance(event_data['image'], str):
-                                image_url = event_data['image']
-                            elif isinstance(event_data['image'], dict):
-                                image_url = event_data['image'].get('url')
-                            elif isinstance(event_data['image'], list) and len(event_data['image']) > 0:
-                                first_image = event_data['image'][0]
-                                if isinstance(first_image, str):
-                                    image_url = first_image
-                                elif isinstance(first_image, dict):
-                                    image_url = first_image.get('url')
-
-                        # Extract event URL
-                        event_url = self.source_url
-                        if 'url' in event_data:
-                            url = event_data['url']
-                            if url.startswith('http'):
-                                event_url = url
-                            else:
-                                event_url = urljoin(self.source_url, url)
-
-                        # Extract cost/price
-                        cost = None
-                        if 'offers' in event_data:
-                            offers = event_data['offers']
-                            if isinstance(offers, dict):
-                                if 'price' in offers:
-                                    price_value = offers['price']
-                                    # Handle "0" or "free" prices
-                                    if price_value and str(price_value) not in ['0', '0.00']:
-                                        currency = offers.get('priceCurrency', 'USD')
-                                        if currency == 'USD':
-                                            cost = f"${price_value}"
-                            elif isinstance(offers, list) and len(offers) > 0:
-                                first_offer = offers[0]
-                                if isinstance(first_offer, dict) and 'price' in first_offer:
-                                    price_value = first_offer['price']
-                                    if price_value and str(price_value) not in ['0', '0.00']:
-                                        currency = first_offer.get('priceCurrency', 'USD')
-                                        if currency == 'USD':
-                                            cost = f"${price_value}"
-
-                        # Venue information - The Dance Complex
-                        venue_name = "The Dance Complex"
-                        street_address = "536 Massachusetts Ave"
-                        city = "Cambridge"
-                        state = "MA"
-                        zip_code = "02139"
-
-                        # Extract venue from location if available
-                        if 'location' in event_data:
-                            location = event_data['location']
-                            if isinstance(location, dict):
-                                if 'name' in location:
-                                    venue_name = location['name']
-                                if 'address' in location:
-                                    address = location['address']
-                                    if isinstance(address, dict):
-                                        if 'streetAddress' in address:
-                                            street_address = address['streetAddress']
-                                        if 'addressLocality' in address:
-                                            city = address['addressLocality']
-                                        if 'addressRegion' in address:
-                                            state = address['addressRegion']
-                                        if 'postalCode' in address:
-                                            zip_code = address['postalCode']
-
-                        # All Dance Complex events are sports/dance
-                        category = EventCategory.SPORTS
-
-                        event = EventCreate(
-                            title=title[:200],
-                            description=description[:2000] if description else f"{title} at The Dance Complex in Cambridge, MA",
-                            start_datetime=start_datetime,
-                            source_url=event_url,
-                            source_name=self.source_name,
-                            venue_name=venue_name[:200],
-                            street_address=street_address,
-                            city=city,
-                            state=state,
-                            zip_code=zip_code,
-                            category=category,
-                            cost=cost,
-                            image_url=image_url
-                        )
+            if line == 'BEGIN:VEVENT':
+                in_event = True
+                current_event = {}
+            elif line == 'END:VEVENT':
+                in_event = False
+                # Process the event
+                try:
+                    event = self._parse_ical_event(current_event, seen_urls)
+                    if event:
                         events.append(event)
+                except Exception as e:
+                    logger.warning(f"Failed to parse event: {e}")
+                current_event = {}
 
-                    except Exception as e:
-                        # Log error but continue processing other events
-                        continue
-
-            except json.JSONDecodeError:
-                # Not valid JSON, skip this script tag
-                continue
-            except Exception as e:
-                # Log error but continue processing other script tags
-                continue
+        # Limit to upcoming events (next 60 days) and cap at 30
+        now = datetime.now()
+        cutoff = now + timedelta(days=60)
+        events = [e for e in events if e.start_datetime >= now and e.start_datetime <= cutoff]
+        events = sorted(events, key=lambda e: e.start_datetime)[:30]
 
         return events
+
+    def _parse_ical_event(self, event_data: dict, seen_urls: set) -> EventCreate:
+        """Parse a single iCal VEVENT into an EventCreate"""
+        title = event_data.get('SUMMARY', '').strip()
+        if not title or len(title) < 3:
+            return None
+
+        # Parse start datetime
+        dtstart = event_data.get('DTSTART', '')
+        if not dtstart:
+            return None
+
+        try:
+            # Handle different date formats
+            if 'T' in dtstart:
+                # DateTime format: 20251203T103000
+                start_datetime = datetime.strptime(dtstart[:15], '%Y%m%dT%H%M%S')
+            else:
+                # Date only format: 20251203
+                start_datetime = datetime.strptime(dtstart[:8], '%Y%m%d')
+        except ValueError as e:
+            logger.warning(f"Failed to parse date {dtstart}: {e}")
+            return None
+
+        # Get URL
+        event_url = event_data.get('URL', 'https://www.dancecomplex.org/events/')
+        if event_url in seen_urls:
+            return None
+        seen_urls.add(event_url)
+
+        # Get description and clean it
+        description = event_data.get('DESCRIPTION', '')
+        if description:
+            # Unescape iCal escapes
+            description = description.replace('\\n', '\n').replace('\\,', ',').replace('\\;', ';')
+            # Take first 500 chars for brevity
+            description = self.clean_text(description[:500])
+
+        if not description:
+            description = f"{title} at The Dance Complex"
+
+        # Get image URL
+        image_url = None
+        attach = event_data.get('ATTACH', '')
+        if attach and ('jpeg' in attach.lower() or 'jpg' in attach.lower() or 'png' in attach.lower()):
+            image_url = attach
+
+        # Get location (room/studio)
+        location = event_data.get('LOCATION', '')
+        venue_name = "The Dance Complex"
+        if location:
+            venue_name = f"The Dance Complex - {location}"
+
+        return EventCreate(
+            title=title[:200],
+            description=description[:2000],
+            start_datetime=start_datetime,
+            source_url=event_url,
+            source_name=self.source_name,
+            venue_name=venue_name[:200],
+            street_address="536 Massachusetts Ave",
+            city="Cambridge",
+            state="MA",
+            zip_code="02139",
+            category=EventCategory.SPORTS,
+            image_url=image_url
+        )

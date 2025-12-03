@@ -1,4 +1,5 @@
 """Custom scraper for Harvard Book Store events"""
+import logging
 import re
 from datetime import datetime
 from typing import List
@@ -6,6 +7,8 @@ from dateutil import parser as date_parser
 
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
+
+logger = logging.getLogger(__name__)
 
 
 class HarvardBookStoreScraper(BaseScraper):
@@ -68,12 +71,27 @@ class HarvardBookStoreScraper(BaseScraper):
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Harvard Book Store"""
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        import time
+
         html = self.fetch_html(self.source_url)
 
-        # Add extra wait for JavaScript to load
+        # Wait for event elements to actually load
         if self.driver:
-            import time
-            time.sleep(5)  # Give JS time to render events
+            try:
+                # Wait up to 20 seconds for view-content to appear
+                WebDriverWait(self.driver, 20).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "view-content"))
+                )
+                # Additional wait for event rows to render
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "views-row"))
+                )
+                time.sleep(2)
+            except Exception as e:
+                logger.warning(f"Timeout waiting for events to load: {e}")
             html = self.driver.page_source
 
         soup = self.parse_html(html)

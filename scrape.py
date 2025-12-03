@@ -18,7 +18,8 @@ from src.scrapers.boston_swing import BostonSwingCentralScraper
 from src.scrapers.comedy_studio import ComedyStudioScraper
 from src.scrapers.dance_complex import DanceComplexScraper
 from src.scrapers.bostonshows import BostonShowsScraper
-from src.scrapers.base_scraper import GenericScraper
+from src.scrapers.central_square import CentralSquareTheaterScraper
+from src.scrapers.theatre_at_first import TheatreAtFirstScraper
 from src.models.event import EventCreate, Event
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
@@ -155,15 +156,8 @@ def main():
     orchestrator.register_scraper(ComedyStudioScraper())
     orchestrator.register_scraper(DanceComplexScraper())
     orchestrator.register_scraper(BostonShowsScraper())
-
-    # Register additional sources with generic scraper
-    sources = [
-        ("Somerville City Events", "https://www.somervillema.gov/events"),
-        ("Cambridge Public Library", "https://www.cambridgema.gov/cpl/calendarofevents"),
-    ]
-
-    for name, url in sources:
-        orchestrator.register_scraper(GenericScraper(name, url))
+    orchestrator.register_scraper(CentralSquareTheaterScraper())
+    orchestrator.register_scraper(TheatreAtFirstScraper())
 
     # Run all scrapers
     events = orchestrator.run_all()

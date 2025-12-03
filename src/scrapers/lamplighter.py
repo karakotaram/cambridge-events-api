@@ -1,4 +1,5 @@
 """Custom scraper for Lamplighter Brewing events"""
+import logging
 import re
 from datetime import datetime
 from typing import List
@@ -6,6 +7,8 @@ from dateutil import parser as date_parser
 
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
+
+logger = logging.getLogger(__name__)
 
 
 class LamplighterScraper(BaseScraper):
@@ -92,12 +95,23 @@ class LamplighterScraper(BaseScraper):
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Lamplighter Brewing"""
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        import time
+
         html = self.fetch_html(self.source_url)
 
-        # Add extra wait for JavaScript to load
+        # Wait for product/event links to load
         if self.driver:
-            import time
-            time.sleep(5)  # Give JS time to render events
+            try:
+                # Wait for product links to appear
+                WebDriverWait(self.driver, 15).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='/products/']"))
+                )
+                time.sleep(2)
+            except Exception as e:
+                logger.warning(f"Timeout waiting for events to load: {e}")
             html = self.driver.page_source
 
         soup = self.parse_html(html)
