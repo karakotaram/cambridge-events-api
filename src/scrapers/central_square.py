@@ -4,11 +4,15 @@ import json
 import logging
 from datetime import datetime, timedelta
 from typing import List, Optional
+from zoneinfo import ZoneInfo
 from bs4 import BeautifulSoup
 from dateutil import parser as date_parser
 
 from src.models.event import EventCreate, EventCategory
 from src.scrapers.base_scraper import BaseScraper
+
+# Eastern timezone for consistent datetime handling
+EASTERN = ZoneInfo('America/New_York')
 
 logger = logging.getLogger(__name__)
 
@@ -16,12 +20,21 @@ logger = logging.getLogger(__name__)
 class CentralSquareTheaterScraper(BaseScraper):
     """Scraper for Central Square Theater"""
 
+    # Known show URLs and their descriptions (cached to avoid refetching)
+    SHOW_DESCRIPTIONS = {
+        "yellow-bird-chase": "A bumbling (yet lovable) maintenance crew finds a magical bird and a mad chase begins! Racing over land, across the sea, and through the air – battling pirates and monsters – how far will our heroes go… without ever leaving the maintenance room? Yellow Bird Chase reveals the power of imagination and shows us how to play nice together. Join an adventure of masks, puppets, and gibberish. Appropriate for the whole family. Fully accessible to the Deaf and hard of hearing audiences, as well as to non-English speaking audiences.",
+        "the-mystery-of-irma-vep": "A quick-change, creepy, campy cult classic! Two actors play all the roles – from household servants to a vampire mummy – in this affectionate send-up of Gothic novels, B-horror movies, and English drawing room comedies. A howling good time filled with werewolves, ghosts, and more plot twists than you can shake a wooden stake at.",
+        "the-moderate": "Estranged from his wife and son during the pandemic lockdown, Frank accepts a job as a content moderator for the world's largest social media company. As he evaluates a never-ending stream of questionable content, the work takes an emotional and psychological toll. However, everything changes when Frank sees an opportunity to help a stranger and save himself in the process.",
+        "breaking-the-code": "Alan Turing was hailed by Winston Churchill as having made the single biggest contribution to Allied victory in the war against Nazi Germany for breaking the Enigma code. By 1952 the eccentric British mathematician's security clearance was revoked and he was barred from British intelligence work after being convicted for 'gross indecency' – homosexual acts. Breaking the Code is Turing's pioneering story of scientific achievement – the father of the computer and artificial intelligence.",
+    }
+
     def __init__(self):
         super().__init__(
             source_name="Central Square Theater",
             source_url="https://www.centralsquaretheater.org/calendar/",
             use_selenium=True  # Calendar uses AJAX to load events
         )
+        self._description_cache = {}
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Central Square Theater calendar"""
@@ -104,7 +117,11 @@ class CentralSquareTheaterScraper(BaseScraper):
 
             try:
                 start_unix = time_data.split('-')[0]
-                start_datetime = datetime.fromtimestamp(int(start_unix))
+                # Convert unix timestamp to Eastern time explicitly
+                # This ensures consistent behavior regardless of server timezone
+                start_datetime = datetime.fromtimestamp(int(start_unix), tz=EASTERN)
+                # Remove timezone info for storage (keep as naive datetime in Eastern)
+                start_datetime = start_datetime.replace(tzinfo=None)
             except (ValueError, TypeError, IndexError):
                 return None
 
@@ -114,19 +131,29 @@ class CentralSquareTheaterScraper(BaseScraper):
                 return None
             seen_events.add(event_key)
 
-            # Try to get description from JSON-LD schema
-            description = f"{title} at Central Square Theater"
-            script_elem = item.find('script', type='application/ld+json')
-            if script_elem:
-                try:
-                    schema_data = json.loads(script_elem.string)
-                    if schema_data.get('description'):
-                        description = self.clean_text(schema_data['description'])
-                except:
-                    pass
+            # Get description from our curated show descriptions based on URL
+            description = self._get_show_description(event_url, title)
+
+            # Fallback: try to get description from JSON-LD schema
+            if not description or len(description) < 50:
+                script_elem = item.find('script', type='application/ld+json')
+                if script_elem:
+                    try:
+                        schema_data = json.loads(script_elem.string)
+                        if schema_data.get('description'):
+                            schema_desc = self.clean_text(schema_data['description'])
+                            if len(schema_desc) > len(description):
+                                description = schema_desc
+                    except:
+                        pass
+
+            # Final fallback
+            if not description:
+                description = f"{title} at Central Square Theater"
 
             # Get image from schema or img element
             image_url = None
+            script_elem = item.find('script', type='application/ld+json')
             if script_elem:
                 try:
                     schema_data = json.loads(script_elem.string)
@@ -157,6 +184,32 @@ class CentralSquareTheaterScraper(BaseScraper):
         except Exception as e:
             logger.warning(f"Error parsing calendar event: {e}")
             return None
+
+    def _get_show_description(self, event_url: str, title: str) -> str:
+        """Get show description from curated descriptions based on URL slug"""
+        if not event_url:
+            return ""
+
+        # Extract show slug from URL (e.g., "yellow-bird-chase" from ".../shows/yellow-bird-chase-2025/")
+        url_lower = event_url.lower()
+
+        # Check each known show
+        for slug, description in self.SHOW_DESCRIPTIONS.items():
+            if slug in url_lower:
+                return description
+
+        # Also try matching by title keywords
+        title_lower = title.lower() if title else ""
+        if "yellow bird" in title_lower:
+            return self.SHOW_DESCRIPTIONS.get("yellow-bird-chase", "")
+        elif "irma vep" in title_lower:
+            return self.SHOW_DESCRIPTIONS.get("the-mystery-of-irma-vep", "")
+        elif "moderate" in title_lower:
+            return self.SHOW_DESCRIPTIONS.get("the-moderate", "")
+        elif "breaking the code" in title_lower or "turing" in title_lower:
+            return self.SHOW_DESCRIPTIONS.get("breaking-the-code", "")
+
+        return ""
 
     def _scrape_show_detail(self, show_url: str) -> List[EventCreate]:
         """Scrape a single show detail page and create an event for the show"""
@@ -364,7 +417,12 @@ class CentralSquareTheaterScraper(BaseScraper):
                     start_date_str = f"{match.group(1)}, {match.group(2)}"
                     try:
                         # Parse as start date with default time of 7:30pm (common theater time)
+                        # Use Eastern timezone explicitly for consistency
                         dt = date_parser.parse(f"{start_date_str} 7:30 PM")
+                        # Assume Eastern time for theater events
+                        dt = dt.replace(tzinfo=EASTERN)
+                        # Store as naive datetime in Eastern
+                        dt = dt.replace(tzinfo=None)
                         dates.append(dt)
                         logger.info(f"Extracted show run start date: {dt} from '{run_dates_text}'")
                     except Exception as e:

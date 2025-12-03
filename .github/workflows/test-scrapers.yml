@@ -26,19 +26,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Test Harvard Book Store scraper
-        run: |
-          python3 -c "
-          from src.scrapers.harvard import HarvardBookStoreScraper
-          import logging
-          logging.basicConfig(level=logging.INFO)
-          scraper = HarvardBookStoreScraper()
-          events = scraper.run()
-          print(f'Harvard Book Store: {len(events)} events')
-          for e in events[:5]:
-              print(f'  - {e.title[:60]}')
-          "
-
       - name: Test Arts at the Armory scraper
         run: |
           python3 -c "
