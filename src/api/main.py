@@ -305,7 +305,14 @@ def format_events_for_context(events: List[Event], limit: int = 200) -> str:
         if event_dt >= now:
             upcoming.append(e)
 
-    upcoming.sort(key=lambda x: x.start_datetime)
+    # Normalize timezone for sorting
+    def get_sort_dt(event):
+        dt = event.start_datetime
+        if dt.tzinfo is None:
+            return EASTERN_TZ.localize(dt)
+        return dt
+
+    upcoming.sort(key=get_sort_dt)
     upcoming = upcoming[:limit]
 
     lines = []
@@ -313,11 +320,19 @@ def format_events_for_context(events: List[Event], limit: int = 200) -> str:
         date_str = e.start_datetime.strftime("%A, %B %d, %Y at %I:%M %p")
         cost_str = f" (${e.cost})" if e.cost else " (free/unspecified)"
         family_str = " [Family-friendly]" if getattr(e, 'family_friendly', False) else ""
+        # Handle category as either enum or string
+        cat = e.category
+        if cat is None:
+            cat_str = "general"
+        elif hasattr(cat, 'value'):
+            cat_str = cat.value
+        else:
+            cat_str = str(cat)
         lines.append(
             f"- **{e.title}**{family_str}\n"
             f"  Date: {date_str}\n"
             f"  Venue: {e.venue_name}, {e.city}\n"
-            f"  Category: {e.category.value if e.category else 'general'}{cost_str}\n"
+            f"  Category: {cat_str}{cost_str}\n"
             f"  Description: {e.description[:200]}...\n"
             f"  Link: {e.source_url}\n"
             f"  ID: {e.id}"
