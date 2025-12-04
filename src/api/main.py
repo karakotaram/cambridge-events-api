@@ -89,12 +89,12 @@ async def health_check():
 async def version_check():
     """Version check endpoint to verify deployment"""
     return {
-        "version": "1.2.0",
-        "commit": "a789436",
+        "version": "1.3.0",
+        "commit": "e3fc648",
         "default_limit": 1000,
         "max_limit": 5000,
         "events_count": 2273,
-        "message": "Sunday events now available (281 upcoming)"
+        "message": "Events sampled from morning/afternoon/evening for better coverage"
     }
 
 
