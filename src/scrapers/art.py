@@ -154,6 +154,10 @@ class AmericanRepertoryTheaterScraper(BaseScraper):
                     logger.warning(f"Failed to parse date '{post_date}': {e}")
                     return None
 
+            # Default to 7:30 PM if no time was parsed (midnight means no time found)
+            if start_datetime.hour == 0 and start_datetime.minute == 0:
+                start_datetime = start_datetime.replace(hour=19, minute=30)
+
             # Skip past events
             if start_datetime < datetime.now():
                 return None
@@ -265,6 +269,9 @@ class AmericanRepertoryTheaterScraper(BaseScraper):
                     start_datetime = start_datetime.replace(year=datetime.now().year)
                     if start_datetime < datetime.now():
                         start_datetime = start_datetime.replace(year=datetime.now().year + 1)
+                # Default to 7:30 PM if no time was parsed (midnight means no time found)
+                if start_datetime.hour == 0 and start_datetime.minute == 0:
+                    start_datetime = start_datetime.replace(hour=19, minute=30)
             except Exception as e:
                 return None
 
