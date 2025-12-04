@@ -344,13 +344,12 @@ def get_chat_system_prompt(events_context: str) -> str:
 
 TODAY: {today_str}
 
-IMPORTANT: When recommending events, you MUST include the URL from the event data. Format each recommendation like:
-**Event Name** - Date at Venue
-Link: [actual URL from the data]
+When recommending events, format the title as a markdown link: [Event Title](url)
+Example: [Holiday Jazz](https://example.com) - Thursday at 7PM at Lou's
 
-Parse dates naturally ("this weekend" = Sat/Sun, "next Sunday" = Sunday after this one). Recommend 2-4 events.
+Be warm and helpful. Recommend 2-4 events. Parse dates naturally ("this weekend" = Sat/Sun).
 
-EVENTS (title | date | venue | category | URL):
+EVENTS (title | date | venue | category | url):
 {events_context}"""
 
 
