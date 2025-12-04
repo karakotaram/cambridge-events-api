@@ -89,9 +89,9 @@ async def health_check():
 async def version_check():
     """Version check endpoint to verify deployment"""
     return {
-        "version": "1.5.0",
-        "context_events": 200,
-        "message": "200 events context, 2-3 recommendations only"
+        "version": "1.6.0",
+        "context_events": 150,
+        "message": "150 events, 2-3 recommendations, markdown links"
     }
 
 
@@ -291,7 +291,7 @@ async def get_stats():
     }
 
 
-def format_events_for_context(events: List[Event], limit: int = 200) -> str:
+def format_events_for_context(events: List[Event], limit: int = 150) -> str:
     """Format events into a compressed context string for the LLM"""
     # Sort by date and take upcoming events
     now = datetime.now(EASTERN_TZ)
