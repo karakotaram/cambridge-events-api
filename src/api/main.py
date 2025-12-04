@@ -377,14 +377,17 @@ def get_chat_system_prompt(events_context: str) -> str:
 TODAY: {today_str}
 
 RULES:
-- Recommend only 2-3 best matches, not more
+- Recommend only 2-3 best matches
 - "date night", "evening" = after 5PM
-- "kids", "toddler", "family" = events marked [F]
+- "kids", "toddler", "family" = [F] events
 
-EVENTS (title | date | venue | category | [F]=family-friendly | url):
+EVENTS (title | date | venue | cat | [F] | url):
 {events_context}
 
-FORMAT: [Event Title](url) - Time at Venue"""
+OUTPUT FORMAT (use exactly):
+[Title](url) - Time at Venue
+
+Example: [Jazz Night](https://example.com) - 7pm at Club Passim"""
 
 
 @app.post("/chat", response_model=ChatResponse)
