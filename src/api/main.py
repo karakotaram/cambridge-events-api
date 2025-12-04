@@ -89,12 +89,9 @@ async def health_check():
 async def version_check():
     """Version check endpoint to verify deployment"""
     return {
-        "version": "1.4.0",
-        "commit": "compressed",
-        "default_limit": 1000,
-        "max_limit": 5000,
-        "context_events": 120,
-        "message": "Compressed format, 120 events, [F] for family-friendly"
+        "version": "1.5.0",
+        "context_events": 200,
+        "message": "200 events context, 2-3 recommendations only"
     }
 
 
@@ -294,7 +291,7 @@ async def get_stats():
     }
 
 
-def format_events_for_context(events: List[Event], limit: int = 120) -> str:
+def format_events_for_context(events: List[Event], limit: int = 200) -> str:
     """Format events into a compressed context string for the LLM"""
     # Sort by date and take upcoming events
     now = datetime.now(EASTERN_TZ)
@@ -323,7 +320,7 @@ def format_events_for_context(events: List[Event], limit: int = 120) -> str:
         events_by_date[date_key].append(e)
 
     selected = []
-    for date_key in sorted(events_by_date.keys())[:14]:  # Next 14 days
+    for date_key in sorted(events_by_date.keys())[:21]:  # Next 3 weeks
         day_events = events_by_date[date_key]
         # Bucket by time of day: morning (<12), afternoon (12-17), evening (>=17)
         morning = [e for e in day_events if get_sort_dt(e).hour < 12]
@@ -379,16 +376,15 @@ def get_chat_system_prompt(events_context: str) -> str:
 
 TODAY: {today_str}
 
-INTERPRET USER INTENT:
-- "date night", "evening" = events after 5PM
-- "brunch", "morning" = before 12PM
-- "kids", "toddler", "child", "family" = events marked [F] (family-friendly)
+RULES:
+- Recommend only 2-3 best matches, not more
+- "date night", "evening" = after 5PM
+- "kids", "toddler", "family" = events marked [F]
 
 EVENTS (title | date | venue | category | [F]=family-friendly | url):
 {events_context}
 
-FORMAT: [Event Title](url) - Time at Venue
-Use square brackets around title, parentheses around URL."""
+FORMAT: [Event Title](url) - Time at Venue"""
 
 
 @app.post("/chat", response_model=ChatResponse)
