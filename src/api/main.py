@@ -404,7 +404,7 @@ async def chat_with_events(request: ChatRequest):
     try:
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-1.5-flash-latest",
             system_instruction=system_prompt
         )
 
