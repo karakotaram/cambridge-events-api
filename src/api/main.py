@@ -344,16 +344,13 @@ def get_chat_system_prompt(events_context: str) -> str:
 
 TODAY: {today_str}
 
-CRITICAL: Format event titles as markdown links. Use this EXACT format:
-[Event Title](https://url-here.com) - Time at Venue
-
-WRONG: Holiday Jazz - 7PM at Lou's (https://example.com)
-RIGHT: [Holiday Jazz](https://example.com) - 7PM at Lou's
-
-Recommend 2-4 events. Be friendly.
-
 EVENTS (title | date | venue | category | url):
-{events_context}"""
+{events_context}
+
+RESPONSE FORMAT: When listing events, make the title a clickable markdown link:
+[Event Title](url) - Time at Venue
+
+You MUST use square brackets around title and parentheses around URL."""
 
 
 @app.post("/chat", response_model=ChatResponse)
