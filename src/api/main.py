@@ -8,7 +8,7 @@ from pydantic import BaseModel
 import json
 import os
 import pytz
-import google.generativeai as genai
+from groq import Groq
 
 from src.models.event import Event, EventCategory, EASTERN_TZ
 
@@ -381,11 +381,11 @@ async def chat_with_events(request: ChatRequest):
     - "Find something fun for kids this Sunday"
     """
     # Check for API key
-    api_key = os.environ.get("GOOGLE_API_KEY")
+    api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
         raise HTTPException(
             status_code=500,
-            detail="Chat service not configured. Missing GOOGLE_API_KEY."
+            detail="Chat service not configured. Missing GROQ_API_KEY."
         )
 
     # Load events and build context
@@ -393,28 +393,23 @@ async def chat_with_events(request: ChatRequest):
     events_context = format_events_for_context(events)
     system_prompt = get_chat_system_prompt(events_context)
 
-    # Build conversation history for Gemini
-    history = []
+    # Build messages for Groq (OpenAI-compatible format)
+    messages = [{"role": "system", "content": system_prompt}]
     if request.conversation_history:
-        for msg in request.conversation_history:
-            role = "user" if msg["role"] == "user" else "model"
-            history.append({"role": role, "parts": [msg["content"]]})
+        messages.extend(request.conversation_history)
+    messages.append({"role": "user", "content": request.message})
 
-    # Call Gemini
+    # Call Groq
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-pro")
-
-        # For gemini-pro, prepend system prompt to first message if no history
-        if not history:
-            full_prompt = f"{system_prompt}\n\nUser question: {request.message}"
-            response = model.generate_content(full_prompt)
-        else:
-            chat = model.start_chat(history=history)
-            response = chat.send_message(request.message)
+        client = Groq(api_key=api_key)
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=messages,
+            max_tokens=1024
+        )
 
         return ChatResponse(
-            response=response.text,
+            response=response.choices[0].message.content,
             events=None
         )
 
