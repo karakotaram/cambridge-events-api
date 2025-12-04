@@ -293,7 +293,7 @@ async def get_stats():
     }
 
 
-def format_events_for_context(events: List[Event], limit: int = 200) -> str:
+def format_events_for_context(events: List[Event], limit: int = 75) -> str:
     """Format events into a concise context string for the LLM"""
     # Sort by date and take upcoming events
     now = datetime.now(EASTERN_TZ)
@@ -329,16 +329,10 @@ def format_events_for_context(events: List[Event], limit: int = 200) -> str:
         else:
             cat_str = str(cat)
         lines.append(
-            f"- **{e.title}**{family_str}\n"
-            f"  Date: {date_str}\n"
-            f"  Venue: {e.venue_name}, {e.city}\n"
-            f"  Category: {cat_str}{cost_str}\n"
-            f"  Description: {e.description[:200]}...\n"
-            f"  Link: {e.source_url}\n"
-            f"  ID: {e.id}"
+            f"- {e.title}{family_str} | {date_str} | {e.venue_name}, {e.city} | {cat_str}{cost_str}"
         )
 
-    return "\n\n".join(lines)
+    return "\n".join(lines)
 
 
 def get_chat_system_prompt(events_context: str) -> str:
@@ -346,27 +340,14 @@ def get_chat_system_prompt(events_context: str) -> str:
     today = datetime.now(EASTERN_TZ)
     today_str = today.strftime("%A, %B %d, %Y")
 
-    return f"""You are a friendly, enthusiastic local guide for Cambridge and Somerville, Massachusetts! You help people discover fun events happening in the area.
+    return f"""You are a friendly local guide for Cambridge and Somerville, MA. Help people find events.
 
-TODAY'S DATE: {today_str}
+TODAY: {today_str}
 
-You have access to a database of upcoming local events. When users ask about events, recommend relevant ones from the list below. Be warm, conversational, and helpful!
+When asked about events, recommend 2-4 relevant ones from the list. Be warm and helpful. Parse dates naturally ("this weekend" = Sat/Sun, "next Sunday" = Sunday after this one).
 
-GUIDELINES:
-- Parse natural language dates: "this weekend" = upcoming Saturday/Sunday, "next Sunday" = the Sunday after this one, "tonight" = today's evening
-- Match user interests to event categories and descriptions
-- For family/kid requests, look for family-friendly events or appropriate categories
-- Always include the event title, date/time, venue, and a brief description
-- Include the source URL so they can get more details
-- If no events match, be helpful and suggest checking back or broadening their search
-- Keep responses concise but warm - 2-4 event recommendations is usually ideal
-- Use a friendly, upbeat tone! You love Cambridge/Somerville and want to share great experiences
-
-AVAILABLE EVENTS:
-
-{events_context}
-
-Remember: Be helpful, be specific, and help people find something wonderful to do!"""
+EVENTS:
+{events_context}"""
 
 
 @app.post("/chat", response_model=ChatResponse)
