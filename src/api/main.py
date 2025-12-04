@@ -89,9 +89,9 @@ async def health_check():
 async def version_check():
     """Version check endpoint to verify deployment"""
     return {
-        "version": "1.7.0",
-        "context_events": 250,
-        "message": "250 events context for better coverage"
+        "version": "1.8.0",
+        "context_events": 500,
+        "message": "500 events, 30 days, stricter age guidance"
     }
 
 
@@ -291,7 +291,7 @@ async def get_stats():
     }
 
 
-def format_events_for_context(events: List[Event], limit: int = 250) -> str:
+def format_events_for_context(events: List[Event], limit: int = 500) -> str:
     """Format events into a compressed context string for the LLM"""
     # Sort by date and take upcoming events
     now = datetime.now(EASTERN_TZ)
@@ -320,7 +320,7 @@ def format_events_for_context(events: List[Event], limit: int = 250) -> str:
         events_by_date[date_key].append(e)
 
     selected = []
-    for date_key in sorted(events_by_date.keys())[:21]:  # Next 3 weeks
+    for date_key in sorted(events_by_date.keys())[:30]:  # Next month
         day_events = events_by_date[date_key]
         # Bucket by time of day: morning (<12), afternoon (12-17), evening (>=17)
         morning = [e for e in day_events if get_sort_dt(e).hour < 12]
@@ -333,8 +333,8 @@ def format_events_for_context(events: List[Event], limit: int = 250) -> str:
             other = [e for e in events if not getattr(e, 'family_friendly', False)]
             return family + other
 
-        # Take up to 5 from each time bucket, family-friendly first
-        day_sample = prioritize_family(morning)[:5] + prioritize_family(afternoon)[:5] + prioritize_family(evening)[:5]
+        # Take up to 7 from each time bucket, family-friendly first
+        day_sample = prioritize_family(morning)[:7] + prioritize_family(afternoon)[:7] + prioritize_family(evening)[:7]
         selected.extend(day_sample)
         if len(selected) >= limit:
             break
