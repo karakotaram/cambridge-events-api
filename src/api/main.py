@@ -315,7 +315,7 @@ def format_events_for_context(events: List[Event], limit: int = 50) -> str:
 
     upcoming.sort(key=get_sort_dt)
 
-    # Spread events across the next 10 days (max 8 per day) to ensure coverage
+    # Spread events across days AND times of day to ensure coverage
     from collections import defaultdict
     events_by_date = defaultdict(list)
     for e in upcoming:
@@ -324,8 +324,14 @@ def format_events_for_context(events: List[Event], limit: int = 50) -> str:
 
     selected = []
     for date_key in sorted(events_by_date.keys())[:10]:  # Next 10 days
-        day_events = events_by_date[date_key][:8]  # Max 8 per day
-        selected.extend(day_events)
+        day_events = events_by_date[date_key]
+        # Bucket by time of day: morning (<12), afternoon (12-17), evening (>=17)
+        morning = [e for e in day_events if get_sort_dt(e).hour < 12]
+        afternoon = [e for e in day_events if 12 <= get_sort_dt(e).hour < 17]
+        evening = [e for e in day_events if get_sort_dt(e).hour >= 17]
+        # Take up to 3 from each time bucket
+        day_sample = morning[:3] + afternoon[:3] + evening[:3]
+        selected.extend(day_sample)
         if len(selected) >= limit:
             break
 
