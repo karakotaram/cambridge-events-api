@@ -344,10 +344,13 @@ def get_chat_system_prompt(events_context: str) -> str:
 
 TODAY: {today_str}
 
-When recommending events, format the title as a markdown link: [Event Title](url)
-Example: [Holiday Jazz](https://example.com) - Thursday at 7PM at Lou's
+CRITICAL: Format event titles as markdown links. Use this EXACT format:
+[Event Title](https://url-here.com) - Time at Venue
 
-Be warm and helpful. Recommend 2-4 events. Parse dates naturally ("this weekend" = Sat/Sun).
+WRONG: Holiday Jazz - 7PM at Lou's (https://example.com)
+RIGHT: [Holiday Jazz](https://example.com) - 7PM at Lou's
+
+Recommend 2-4 events. Be friendly.
 
 EVENTS (title | date | venue | category | url):
 {events_context}"""
