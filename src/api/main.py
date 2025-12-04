@@ -418,6 +418,10 @@ async def chat_with_events(request: ChatRequest):
 
     except anthropic.APIError as e:
         raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)} - {error_details}")
 
 
 if __name__ == "__main__":
