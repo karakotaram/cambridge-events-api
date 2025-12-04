@@ -293,7 +293,7 @@ async def get_stats():
     }
 
 
-def format_events_for_context(events: List[Event], limit: int = 75) -> str:
+def format_events_for_context(events: List[Event], limit: int = 40) -> str:
     """Format events into a concise context string for the LLM"""
     # Sort by date and take upcoming events
     now = datetime.now(EASTERN_TZ)
@@ -328,9 +328,9 @@ def format_events_for_context(events: List[Event], limit: int = 75) -> str:
             cat_str = cat.value
         else:
             cat_str = str(cat)
-        lines.append(
-            f"- {e.title}{family_str} | {date_str} | {e.venue_name}, {e.city} | {cat_str}{cost_str}"
-        )
+        title_short = e.title[:60] if len(e.title) > 60 else e.title
+        venue_short = e.venue_name[:30] if len(e.venue_name) > 30 else e.venue_name
+        lines.append(f"- {title_short} | {date_str} | {venue_short} | {cat_str}")
 
     return "\n".join(lines)
 
