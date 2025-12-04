@@ -389,8 +389,10 @@ AGE GUIDANCE (use judgment):
 EVENTS (title | date | venue | cat | [F] | url):
 {events_context}
 
-OUTPUT FORMAT:
-[Title](url) - Time at Venue"""
+IMPORTANT - USE THIS EXACT FORMAT FOR EACH EVENT:
+[Event Title](url) - Time at Venue
+
+Example: [Baby Lapsit](https://cambridgema.gov/event123) - 11am at Collins Branch"""
 
 
 @app.post("/chat", response_model=ChatResponse)
