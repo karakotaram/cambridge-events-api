@@ -89,9 +89,9 @@ async def health_check():
 async def version_check():
     """Version check endpoint to verify deployment"""
     return {
-        "version": "1.6.0",
-        "context_events": 150,
-        "message": "150 events, 2-3 recommendations, markdown links"
+        "version": "1.7.0",
+        "context_events": 250,
+        "message": "250 events context for better coverage"
     }
 
 
@@ -291,7 +291,7 @@ async def get_stats():
     }
 
 
-def format_events_for_context(events: List[Event], limit: int = 150) -> str:
+def format_events_for_context(events: List[Event], limit: int = 250) -> str:
     """Format events into a compressed context string for the LLM"""
     # Sort by date and take upcoming events
     now = datetime.now(EASTERN_TZ)
@@ -333,8 +333,8 @@ def format_events_for_context(events: List[Event], limit: int = 150) -> str:
             other = [e for e in events if not getattr(e, 'family_friendly', False)]
             return family + other
 
-        # Take up to 4 from each time bucket, family-friendly first
-        day_sample = prioritize_family(morning)[:4] + prioritize_family(afternoon)[:4] + prioritize_family(evening)[:4]
+        # Take up to 5 from each time bucket, family-friendly first
+        day_sample = prioritize_family(morning)[:5] + prioritize_family(afternoon)[:5] + prioritize_family(evening)[:5]
         selected.extend(day_sample)
         if len(selected) >= limit:
             break
