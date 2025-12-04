@@ -89,12 +89,12 @@ async def health_check():
 async def version_check():
     """Version check endpoint to verify deployment"""
     return {
-        "version": "1.3.0",
-        "commit": "e3fc648",
+        "version": "1.4.0",
+        "commit": "compressed",
         "default_limit": 1000,
         "max_limit": 5000,
-        "events_count": 2273,
-        "message": "Events sampled from morning/afternoon/evening for better coverage"
+        "context_events": 120,
+        "message": "Compressed format, 120 events, [F] for family-friendly"
     }
 
 
@@ -294,8 +294,8 @@ async def get_stats():
     }
 
 
-def format_events_for_context(events: List[Event], limit: int = 50) -> str:
-    """Format events into a concise context string for the LLM"""
+def format_events_for_context(events: List[Event], limit: int = 120) -> str:
+    """Format events into a compressed context string for the LLM"""
     # Sort by date and take upcoming events
     now = datetime.now(EASTERN_TZ)
     upcoming = []
@@ -323,36 +323,42 @@ def format_events_for_context(events: List[Event], limit: int = 50) -> str:
         events_by_date[date_key].append(e)
 
     selected = []
-    for date_key in sorted(events_by_date.keys())[:10]:  # Next 10 days
+    for date_key in sorted(events_by_date.keys())[:14]:  # Next 14 days
         day_events = events_by_date[date_key]
         # Bucket by time of day: morning (<12), afternoon (12-17), evening (>=17)
         morning = [e for e in day_events if get_sort_dt(e).hour < 12]
         afternoon = [e for e in day_events if 12 <= get_sort_dt(e).hour < 17]
         evening = [e for e in day_events if get_sort_dt(e).hour >= 17]
-        # Take up to 3 from each time bucket
-        day_sample = morning[:3] + afternoon[:3] + evening[:3]
+        # Take up to 4 from each time bucket
+        day_sample = morning[:4] + afternoon[:4] + evening[:4]
         selected.extend(day_sample)
         if len(selected) >= limit:
             break
 
     selected = selected[:limit]
 
+    # Compressed format: title | Fri 12/5 7PM | venue | cat | [F] | url
     lines = []
     for e in selected:
-        date_str = e.start_datetime.strftime("%A, %B %d, %Y at %I:%M %p")
-        cost_str = f" (${e.cost})" if e.cost else " (free/unspecified)"
-        family_str = " [Family-friendly]" if getattr(e, 'family_friendly', False) else ""
-        # Handle category as either enum or string
+        dt = e.start_datetime
+        # Compact date: "Fri 12/5 7PM"
+        date_str = dt.strftime("%a %m/%d %I%p").replace(" 0", " ").replace("AM", "am").replace("PM", "pm")
+
+        # Family-friendly flag
+        family_flag = " [F]" if getattr(e, 'family_friendly', False) else ""
+
+        # Short category
         cat = e.category
         if cat is None:
-            cat_str = "general"
+            cat_str = ""
         elif hasattr(cat, 'value'):
             cat_str = cat.value
         else:
             cat_str = str(cat)
-        title_short = e.title[:60] if len(e.title) > 60 else e.title
-        venue_short = e.venue_name[:30] if len(e.venue_name) > 30 else e.venue_name
-        lines.append(f"- {title_short} | {date_str} | {venue_short} | {cat_str} | {e.source_url}")
+
+        title_short = e.title[:50] if len(e.title) > 50 else e.title
+        venue_short = e.venue_name[:25] if len(e.venue_name) > 25 else e.venue_name
+        lines.append(f"- {title_short} | {date_str} | {venue_short} | {cat_str}{family_flag} | {e.source_url}")
 
     return "\n".join(lines)
 
@@ -366,18 +372,16 @@ def get_chat_system_prompt(events_context: str) -> str:
 
 TODAY: {today_str}
 
-TIME INTERPRETATION:
-- "date night", "evening", "tonight" = events after 5PM
-- "brunch", "morning" = events before 12PM
-- "afternoon" = events 12PM-5PM
+INTERPRET USER INTENT:
+- "date night", "evening" = events after 5PM
+- "brunch", "morning" = before 12PM
+- "kids", "toddler", "child", "family" = events marked [F] (family-friendly)
 
-EVENTS (title | date | venue | category | url):
+EVENTS (title | date | venue | category | [F]=family-friendly | url):
 {events_context}
 
-RESPONSE FORMAT: When listing events, make the title a clickable markdown link:
-[Event Title](url) - Time at Venue
-
-You MUST use square brackets around title and parentheses around URL."""
+FORMAT: [Event Title](url) - Time at Venue
+Use square brackets around title, parentheses around URL."""
 
 
 @app.post("/chat", response_model=ChatResponse)
