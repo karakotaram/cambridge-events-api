@@ -391,10 +391,9 @@ NEVER recommend yoga, theater, jazz, concerts, book groups, or art receptions fo
 EVENTS (title | date | venue | cat | [F] | url):
 {events_context}
 
-IMPORTANT - USE THIS EXACT FORMAT FOR EACH EVENT:
-[Event Title](url) - Time at Venue
+FORMAT: [Event Title](url) - Time at Venue
 
-Example: [Baby Lapsit](https://cambridgema.gov/event123) - 11am at Collins Branch"""
+CRITICAL FOR TODDLERS: If user mentions toddler/1-3 year old, ONLY suggest events containing "story time", "lapsit", "sing-along", "songs", or "baby" in the title. If none match, respond: "I don't see toddler story times on that day - weekday mornings have more options." Do NOT suggest theater, yoga, concerts, or general family events for toddlers."""
 
 
 @app.post("/chat", response_model=ChatResponse)
