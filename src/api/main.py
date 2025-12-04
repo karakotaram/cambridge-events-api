@@ -379,10 +379,10 @@ TODAY: {today_str}
 RULES:
 - Recommend only 2-3 best matches
 - "date night", "evening" = after 5PM
-- "kids", "family" = [F] events
+- If no good matches exist, say so honestly. Don't recommend inappropriate events.
 
-AGE GUIDANCE (use judgment):
-- Toddlers (1-3): story time, lapsit, puppet shows, simple music. NOT theater, jazz, concerts, book groups
+AGE GUIDANCE (be strict):
+- Toddlers (1-3): ONLY story time, lapsit, sing-along, puppet shows. NOT yoga, concerts, theater, jazz, book groups, art receptions
 - Young kids (4-7): family shows, kid concerts, art activities, book groups
 - Older kids (8+): theater, workshops, museums
 
