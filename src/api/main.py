@@ -360,6 +360,11 @@ def get_chat_system_prompt(events_context: str) -> str:
 
 TODAY: {today_str}
 
+TIME INTERPRETATION:
+- "date night", "evening", "tonight" = events after 5PM
+- "brunch", "morning" = events before 12PM
+- "afternoon" = events 12PM-5PM
+
 EVENTS (title | date | venue | category | url):
 {events_context}
 
