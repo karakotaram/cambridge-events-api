@@ -403,13 +403,15 @@ async def chat_with_events(request: ChatRequest):
     # Call Gemini
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash-latest",
-            system_instruction=system_prompt
-        )
+        model = genai.GenerativeModel("gemini-pro")
 
-        chat = model.start_chat(history=history)
-        response = chat.send_message(request.message)
+        # For gemini-pro, prepend system prompt to first message if no history
+        if not history:
+            full_prompt = f"{system_prompt}\n\nUser question: {request.message}"
+            response = model.generate_content(full_prompt)
+        else:
+            chat = model.start_chat(history=history)
+            response = chat.send_message(request.message)
 
         return ChatResponse(
             response=response.text,
