@@ -329,8 +329,15 @@ def format_events_for_context(events: List[Event], limit: int = 120) -> str:
         morning = [e for e in day_events if get_sort_dt(e).hour < 12]
         afternoon = [e for e in day_events if 12 <= get_sort_dt(e).hour < 17]
         evening = [e for e in day_events if get_sort_dt(e).hour >= 17]
-        # Take up to 4 from each time bucket
-        day_sample = morning[:4] + afternoon[:4] + evening[:4]
+
+        # Prioritize family-friendly events in each bucket
+        def prioritize_family(events):
+            family = [e for e in events if getattr(e, 'family_friendly', False)]
+            other = [e for e in events if not getattr(e, 'family_friendly', False)]
+            return family + other
+
+        # Take up to 4 from each time bucket, family-friendly first
+        day_sample = prioritize_family(morning)[:4] + prioritize_family(afternoon)[:4] + prioritize_family(evening)[:4]
         selected.extend(day_sample)
         if len(selected) >= limit:
             break
