@@ -8,7 +8,7 @@ from pydantic import BaseModel
 import json
 import os
 import pytz
-import anthropic
+import google.generativeai as genai
 
 from src.models.event import Event, EventCategory, EASTERN_TZ
 
@@ -381,11 +381,11 @@ async def chat_with_events(request: ChatRequest):
     - "Find something fun for kids this Sunday"
     """
     # Check for API key
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = os.environ.get("GOOGLE_API_KEY")
     if not api_key:
         raise HTTPException(
             status_code=500,
-            detail="Chat service not configured. Missing ANTHROPIC_API_KEY."
+            detail="Chat service not configured. Missing GOOGLE_API_KEY."
         )
 
     # Load events and build context
@@ -393,35 +393,33 @@ async def chat_with_events(request: ChatRequest):
     events_context = format_events_for_context(events)
     system_prompt = get_chat_system_prompt(events_context)
 
-    # Build messages
-    messages = []
+    # Build conversation history for Gemini
+    history = []
     if request.conversation_history:
-        messages.extend(request.conversation_history)
-    messages.append({"role": "user", "content": request.message})
+        for msg in request.conversation_history:
+            role = "user" if msg["role"] == "user" else "model"
+            history.append({"role": role, "parts": [msg["content"]]})
 
-    # Call Claude
+    # Call Gemini
     try:
-        client = anthropic.Anthropic(api_key=api_key)
-        response = client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            max_tokens=1024,
-            system=system_prompt,
-            messages=messages
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            system_instruction=system_prompt
         )
 
-        assistant_message = response.content[0].text
+        chat = model.start_chat(history=history)
+        response = chat.send_message(request.message)
 
         return ChatResponse(
-            response=assistant_message,
-            events=None  # Could parse event IDs from response if needed
+            response=response.text,
+            events=None
         )
 
-    except anthropic.APIError as e:
-        raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)} - {error_details}")
+        raise HTTPException(status_code=500, detail=f"AI service error: {str(e)} - {error_details}")
 
 
 if __name__ == "__main__":
