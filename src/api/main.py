@@ -390,7 +390,7 @@ async def chat_with_events(request: ChatRequest):
     try:
         client = Groq(api_key=api_key)
         response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             messages=messages,
             max_tokens=1024
         )
