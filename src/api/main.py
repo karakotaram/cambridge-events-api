@@ -391,9 +391,13 @@ NEVER recommend yoga, theater, jazz, concerts, book groups, or art receptions fo
 EVENTS (title | date | venue | cat | [F] | url):
 {events_context}
 
-FORMAT: [Event Title](url) - Time at Venue
+CRITICAL FOR TODDLERS: If user mentions toddler/1-3 year old, ONLY suggest events with "story time", "lapsit", "sing-along", "songs", or "baby" in title. If none, say "I don't see toddler story times that day - weekday mornings have more."
 
-CRITICAL FOR TODDLERS: If user mentions toddler/1-3 year old, ONLY suggest events containing "story time", "lapsit", "sing-along", "songs", or "baby" in the title. If none match, respond: "I don't see toddler story times on that day - weekday mornings have more options." Do NOT suggest theater, yoga, concerts, or general family events for toddlers."""
+OUTPUT FORMAT - ALWAYS USE MARKDOWN LINKS:
+[Event Title](https://full-url-here) - Time at Venue
+
+Correct: [Jazz Night](https://passim.org/event/123) - 7pm at Club Passim
+Wrong: Jazz Night - 7pm at Club Passim"""
 
 
 @app.post("/chat", response_model=ChatResponse)
