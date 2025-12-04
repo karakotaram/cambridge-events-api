@@ -4,11 +4,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import List, Optional
 from datetime import datetime, timedelta
+from pydantic import BaseModel
 import json
 import os
 import pytz
+import anthropic
 
 from src.models.event import Event, EventCategory, EASTERN_TZ
+
+
+class ChatRequest(BaseModel):
+    message: str
+    conversation_history: Optional[List[dict]] = None
+
+
+class ChatResponse(BaseModel):
+    response: str
+    events: Optional[List[Event]] = None
 
 app = FastAPI(
     title="Cambridge-Somerville Event Scraper API",
@@ -279,6 +291,118 @@ async def get_stats():
             "latest": latest.isoformat()
         }
     }
+
+
+def format_events_for_context(events: List[Event], limit: int = 200) -> str:
+    """Format events into a concise context string for the LLM"""
+    # Sort by date and take upcoming events
+    now = datetime.now(EASTERN_TZ)
+    upcoming = []
+    for e in events:
+        event_dt = e.start_datetime
+        if event_dt.tzinfo is None:
+            event_dt = EASTERN_TZ.localize(event_dt)
+        if event_dt >= now:
+            upcoming.append(e)
+
+    upcoming.sort(key=lambda x: x.start_datetime)
+    upcoming = upcoming[:limit]
+
+    lines = []
+    for e in upcoming:
+        date_str = e.start_datetime.strftime("%A, %B %d, %Y at %I:%M %p")
+        cost_str = f" (${e.cost})" if e.cost else " (free/unspecified)"
+        family_str = " [Family-friendly]" if getattr(e, 'family_friendly', False) else ""
+        lines.append(
+            f"- **{e.title}**{family_str}\n"
+            f"  Date: {date_str}\n"
+            f"  Venue: {e.venue_name}, {e.city}\n"
+            f"  Category: {e.category.value if e.category else 'general'}{cost_str}\n"
+            f"  Description: {e.description[:200]}...\n"
+            f"  Link: {e.source_url}\n"
+            f"  ID: {e.id}"
+        )
+
+    return "\n\n".join(lines)
+
+
+def get_chat_system_prompt(events_context: str) -> str:
+    """Build the system prompt with event data"""
+    today = datetime.now(EASTERN_TZ)
+    today_str = today.strftime("%A, %B %d, %Y")
+
+    return f"""You are a friendly, enthusiastic local guide for Cambridge and Somerville, Massachusetts! You help people discover fun events happening in the area.
+
+TODAY'S DATE: {today_str}
+
+You have access to a database of upcoming local events. When users ask about events, recommend relevant ones from the list below. Be warm, conversational, and helpful!
+
+GUIDELINES:
+- Parse natural language dates: "this weekend" = upcoming Saturday/Sunday, "next Sunday" = the Sunday after this one, "tonight" = today's evening
+- Match user interests to event categories and descriptions
+- For family/kid requests, look for family-friendly events or appropriate categories
+- Always include the event title, date/time, venue, and a brief description
+- Include the source URL so they can get more details
+- If no events match, be helpful and suggest checking back or broadening their search
+- Keep responses concise but warm - 2-4 event recommendations is usually ideal
+- Use a friendly, upbeat tone! You love Cambridge/Somerville and want to share great experiences
+
+AVAILABLE EVENTS:
+
+{events_context}
+
+Remember: Be helpful, be specific, and help people find something wonderful to do!"""
+
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat_with_events(request: ChatRequest):
+    """
+    Chat with an AI assistant about local events
+
+    The assistant has knowledge of all upcoming events and can help
+    users find events based on natural language queries like:
+    - "What's happening this weekend?"
+    - "I'm looking for live music next Saturday"
+    - "Find something fun for kids this Sunday"
+    """
+    # Check for API key
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="Chat service not configured. Missing ANTHROPIC_API_KEY."
+        )
+
+    # Load events and build context
+    events = load_events()
+    events_context = format_events_for_context(events)
+    system_prompt = get_chat_system_prompt(events_context)
+
+    # Build messages
+    messages = []
+    if request.conversation_history:
+        messages.extend(request.conversation_history)
+    messages.append({"role": "user", "content": request.message})
+
+    # Call Claude
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-3-5-haiku-20241022",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=messages
+        )
+
+        assistant_message = response.content[0].text
+
+        return ChatResponse(
+            response=assistant_message,
+            events=None  # Could parse event IDs from response if needed
+        )
+
+    except anthropic.APIError as e:
+        raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
 
 
 if __name__ == "__main__":

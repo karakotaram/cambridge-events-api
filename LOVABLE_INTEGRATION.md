@@ -14,7 +14,7 @@ Replace `YOUR_API_URL` below with your actual Railway URL.
 
 ### Basic Fetch (All Events)
 ```javascript
-const API_URL = "YOUR_API_URL";
+const API_URL = "https://web-production-00281.up.railway.app/";
 
 async function fetchAllEvents() {
   const response = await fetch(`${API_URL}/events?limit=100`);
@@ -319,6 +319,238 @@ Your API aggregates events from:
 - Porter Square Books
 - Harvard Box Office
 - Cambridge.gov Events
+
+---
+
+## Chat Component - AI Event Assistant
+
+Replace the search box with this chat component for a natural language event discovery experience:
+
+```javascript
+import { useState, useRef, useEffect } from 'react';
+
+const API_URL = "https://web-production-00281.up.railway.app";
+
+function EventChat() {
+  const [messages, setMessages] = useState([
+    {
+      role: 'assistant',
+      content: "Hi! I'm your Cambridge & Somerville event guide. Ask me anything like:\n\n• \"What's happening this weekend?\"\n• \"Find live music next Saturday\"\n• \"Something fun for kids this Sunday\"\n\nWhat are you in the mood for?"
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+
+    const userMessage = input.trim();
+    setInput('');
+
+    // Add user message to chat
+    const newMessages = [...messages, { role: 'user', content: userMessage }];
+    setMessages(newMessages);
+    setLoading(true);
+
+    try {
+      // Build conversation history (exclude the welcome message)
+      const conversationHistory = newMessages
+        .slice(1) // Skip welcome message
+        .slice(-10) // Keep last 10 messages for context
+        .map(m => ({ role: m.role, content: m.content }));
+
+      const response = await fetch(`${API_URL}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage,
+          conversation_history: conversationHistory.slice(0, -1) // Exclude current message
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      setMessages([...newMessages, { role: 'assistant', content: data.response }]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages([
+        ...newMessages,
+        { role: 'assistant', content: "Oops! I'm having trouble connecting right now. Try again in a moment?" }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  return (
+    <div className="event-chat">
+      <div className="chat-messages">
+        {messages.map((msg, idx) => (
+          <div key={idx} className={`message ${msg.role}`}>
+            <div className="message-content">
+              {msg.content.split('\n').map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="message assistant">
+            <div className="message-content typing">
+              <span>●</span><span>●</span><span>●</span>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div className="chat-input-container">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Ask about events..."
+          disabled={loading}
+        />
+        <button onClick={sendMessage} disabled={loading || !input.trim()}>
+          Send
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default EventChat;
+```
+
+### Chat Component Styles
+
+```css
+.event-chat {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  max-width: 600px;
+  margin: 0 auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  line-height: 1.5;
+}
+
+.message.user {
+  align-self: flex-end;
+  background: #007AFF;
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.message.assistant {
+  align-self: flex-start;
+  background: #f0f0f0;
+  color: #333;
+  border-bottom-left-radius: 4px;
+}
+
+.message-content p {
+  margin: 0 0 8px 0;
+}
+
+.message-content p:last-child {
+  margin-bottom: 0;
+}
+
+.typing span {
+  animation: bounce 1.4s infinite ease-in-out;
+  display: inline-block;
+  margin: 0 2px;
+}
+
+.typing span:nth-child(1) { animation-delay: -0.32s; }
+.typing span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+}
+
+.chat-input-container {
+  display: flex;
+  padding: 12px;
+  border-top: 1px solid #e0e0e0;
+  background: #fafafa;
+  gap: 8px;
+}
+
+.chat-input-container input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 24px;
+  font-size: 16px;
+  outline: none;
+}
+
+.chat-input-container input:focus {
+  border-color: #007AFF;
+}
+
+.chat-input-container button {
+  padding: 12px 24px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.chat-input-container button:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.chat-input-container button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+```
 
 ---
 
