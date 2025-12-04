@@ -293,7 +293,7 @@ async def get_stats():
     }
 
 
-def format_events_for_context(events: List[Event], limit: int = 40) -> str:
+def format_events_for_context(events: List[Event], limit: int = 50) -> str:
     """Format events into a concise context string for the LLM"""
     # Sort by date and take upcoming events
     now = datetime.now(EASTERN_TZ)
@@ -313,10 +313,25 @@ def format_events_for_context(events: List[Event], limit: int = 40) -> str:
         return dt
 
     upcoming.sort(key=get_sort_dt)
-    upcoming = upcoming[:limit]
+
+    # Spread events across the next 10 days (max 8 per day) to ensure coverage
+    from collections import defaultdict
+    events_by_date = defaultdict(list)
+    for e in upcoming:
+        date_key = get_sort_dt(e).date()
+        events_by_date[date_key].append(e)
+
+    selected = []
+    for date_key in sorted(events_by_date.keys())[:10]:  # Next 10 days
+        day_events = events_by_date[date_key][:8]  # Max 8 per day
+        selected.extend(day_events)
+        if len(selected) >= limit:
+            break
+
+    selected = selected[:limit]
 
     lines = []
-    for e in upcoming:
+    for e in selected:
         date_str = e.start_datetime.strftime("%A, %B %d, %Y at %I:%M %p")
         cost_str = f" (${e.cost})" if e.cost else " (free/unspecified)"
         family_str = " [Family-friendly]" if getattr(e, 'family_friendly', False) else ""
