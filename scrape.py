@@ -12,6 +12,7 @@ CI_SKIP_SOURCES = [
     "Harvard Book Store",
     "Boston Swing Central",
     "Aeronaut Brewing",
+    "Somerville Theatre",  # SSL handshake failure in CI
 ]
 
 from src.scrapers.cambridge_gov import CambridgeGovScraper
@@ -33,6 +34,9 @@ from src.scrapers.aeronaut import AeronautScraper
 from src.scrapers.first_parish import FirstParishScraper
 from src.scrapers.harvard_art_museums import HarvardArtMuseumsScraper
 from src.scrapers.brattle import BrattleTheaterScraper
+from src.scrapers.sanders_theatre import SandersTheatreScraper
+from src.scrapers.art import AmericanRepertoryTheaterScraper
+from src.scrapers.somerville_theatre import SomervilleTheatreScraper
 from src.models.event import EventCreate, Event
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
@@ -210,8 +214,11 @@ def main():
     orchestrator.register_scraper(ArtsAtTheArmoryScraper())
     orchestrator.register_scraper(HRDCScraper())
     orchestrator.register_scraper(CentralSquareTheaterScraper())
+    orchestrator.register_scraper(SandersTheatreScraper())
+    orchestrator.register_scraper(AmericanRepertoryTheaterScraper())
     if not is_ci:
         orchestrator.register_scraper(AeronautScraper())
+        orchestrator.register_scraper(SomervilleTheatreScraper())
 
     # Run all scrapers
     events = orchestrator.run_all(skipped_sources=skipped_sources)

@@ -17,6 +17,7 @@ from datetime import datetime
 from src.scrapers.harvard import HarvardBookStoreScraper
 from src.scrapers.boston_swing import BostonSwingCentralScraper
 from src.scrapers.aeronaut import AeronautScraper
+from src.scrapers.somerville_theatre import SomervilleTheatreScraper
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
 from src.models.event import Event
@@ -33,6 +34,7 @@ LOCAL_ONLY_SOURCES = [
     "Harvard Book Store",
     "Boston Swing Central",
     "Aeronaut Brewing",
+    "Somerville Theatre",
 ]
 
 
@@ -50,6 +52,7 @@ def main():
         HarvardBookStoreScraper(),
         BostonSwingCentralScraper(),
         AeronautScraper(),
+        SomervilleTheatreScraper(),
     ]
 
     all_events = []
