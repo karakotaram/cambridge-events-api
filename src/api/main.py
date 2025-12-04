@@ -379,15 +379,18 @@ TODAY: {today_str}
 RULES:
 - Recommend only 2-3 best matches
 - "date night", "evening" = after 5PM
-- "kids", "toddler", "family" = [F] events
+- "kids", "family" = [F] events
+
+AGE GUIDANCE (use judgment):
+- Toddlers (1-3): story time, lapsit, puppet shows, simple music. NOT theater, jazz, concerts, book groups
+- Young kids (4-7): family shows, kid concerts, art activities, book groups
+- Older kids (8+): theater, workshops, museums
 
 EVENTS (title | date | venue | cat | [F] | url):
 {events_context}
 
-OUTPUT FORMAT (use exactly):
-[Title](url) - Time at Venue
-
-Example: [Jazz Night](https://example.com) - 7pm at Club Passim"""
+OUTPUT FORMAT:
+[Title](url) - Time at Venue"""
 
 
 @app.post("/chat", response_model=ChatResponse)
