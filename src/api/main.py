@@ -330,7 +330,7 @@ def format_events_for_context(events: List[Event], limit: int = 40) -> str:
             cat_str = str(cat)
         title_short = e.title[:60] if len(e.title) > 60 else e.title
         venue_short = e.venue_name[:30] if len(e.venue_name) > 30 else e.venue_name
-        lines.append(f"- {title_short} | {date_str} | {venue_short} | {cat_str}")
+        lines.append(f"- {title_short} | {date_str} | {venue_short} | {cat_str} | {e.source_url}")
 
     return "\n".join(lines)
 
@@ -344,9 +344,9 @@ def get_chat_system_prompt(events_context: str) -> str:
 
 TODAY: {today_str}
 
-When asked about events, recommend 2-4 relevant ones from the list. Be warm and helpful. Parse dates naturally ("this weekend" = Sat/Sun, "next Sunday" = Sunday after this one).
+When asked about events, recommend 2-4 relevant ones. Be warm and helpful. ALWAYS include the event link so users can get tickets/details. Parse dates naturally ("this weekend" = Sat/Sun, "next Sunday" = Sunday after this one).
 
-EVENTS:
+EVENTS (format: title | date | venue | category | link):
 {events_context}"""
 
 
