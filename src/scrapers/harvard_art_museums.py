@@ -231,10 +231,11 @@ class HarvardArtMuseumsScraper(BaseScraper):
                         image_url = img_data[size]['url']
                         break
 
-        # Get venue info
+        # Get venue info - always use MA for state since the museum is in Cambridge, MA
+        # (The API sometimes puts directions like "Enter at Broadway" in the state field)
         address = data.get('address') or "32 Quincy Street"
         city = data.get('city') or "Cambridge"
-        state = data.get('state') or "MA"
+        state = "MA"
 
         # Get event type for categorization
         event_type = data.get('event_type', '')
