@@ -1,9 +1,8 @@
-"""Custom scraper for Brattle Theater special events"""
+"""Custom scraper for Brattle Theatre showtimes from coming-soon page"""
 import logging
 import re
 from datetime import datetime
 from typing import List, Optional
-from dateutil import parser as date_parser
 import requests
 
 from src.scrapers.base_scraper import BaseScraper
@@ -13,196 +12,177 @@ logger = logging.getLogger(__name__)
 
 
 class BrattleTheaterScraper(BaseScraper):
-    """Custom scraper for Brattle Theater special events"""
+    """Custom scraper for Brattle Theatre showtimes"""
 
     def __init__(self):
         super().__init__(
             source_name="Brattle Theatre",
-            source_url="https://brattlefilm.org/film-series/special-events/",
+            source_url="https://brattlefilm.org/coming-soon/",
             use_selenium=False  # HTML is server-rendered
         )
 
-    def fetch_event_image(self, event_url: str) -> Optional[str]:
-        """Fetch the image URL from an event detail page"""
-        try:
-            response = requests.get(event_url, timeout=30, headers=self.get_browser_headers())
-            response.raise_for_status()
-            soup = self.parse_html(response.text)
-
-            # Look for poster image with alt text containing "Poster"
-            imgs = soup.find_all('img')
-            for img in imgs:
-                alt = img.get('alt', '')
-                src = img.get('src') or img.get('data-src')
-                if src and 'poster' in alt.lower():
-                    return src
-
-            # Fallback to og:image
-            og_img = soup.find('meta', property='og:image')
-            if og_img and og_img.get('content'):
-                return og_img['content']
-
-            return None
-        except Exception as e:
-            logger.warning(f"Error fetching image from {event_url}: {e}")
-            return None
-
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape special events from Brattle Theater"""
+        """Scrape all showtimes from Brattle Theatre coming-soon page"""
         html = self.fetch_html(self.source_url)
         soup = self.parse_html(html)
 
         events = []
-        current_year = datetime.now().year
+        now = datetime.now()
 
-        # Find all show-details containers (each represents an event)
+        # Find all show-details containers (each represents a film)
         show_details = soup.find_all('div', class_='show-details')
-        logger.info(f"Found {len(show_details)} show-details elements")
+        logger.info(f"Found {len(show_details)} films on coming-soon page")
 
         for show in show_details:
             try:
-                # Extract title and URL from h2
-                h2 = show.find('h2')
-                if not h2:
+                # Extract title and URL
+                title_elem = show.find('h2', class_='show-title')
+                if not title_elem:
                     continue
 
-                title = self.clean_text(h2.get_text())
-                if not title or len(title) < 3:
+                title_link = title_elem.find('a')
+                if not title_link:
                     continue
 
-                link = h2.find('a')
-                event_url = link.get('href') if link else self.source_url
+                title = self.clean_text(title_link.get_text())
+                film_url = title_link.get('href', self.source_url)
 
-                # Extract date from the full text using regex
-                full_text = show.get_text()
-                date_match = re.search(
-                    r'(Mon|Tue|Wed|Thu|Fri|Sat|Sun)[,.]?\s+'
-                    r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})',
-                    full_text
-                )
-
-                if not date_match:
-                    logger.warning(f"No date found for {title}")
+                if not title or len(title) < 2:
                     continue
 
-                date_str = date_match.group()
-
-                # Extract time from showtimes-container list items
-                time_str = "7:00 pm"  # Default time
-                showtimes_container = show.find('div', class_='showtimes-container')
-                if showtimes_container:
-                    time_item = showtimes_container.find('li')
-                    if time_item:
-                        time_text = time_item.get_text().strip()
-                        # Extract time pattern
-                        time_match = re.search(r'(\d{1,2}:\d{2}\s*(?:am|pm))', time_text, re.IGNORECASE)
-                        if time_match:
-                            time_str = time_match.group(1)
-
-                # Parse datetime
-                try:
-                    datetime_str = f"{date_str} {current_year} {time_str}"
-                    start_datetime = date_parser.parse(datetime_str, fuzzy=True)
-
-                    # If the parsed date is in the past, assume next year
-                    if start_datetime < datetime.now():
-                        start_datetime = start_datetime.replace(year=current_year + 1)
-                except Exception as e:
-                    logger.warning(f"Failed to parse datetime for {title}: {e}")
-                    continue
-
-                # Extract runtime
-                runtime = None
-                runtime_match = re.search(r'Run Time:\s*(\d+)\s*min', full_text)
-                if runtime_match:
-                    runtime = f"{runtime_match.group(1)} min"
-
-                # Extract description
-                description = self._extract_description(show, title, runtime)
-
-                # Fetch image from detail page
+                # Extract poster image
                 image_url = None
-                if event_url and event_url != self.source_url:
-                    image_url = self.fetch_event_image(event_url)
+                poster_div = show.find('div', class_='show-poster')
+                if poster_div:
+                    img = poster_div.find('img')
+                    if img:
+                        image_url = img.get('src') or img.get('data-src')
 
-                # Create event
-                event = EventCreate(
-                    title=title[:200],
-                    description=description[:2000] if description else f"{title} at Brattle Theatre",
-                    start_datetime=start_datetime,
-                    venue_name="Brattle Theatre",
-                    street_address="40 Brattle Street",
-                    city="Cambridge",
-                    state="MA",
-                    zip_code="02138",
-                    category=EventCategory.ARTS_CULTURE,
-                    image_url=image_url,
-                    source_name=self.source_name,
-                    source_url=event_url
-                )
-                events.append(event)
-                logger.info(f"Parsed event: {title} on {start_datetime}")
+                # Extract description from film detail page (cached per film)
+                description = self._fetch_film_description(film_url, title)
+
+                # Find all showtimes - each li with data-date in showtimes-container
+                showtimes_container = show.find('div', class_='showtimes-container')
+                if not showtimes_container:
+                    continue
+
+                showtime_items = showtimes_container.find_all('li', attrs={'data-date': True})
+
+                for item in showtime_items:
+                    try:
+                        # Get Unix timestamp from data-date
+                        timestamp = int(item.get('data-date', 0))
+                        if timestamp == 0:
+                            continue
+
+                        # Get time text from the anchor
+                        time_anchor = item.find('a', class_='showtime')
+                        if not time_anchor:
+                            continue
+
+                        # Extract time text (e.g., "12:30 pm")
+                        time_text = time_anchor.get_text(strip=True)
+
+                        # Check for format info (e.g., "35mm")
+                        extra_span = time_anchor.find('span', class_='extra')
+                        format_info = None
+                        if extra_span:
+                            format_info = extra_span.get_text(strip=True)
+                            # Remove format from time text
+                            time_text = time_text.replace(format_info, '').strip()
+
+                        # Parse time
+                        time_match = re.match(r'(\d{1,2}):?(\d{2})?\s*(am|pm)', time_text, re.IGNORECASE)
+                        if not time_match:
+                            continue
+
+                        hour = int(time_match.group(1))
+                        minute = int(time_match.group(2) or 0)
+                        am_pm = time_match.group(3).lower()
+
+                        if am_pm == 'pm' and hour != 12:
+                            hour += 12
+                        elif am_pm == 'am' and hour == 12:
+                            hour = 0
+
+                        # Create datetime from Unix timestamp (date) + parsed time
+                        date_from_timestamp = datetime.fromtimestamp(timestamp)
+                        start_datetime = date_from_timestamp.replace(
+                            hour=hour, minute=minute, second=0, microsecond=0
+                        )
+
+                        # Skip past events
+                        if start_datetime < now:
+                            continue
+
+                        # Get purchase URL
+                        purchase_url = time_anchor.get('href', film_url)
+
+                        # Build event title with format info if available
+                        event_title = title
+                        if format_info:
+                            event_title = f"{title} ({format_info})"
+
+                        # Create event
+                        event = EventCreate(
+                            title=event_title[:200],
+                            description=description[:2000] if description else f"{title} at Brattle Theatre",
+                            start_datetime=start_datetime,
+                            venue_name="Brattle Theatre",
+                            street_address="40 Brattle Street",
+                            city="Cambridge",
+                            state="MA",
+                            zip_code="02138",
+                            category=EventCategory.ARTS_CULTURE,
+                            image_url=image_url,
+                            source_name=self.source_name,
+                            source_url=purchase_url
+                        )
+                        events.append(event)
+
+                    except Exception as e:
+                        logger.warning(f"Error parsing showtime for {title}: {e}")
+                        continue
 
             except Exception as e:
-                logger.warning(f"Error parsing event: {e}")
+                logger.warning(f"Error parsing film: {e}")
                 continue
 
+        logger.info(f"Scraped {len(events)} showtimes from Brattle Theatre")
         return events
 
-    def _extract_description(self, show, title: str, runtime: Optional[str]) -> str:
-        """Extract and clean description from event container"""
+    def _fetch_film_description(self, film_url: str, title: str) -> str:
+        """Fetch description from film detail page"""
         try:
-            desc_inner = show.find('div', class_='showtimes-description-inner')
-            if not desc_inner:
-                return f"{title} at Brattle Theatre"
+            response = requests.get(film_url, timeout=30, headers=self.get_browser_headers())
+            response.raise_for_status()
+            soup = self.parse_html(response.text)
 
-            # Get all text content
-            full_text = desc_inner.get_text()
+            # Try og:description first
+            og_desc = soup.find('meta', property='og:description')
+            if og_desc and og_desc.get('content'):
+                desc = self.clean_text(og_desc['content'])
+                if len(desc) > 30:
+                    return desc
 
-            # Split by runtime and get the description part
-            if runtime:
-                parts = re.split(r'Run Time:\s*\d+\s*min\.?', full_text, flags=re.IGNORECASE)
-                if len(parts) > 1:
-                    description = parts[1].strip()
-                else:
-                    description = full_text
-            else:
-                description = full_text
+            # Try meta description
+            meta_desc = soup.find('meta', attrs={'name': 'description'})
+            if meta_desc and meta_desc.get('content'):
+                desc = self.clean_text(meta_desc['content'])
+                if len(desc) > 30:
+                    return desc
 
-            # Clean up the description - remove boilerplate
-            # Remove "Special Events" category tag
-            description = re.sub(r'\s*Special Events\s*', ' ', description)
-            # Remove "See full details for..." text
-            description = re.sub(r'See full details for[^.]*\.?', '', description, flags=re.IGNORECASE)
-            description = re.sub(r'See full details\s*', '', description, flags=re.IGNORECASE)
-            # Remove "Dates with showtimes for..." text
-            description = re.sub(r'Dates with showtimes for[^.]*\.?', '', description, flags=re.IGNORECASE)
-            # Remove "Created with Sketch" (SVG remnant)
-            description = re.sub(r'Created with Sketch\.?\s*', '', description, flags=re.IGNORECASE)
-            # Remove format/year/starring info (we'll use this for films)
-            description = re.sub(r'Format:\s*\w+\s*', '', description)
-            description = re.sub(r'Release Year:\s*\d+\s*', '', description)
-            # Clean up "Starring:" line but keep the info
-            description = re.sub(r'Starring:\s*', 'Starring: ', description)
-            # Remove "Filmmaker in Person!" prefix (but keep the context)
-            description = re.sub(r'^Filmmaker in Person!\s*', '', description)
-            # Remove "Watch trailer for..." text
-            description = re.sub(r'Watch trailer for[^.]*\.?\s*', '', description, flags=re.IGNORECASE)
-            description = re.sub(r'Watch trailer\s*', '', description, flags=re.IGNORECASE)
+            # Try finding description in page content
+            desc_div = soup.find('div', class_='entry-content')
+            if desc_div:
+                paragraphs = desc_div.find_all('p')
+                for p in paragraphs:
+                    text = self.clean_text(p.get_text())
+                    if len(text) > 50:
+                        return text[:2000]
 
-            # Clean whitespace
-            description = self.clean_text(description)
-
-            # If description is too short, provide a default
-            if len(description) < 20:
-                return f"{title} at Brattle Theatre"
-
-            # Add runtime info to description if available
-            if runtime:
-                description = f"{description} ({runtime})"
-
-            return description
+            return f"{title} at Brattle Theatre"
 
         except Exception as e:
-            logger.warning(f"Error extracting description: {e}")
+            logger.warning(f"Error fetching description for {title}: {e}")
             return f"{title} at Brattle Theatre"
