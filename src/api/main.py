@@ -183,18 +183,6 @@ async def get_events(
     return events
 
 
-@app.get("/events/{event_id}", response_model=Event)
-async def get_event(event_id: str):
-    """Get a specific event by ID"""
-    events = load_events()
-
-    for event in events:
-        if event.id == event_id:
-            return event
-
-    raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
-
-
 @app.get("/events/search", response_model=List[Event])
 async def search_events(
     q: str = Query(..., min_length=2, description="Search query"),
@@ -221,6 +209,18 @@ async def search_events(
     results.sort(key=lambda x: 0 if query in x.title.lower() else 1)
 
     return results[:limit]
+
+
+@app.get("/events/{event_id}", response_model=Event)
+async def get_event(event_id: str):
+    """Get a specific event by ID"""
+    events = load_events()
+
+    for event in events:
+        if event.id == event_id:
+            return event
+
+    raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
 
 
 @app.get("/categories")
