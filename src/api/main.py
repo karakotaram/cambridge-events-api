@@ -361,7 +361,8 @@ def format_events_for_context(events: List[Event], limit: int = 500) -> str:
             cat_str = str(cat)
 
         title_short = e.title[:50] if len(e.title) > 50 else e.title
-        venue_short = e.venue_name[:25] if len(e.venue_name) > 25 else e.venue_name
+        venue_name = e.venue_name or "Unknown Venue"
+        venue_short = venue_name[:25] if len(venue_name) > 25 else venue_name
         lines.append(f"- {title_short} | {date_str} | {venue_short} | {cat_str}{family_flag} | {e.source_url}")
 
     return "\n".join(lines)
