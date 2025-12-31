@@ -400,7 +400,7 @@ Correct: [Jazz Night](https://passim.org/event/123) - 7pm at Club Passim
 Wrong: Jazz Night - 7pm at Club Passim"""
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/chat")
 async def chat_with_events(request: ChatRequest):
     """
     Chat with an AI assistant about local events
@@ -411,27 +411,27 @@ async def chat_with_events(request: ChatRequest):
     - "I'm looking for live music next Saturday"
     - "Find something fun for kids this Sunday"
     """
-    # Check for API key
-    api_key = os.environ.get("GROQ_API_KEY")
-    if not api_key:
-        raise HTTPException(
-            status_code=500,
-            detail="Chat service not configured. Missing GROQ_API_KEY."
-        )
-
-    # Load events and build context
-    events = load_events()
-    events_context = format_events_for_context(events)
-    system_prompt = get_chat_system_prompt(events_context)
-
-    # Build messages for Groq (OpenAI-compatible format)
-    messages = [{"role": "system", "content": system_prompt}]
-    if request.conversation_history:
-        messages.extend(request.conversation_history)
-    messages.append({"role": "user", "content": request.message})
-
-    # Call Groq
     try:
+        # Check for API key
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            return JSONResponse(
+                status_code=503,
+                content={"error": "Chat service not configured. Missing GROQ_API_KEY."}
+            )
+
+        # Load events and build context
+        events = load_events()
+        events_context = format_events_for_context(events)
+        system_prompt = get_chat_system_prompt(events_context)
+
+        # Build messages for Groq (OpenAI-compatible format)
+        messages = [{"role": "system", "content": system_prompt}]
+        if request.conversation_history:
+            messages.extend(request.conversation_history)
+        messages.append({"role": "user", "content": request.message})
+
+        # Call Groq
         client = Groq(api_key=api_key)
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -447,7 +447,10 @@ async def chat_with_events(request: ChatRequest):
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        raise HTTPException(status_code=500, detail=f"AI service error: {str(e)} - {error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"AI service error: {str(e)}", "details": error_details}
+        )
 
 
 if __name__ == "__main__":
