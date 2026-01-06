@@ -119,10 +119,8 @@ def generate_audit_html(events: List[Event], output_path: str = AUDIT_FILE):
         # Cost badge
         cost_html = f'<span class="meta-item cost">{event.cost}</span>' if event.cost else ''
 
-        # Truncate description for display
+        # Full description (no truncation)
         desc = event.description
-        if len(desc) > 500:
-            desc = desc[:500] + '...'
 
         html += f"""
     <div class="event-card">
