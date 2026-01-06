@@ -49,6 +49,7 @@ class GoogleSheetsScraper(BaseScraper):
         self.sheet_id = sheet_id or os.environ.get('GOOGLE_SHEET_ID', DEFAULT_SHEET_ID)
         self.credentials_json = credentials_json
         self._service = None
+        self._sheet_name = None  # Cached sheet name
         self._processed_rows = []  # Track rows for marking as uploaded
 
     def _get_sheets_service(self):
@@ -84,15 +85,40 @@ class GoogleSheetsScraper(BaseScraper):
         logger.info("Google Sheets API service initialized")
         return self._service
 
+    def _get_first_sheet_name(self) -> str:
+        """Get the name of the first sheet in the spreadsheet (cached)"""
+        if self._sheet_name:
+            return self._sheet_name
+
+        service = self._get_sheets_service()
+
+        try:
+            spreadsheet = service.spreadsheets().get(
+                spreadsheetId=self.sheet_id,
+                fields='sheets.properties.title'
+            ).execute()
+
+            sheets = spreadsheet.get('sheets', [])
+            if sheets:
+                self._sheet_name = sheets[0]['properties']['title']
+                logger.info(f"Using sheet: {self._sheet_name}")
+                return self._sheet_name
+            else:
+                raise ValueError("No sheets found in spreadsheet")
+        except Exception as e:
+            logger.error(f"Failed to get sheet name: {e}")
+            raise
+
     def fetch_approved_events(self) -> List[dict]:
         """Fetch all approved events that haven't been uploaded yet"""
         service = self._get_sheets_service()
+        sheet_name = self._get_first_sheet_name()
 
         # Read all data from the sheet
         # Columns: A=Timestamp, B=Event Name, C=Date, D=Time, E=Address,
         #          F=Description, G=Category, H=Cost, I=Family Friendly,
         #          J=Event URL, K=Image URL, L=Contact Email, M=Approved, N=Uploaded
-        range_name = 'Form Responses 1!A2:N'
+        range_name = f"'{sheet_name}'!A2:N"
 
         try:
             result = service.spreadsheets().values().get(
@@ -165,12 +191,13 @@ class GoogleSheetsScraper(BaseScraper):
             return
 
         service = self._get_sheets_service()
+        sheet_name = self._get_first_sheet_name()
         now = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
 
         for row_idx in indices_to_mark:
             try:
                 # Update Uploaded column (N)
-                range_name = f'Form Responses 1!N{row_idx}'
+                range_name = f"'{sheet_name}'!N{row_idx}"
                 body = {'values': [[f'Yes - {now}']]}
 
                 service.spreadsheets().values().update(
