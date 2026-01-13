@@ -243,25 +243,74 @@ def main():
         existing_events = load_existing_events()
         logger.info(f"Loaded {len(existing_events)} existing events")
 
-        # Remove old user-submitted events (will be replaced with fresh data)
-        # Keep events from other sources
-        filtered_events = [
-            e for e in existing_events
-            if e.get('source_name') != SOURCE_NAME
-        ]
-        removed_count = len(existing_events) - len(filtered_events)
-        if removed_count > 0:
-            logger.info(f"Removed {removed_count} old user-submitted events")
-
-        # Add new events
+        # Keep all existing events (including previous user-submitted ones)
+        # and add the new events
         new_events_dict = [event.model_dump(mode='json') for event in new_events]
-        final_events = filtered_events + new_events_dict
+
+        # Check for duplicates by title + date to avoid re-adding the same event
+        existing_user_events = [
+            e for e in existing_events
+            if e.get('source_name') == SOURCE_NAME
+        ]
+        logger.info(f"Found {len(existing_user_events)} existing user-submitted events")
+
+        # Create a set of existing (title, date) pairs to check for duplicates
+        existing_keys = set()
+        for e in existing_user_events:
+            title = e.get('title', '')
+            dt = e.get('start_datetime', '')
+            if isinstance(dt, str):
+                dt = dt[:10]  # Just the date part
+            existing_keys.add((title.lower(), dt))
+
+        # Filter out duplicates from new events
+        unique_new_events = []
+        for e in new_events_dict:
+            title = e.get('title', '')
+            dt = e.get('start_datetime', '')
+            if isinstance(dt, str):
+                dt = dt[:10]
+            key = (title.lower(), dt)
+            if key not in existing_keys:
+                unique_new_events.append(e)
+            else:
+                logger.info(f"Skipping duplicate: {title}")
+
+        logger.info(f"Adding {len(unique_new_events)} new user-submitted events")
+        final_events = existing_events + unique_new_events
 
         # Save updated events
         save_events(final_events)
 
-        # Generate audit HTML
-        generate_audit_html(new_events, AUDIT_FILE)
+        # Generate audit HTML with ALL user-submitted events
+        all_user_events = [
+            e for e in final_events
+            if e.get('source_name') == SOURCE_NAME
+        ]
+        # Convert dicts back to Event objects for audit HTML
+        from dateutil import parser as date_parser
+        audit_events = []
+        for e in all_user_events:
+            dt = e.get('start_datetime')
+            if isinstance(dt, str):
+                dt = date_parser.parse(dt)
+            audit_events.append(Event(
+                id=e.get('id', str(uuid.uuid4())),
+                title=e.get('title', ''),
+                description=e.get('description', ''),
+                start_datetime=dt,
+                source_url=e.get('source_url', ''),
+                source_name=e.get('source_name', ''),
+                venue_name=e.get('venue_name'),
+                street_address=e.get('street_address'),
+                city=e.get('city'),
+                state=e.get('state'),
+                category=e.get('category'),
+                cost=e.get('cost'),
+                family_friendly=e.get('family_friendly', False),
+                image_url=e.get('image_url'),
+            ))
+        generate_audit_html(audit_events, AUDIT_FILE)
 
         # Mark events as uploaded in Google Sheets
         row_indices = scraper.get_processed_row_indices()
