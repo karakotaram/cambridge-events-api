@@ -2,8 +2,9 @@
 import json
 import logging
 import os
+import re
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from dateutil import parser as date_parser
 
@@ -240,6 +241,57 @@ class GoogleSheetsScraper(BaseScraper):
             return False
         return value.lower().strip() in ('yes', 'true', '1', 'y')
 
+    def parse_address(self, address: str) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Parse address field to extract venue name and street address.
+
+        Examples:
+        - "Brattle Theatre, 40 Brattle Street, Cambridge, MA 02138"
+          → venue="Brattle Theatre", street="40 Brattle Street, Cambridge, MA 02138"
+        - "101 Rogers St Cambridge, MA 02142"
+          → venue=None, street="101 Rogers St Cambridge, MA 02142"
+        - "Fletcher-Maynard Academy (225 Windsor St, Cambridge, MA 02139)"
+          → venue="Fletcher-Maynard Academy", street="225 Windsor St, Cambridge, MA 02139"
+        - "Central Square (various locations)"
+          → venue="Central Square", street="various locations"
+
+        Returns:
+            Tuple of (venue_name, street_address)
+        """
+        if not address or not address.strip():
+            return None, None
+
+        address = address.strip()
+
+        # Pattern 1: Venue name in parentheses at end - extract what's in parens
+        # e.g., "Fletcher-Maynard Academy (225 Windsor St, Cambridge, MA 02139)"
+        paren_match = re.match(r'^(.+?)\s*\(([^)]+)\)\s*$', address)
+        if paren_match:
+            venue = paren_match.group(1).strip()
+            street = paren_match.group(2).strip()
+            return venue, street
+
+        # Pattern 2: Comma-separated with venue first
+        # e.g., "Brattle Theatre, 40 Brattle Street, Cambridge, MA 02138"
+        parts = [p.strip() for p in address.split(',')]
+
+        if len(parts) >= 2:
+            first_part = parts[0]
+            # Check if first part looks like a venue (doesn't start with a number)
+            if first_part and not re.match(r'^\d', first_part):
+                venue = first_part
+                street = ', '.join(parts[1:])
+                return venue, street
+
+        # Pattern 3: Just a street address starting with a number
+        # e.g., "101 Rogers St Cambridge, MA 02142"
+        if re.match(r'^\d', address):
+            return None, address
+
+        # Pattern 4: Just a venue name with no clear street address
+        # e.g., "Central Square" or "Cambridge Common"
+        return address, None
+
     def scrape_events(self) -> List[EventCreate]:
         """Scrape approved events from Google Sheets"""
         events = []
@@ -287,6 +339,9 @@ class GoogleSheetsScraper(BaseScraper):
                 if contact_email and '@' not in contact_email:
                     contact_email = None  # Invalid email format
 
+                # Parse address to extract venue name and street address
+                venue_name, street_address = self.parse_address(row_data['address'])
+
                 # Build event
                 event = EventCreate(
                     title=title,
@@ -294,7 +349,8 @@ class GoogleSheetsScraper(BaseScraper):
                     start_datetime=start_datetime,
                     source_url=source_url,
                     source_name=self.source_name,
-                    street_address=row_data['address'].strip() or None,
+                    venue_name=venue_name,
+                    street_address=street_address,
                     city="Cambridge",
                     state="MA",
                     category=self.parse_category(row_data['category']),

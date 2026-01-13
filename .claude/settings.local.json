@@ -38,7 +38,11 @@
       "WebFetch(domain:www.unitysomerville.org)",
       "WebSearch",
       "WebFetch(domain:www.thecomedystudio.com)",
-      "WebFetch(domain:www.dancecomplex.org)"
+      "WebFetch(domain:www.dancecomplex.org)",
+      "Bash(git checkout:*)",
+      "Bash(python3:*)",
+      "Bash(git rebase:*)",
+      "Bash(GIT_EDITOR=true git rebase:*)"
     ],
     "deny": [],
     "ask": []
