@@ -144,24 +144,30 @@ class ScraperOrchestrator:
         return final_events
 
     def save_events(self, events: List[Event], skipped_sources: List[str] = None):
-        """Save events to JSON file, preserving events from skipped sources"""
+        """Save events to JSON file, preserving events from skipped sources and user-submitted events"""
         output_file = "data/events.json"
 
         # Create data directory if it doesn't exist
         os.makedirs("data", exist_ok=True)
 
-        # If we skipped some sources, preserve their events from existing file
+        # Always preserve user-submitted events and events from skipped sources
         preserved_events = []
-        if skipped_sources and os.path.exists(output_file):
+        user_submitted_events = []
+        sources_to_preserve = set(skipped_sources or [])
+        sources_to_preserve.add("User Submitted")  # Always preserve user-submitted events
+
+        if os.path.exists(output_file):
             try:
                 with open(output_file, 'r') as f:
                     existing_events = json.load(f)
-                # Keep events from skipped sources
+                # Keep events from sources we want to preserve
                 preserved_events = [
                     e for e in existing_events
-                    if e.get('source_name') in skipped_sources
+                    if e.get('source_name') in sources_to_preserve
                 ]
-                logger.info(f"Preserved {len(preserved_events)} events from skipped sources: {skipped_sources}")
+                user_submitted_count = len([e for e in preserved_events if e.get('source_name') == 'User Submitted'])
+                other_preserved_count = len(preserved_events) - user_submitted_count
+                logger.info(f"Preserved {len(preserved_events)} events ({user_submitted_count} user-submitted, {other_preserved_count} from skipped sources)")
             except Exception as e:
                 logger.warning(f"Could not load existing events: {e}")
 
