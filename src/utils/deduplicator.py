@@ -1,12 +1,23 @@
 """Duplicate event detection and merging"""
 from typing import List, Set
-from datetime import timedelta
+from datetime import datetime, timedelta
 from difflib import SequenceMatcher
 from src.models.event import EventCreate, Event
 
 
 class EventDeduplicator:
     """Detects and merges duplicate events"""
+
+    @staticmethod
+    def normalize_datetime(dt: datetime) -> datetime:
+        """Convert datetime to naive UTC for comparison"""
+        if dt is None:
+            return None
+        # If timezone-aware, convert to UTC and remove tzinfo
+        if dt.tzinfo is not None:
+            from datetime import timezone
+            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt
 
     @staticmethod
     def find_duplicates(events: List[EventCreate]) -> List[List[int]]:
@@ -56,7 +67,10 @@ class EventDeduplicator:
             return False
 
         # Check date/time proximity (within 1 hour)
-        time_diff = abs((event1.start_datetime - event2.start_datetime).total_seconds())
+        # Normalize datetimes to handle mixed timezone-aware/naive datetimes
+        dt1 = EventDeduplicator.normalize_datetime(event1.start_datetime)
+        dt2 = EventDeduplicator.normalize_datetime(event2.start_datetime)
+        time_diff = abs((dt1 - dt2).total_seconds())
         if time_diff > 3600:  # 1 hour
             return False
 
