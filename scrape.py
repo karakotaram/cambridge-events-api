@@ -38,6 +38,7 @@ from src.scrapers.sanders_theatre import SandersTheatreScraper
 from src.scrapers.art import AmericanRepertoryTheaterScraper
 from src.scrapers.somerville_theatre import SomervilleTheatreScraper
 from src.scrapers.grolier import GrolierPoetryBookshopScraper
+from src.scrapers.multicultural_arts import MulticulturalArtsCenterScraper
 from src.models.event import EventCreate, Event
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
@@ -212,6 +213,7 @@ def main():
     orchestrator.register_scraper(HarvardArtMuseumsScraper())
     orchestrator.register_scraper(BrattleTheaterScraper())
     orchestrator.register_scraper(GrolierPoetryBookshopScraper())
+    orchestrator.register_scraper(MulticulturalArtsCenterScraper())
 
     # Selenium scrapers (run after non-Selenium to reduce Chrome restarts)
     orchestrator.register_scraper(CambridgeGovScraper())
