@@ -233,7 +233,7 @@ async def get_events_slim(
     city: Optional[str] = None,
     upcoming_only: bool = Query(True, description="Show only upcoming events (default: true)"),
     family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
-    limit: int = Query(500, ge=1, le=2000),
+    limit: int = Query(1000, ge=1, le=5000),
     offset: int = Query(0, ge=0)
 ):
     """
