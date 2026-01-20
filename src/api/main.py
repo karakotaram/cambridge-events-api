@@ -1,6 +1,7 @@
 """FastAPI application for event data access"""
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from typing import List, Optional
 from datetime import datetime, timedelta
@@ -8,9 +9,18 @@ from pydantic import BaseModel
 import json
 import os
 import pytz
+import time
 from groq import Groq
 
 from src.models.event import Event, EventCategory, EASTERN_TZ
+
+
+# In-memory cache for events
+_events_cache = {
+    "events": None,
+    "loaded_at": 0,
+    "ttl": 300  # 5 minutes cache
+}
 
 
 class ChatRequest(BaseModel):
@@ -21,6 +31,23 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     events: Optional[List[Event]] = None
+
+
+class EventSlim(BaseModel):
+    """Lightweight event model for list/map views"""
+    id: str
+    title: str
+    start_datetime: datetime
+    end_datetime: Optional[datetime] = None
+    venue_name: Optional[str] = None
+    city: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    category: Optional[EventCategory] = None
+    family_friendly: bool = False
+    image_url: Optional[str] = None
+    source_url: str
+
 
 app = FastAPI(
     title="Cambridge-Somerville Event Scraper API",
@@ -37,6 +64,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Enable GZip compression for responses > 1KB
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 # Data storage path - use absolute path for Railway deployment
 import pathlib
 BASE_DIR = pathlib.Path(__file__).parent.parent.parent
@@ -44,8 +74,15 @@ DATA_DIR = BASE_DIR / "data"
 EVENTS_FILE = DATA_DIR / "events.json"
 
 
-def load_events() -> List[Event]:
-    """Load events from JSON file"""
+def load_events(use_cache: bool = True) -> List[Event]:
+    """Load events from JSON file with optional caching"""
+    global _events_cache
+
+    # Check cache first
+    if use_cache and _events_cache["events"] is not None:
+        if time.time() - _events_cache["loaded_at"] < _events_cache["ttl"]:
+            return _events_cache["events"]
+
     if not EVENTS_FILE.exists():
         print(f"Warning: Events file not found at {EVENTS_FILE}")
         return []
@@ -53,7 +90,13 @@ def load_events() -> List[Event]:
     try:
         with open(EVENTS_FILE, 'r') as f:
             data = json.load(f)
-            return [Event(**event) for event in data]
+            events = [Event(**event) for event in data]
+
+            # Update cache
+            _events_cache["events"] = events
+            _events_cache["loaded_at"] = time.time()
+
+            return events
     except Exception as e:
         print(f"Error loading events: {e}")
         return []
@@ -64,9 +107,10 @@ async def root():
     """API root endpoint"""
     return {
         "message": "Cambridge-Somerville Event Scraper API",
-        "version": "1.0.0",
+        "version": "1.9.0",
         "endpoints": {
-            "/events": "Get all events",
+            "/events": "Get all events (full data)",
+            "/events/slim": "Get events with minimal fields (faster, for list/map views)",
             "/events/{event_id}": "Get specific event",
             "/events/search": "Search events",
             "/health": "Health check"
@@ -89,9 +133,9 @@ async def health_check():
 async def version_check():
     """Version check endpoint to verify deployment"""
     return {
-        "version": "1.8.0",
+        "version": "1.9.0",
         "context_events": 500,
-        "message": "500 events, 30 days, stricter age guidance"
+        "message": "Added GZip compression, caching, and /events/slim endpoint"
     }
 
 
@@ -181,6 +225,92 @@ async def get_events(
     events = events[offset:offset + limit]
 
     return events
+
+
+@app.get("/events/slim", response_model=List[EventSlim])
+async def get_events_slim(
+    category: Optional[EventCategory] = None,
+    city: Optional[str] = None,
+    upcoming_only: bool = Query(True, description="Show only upcoming events (default: true)"),
+    family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
+    limit: int = Query(500, ge=1, le=2000),
+    offset: int = Query(0, ge=0)
+):
+    """
+    Get lightweight event data optimized for list/map views.
+
+    Returns only essential fields (no descriptions) for faster loading.
+    Use /events/{event_id} to get full details for a specific event.
+
+    Parameters:
+    - category: Filter by event category
+    - city: Filter by city
+    - upcoming_only: If true (default), only show events from today forward
+    - family_friendly: If true, only show family-friendly events
+    - limit: Maximum number of events to return (default: 500)
+    - offset: Number of events to skip
+    """
+    events = load_events()
+
+    # Filter upcoming events (default behavior for slim endpoint)
+    if upcoming_only:
+        now = datetime.now(EASTERN_TZ)
+        filtered_events = []
+        for e in events:
+            event_dt = e.start_datetime
+            if event_dt.tzinfo is None and now.tzinfo is not None:
+                now_compare = now.replace(tzinfo=None)
+            elif event_dt.tzinfo is not None and now.tzinfo is None:
+                now_compare = EASTERN_TZ.localize(now)
+            else:
+                now_compare = now if now.tzinfo is not None else now.replace(tzinfo=None)
+
+            if event_dt >= now_compare:
+                filtered_events.append(e)
+        events = filtered_events
+
+    # Apply filters
+    if category:
+        events = [e for e in events if e.category == category]
+
+    if city:
+        events = [e for e in events if e.city and e.city.lower() == city.lower()]
+
+    if family_friendly is not None:
+        events = [e for e in events if getattr(e, 'family_friendly', False) == family_friendly]
+
+    # Sort by start date
+    def get_sort_key(event):
+        dt = event.start_datetime
+        if dt.tzinfo is not None:
+            return dt.replace(tzinfo=None)
+        return dt
+
+    events.sort(key=get_sort_key)
+
+    # Apply pagination
+    events = events[offset:offset + limit]
+
+    # Convert to slim format
+    slim_events = [
+        EventSlim(
+            id=e.id,
+            title=e.title,
+            start_datetime=e.start_datetime,
+            end_datetime=e.end_datetime,
+            venue_name=e.venue_name,
+            city=e.city,
+            latitude=e.latitude,
+            longitude=e.longitude,
+            category=e.category,
+            family_friendly=getattr(e, 'family_friendly', False),
+            image_url=e.image_url,
+            source_url=e.source_url
+        )
+        for e in events
+    ]
+
+    return slim_events
 
 
 @app.get("/events/search", response_model=List[Event])
