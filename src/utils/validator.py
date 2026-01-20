@@ -113,6 +113,14 @@ class EventValidator:
             from src.models.event import EventCategory
             event.category = EventCategory.FOOD_DRINK
 
+        # Add coordinates if not present
+        if not event.latitude or not event.longitude:
+            from src.utils.geocoder import get_venue_coordinates
+            lat, lng = get_venue_coordinates(event.venue_name, event.street_address)
+            if lat and lng:
+                event.latitude = lat
+                event.longitude = lng
+
         return event
 
     @staticmethod
