@@ -2,7 +2,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from typing import List, Optional
 from datetime import datetime, timedelta
 from pydantic import BaseModel
@@ -107,11 +107,12 @@ async def root():
     """API root endpoint"""
     return {
         "message": "Cambridge-Somerville Event Scraper API",
-        "version": "1.9.0",
+        "version": "1.10.0",
         "endpoints": {
             "/events": "Get all events (full data)",
             "/events/slim": "Get events with minimal fields (faster, for list/map views)",
             "/events/{event_id}": "Get specific event",
+            "/events/{event_id}/calendar.ics": "Download ICS calendar file for event",
             "/events/search": "Search events",
             "/health": "Health check"
         }
@@ -133,9 +134,9 @@ async def health_check():
 async def version_check():
     """Version check endpoint to verify deployment"""
     return {
-        "version": "1.9.0",
+        "version": "1.10.0",
         "context_events": 500,
-        "message": "Added GZip compression, caching, and /events/slim endpoint"
+        "message": "Added ICS calendar download endpoint"
     }
 
 
@@ -349,6 +350,102 @@ async def get_event(event_id: str):
     for event in events:
         if event.id == event_id:
             return event
+
+    raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+
+
+def generate_ics(event: Event) -> str:
+    """Generate ICS calendar file content for an event"""
+    import re
+
+    def format_ics_datetime(dt: datetime) -> str:
+        """Format datetime for ICS (YYYYMMDDTHHMMSS)"""
+        if dt.tzinfo is not None:
+            dt = dt.replace(tzinfo=None)
+        return dt.strftime("%Y%m%dT%H%M%S")
+
+    def escape_ics_text(text: str) -> str:
+        """Escape special characters for ICS format"""
+        if not text:
+            return ""
+        # Escape backslashes, semicolons, commas, and newlines
+        text = text.replace("\\", "\\\\")
+        text = text.replace(";", "\\;")
+        text = text.replace(",", "\\,")
+        text = text.replace("\n", "\\n")
+        return text
+
+    # Build location string
+    location_parts = []
+    if event.venue_name:
+        location_parts.append(event.venue_name)
+    if event.street_address:
+        location_parts.append(event.street_address)
+    if event.city:
+        location_parts.append(event.city)
+    if event.state:
+        location_parts.append(event.state)
+    location = ", ".join(location_parts)
+
+    # Calculate end time (default to 2 hours after start if not specified)
+    start_dt = event.start_datetime
+    if event.end_datetime:
+        end_dt = event.end_datetime
+    else:
+        end_dt = start_dt + timedelta(hours=2)
+
+    # Build description with source link
+    description = event.description or ""
+    if event.source_url:
+        description += f"\\n\\nMore info: {event.source_url}"
+
+    # Generate ICS content
+    ics_content = f"""BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Cambridge Somerville Events//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:{event.id}@cambridgesomervilleevents.com
+DTSTAMP:{format_ics_datetime(datetime.utcnow())}
+DTSTART:{format_ics_datetime(start_dt)}
+DTEND:{format_ics_datetime(end_dt)}
+SUMMARY:{escape_ics_text(event.title)}
+DESCRIPTION:{escape_ics_text(description)}
+LOCATION:{escape_ics_text(location)}
+URL:{event.source_url or ""}
+END:VEVENT
+END:VCALENDAR"""
+
+    return ics_content
+
+
+@app.get("/events/{event_id}/calendar.ics")
+async def get_event_ics(event_id: str):
+    """
+    Download an ICS calendar file for an event.
+
+    Works with Google Calendar, Outlook, Apple Calendar, and any other
+    calendar app that supports the ICS format.
+    """
+    events = load_events()
+
+    for event in events:
+        if event.id == event_id:
+            ics_content = generate_ics(event)
+
+            # Create a safe filename from the event title
+            safe_title = "".join(c if c.isalnum() or c in " -_" else "" for c in event.title)
+            safe_title = safe_title[:50].strip().replace(" ", "_")
+            filename = f"{safe_title}.ics"
+
+            return Response(
+                content=ics_content,
+                media_type="text/calendar",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{filename}"'
+                }
+            )
 
     raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
 
