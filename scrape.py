@@ -39,6 +39,7 @@ from src.scrapers.art import AmericanRepertoryTheaterScraper
 from src.scrapers.somerville_theatre import SomervilleTheatreScraper
 from src.scrapers.grolier import GrolierPoetryBookshopScraper
 from src.scrapers.multicultural_arts import MulticulturalArtsCenterScraper
+from src.scrapers.harvard_square import HarvardSquareScraper
 from src.models.event import EventCreate, Event
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
@@ -229,6 +230,9 @@ def main():
     if not is_ci:
         orchestrator.register_scraper(AeronautScraper())
         orchestrator.register_scraper(SomervilleTheatreScraper())
+
+    # Aggregator scrapers (run last so original sources take priority in deduplication)
+    orchestrator.register_scraper(HarvardSquareScraper())
 
     # Run all scrapers
     events = orchestrator.run_all(skipped_sources=skipped_sources)
