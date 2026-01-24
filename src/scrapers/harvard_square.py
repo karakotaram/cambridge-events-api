@@ -1,9 +1,11 @@
-"""Scraper for Harvard Square Business Association events via ICS feed"""
+"""Scraper for Harvard Square Business Association events"""
 import logging
 import re
+import time
 from datetime import datetime, timedelta
 from typing import List, Optional
 import requests
+from bs4 import BeautifulSoup
 
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
@@ -12,177 +14,187 @@ logger = logging.getLogger(__name__)
 
 
 class HarvardSquareScraper(BaseScraper):
-    """Scraper for Harvard Square Business Association ICS calendar feed"""
+    """Scraper for Harvard Square Business Association events page"""
 
     def __init__(self):
         super().__init__(
             source_name="Harvard Square",
-            source_url="https://www.harvardsquare.com/events/?ical=1",
+            source_url="https://www.harvardsquare.com/events/",
             use_selenium=False
         )
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from Harvard Square ICS feed"""
+        """Scrape events from Harvard Square for the next 30 days"""
+        events = []
+        seen_urls = set()  # Track URLs to avoid duplicates
+
+        # Scrape events for the next 30 days
+        current_date = datetime.now()
+        for day_offset in range(30):
+            target_date = current_date + timedelta(days=day_offset)
+            date_str = target_date.strftime("%Y-%m-%d")
+            url = f"https://www.harvardsquare.com/events/{date_str}/"
+
+            try:
+                day_events = self._scrape_day(url, target_date, seen_urls)
+                events.extend(day_events)
+
+                if day_offset % 7 == 0:
+                    logger.info(f"Scraped {len(events)} events through {date_str}")
+
+                # Rate limiting
+                time.sleep(0.5)
+
+            except Exception as e:
+                logger.warning(f"Error scraping {date_str}: {e}")
+                continue
+
+        logger.info(f"Scraped {len(events)} total events from Harvard Square")
+        return events
+
+    def _scrape_day(self, url: str, target_date: datetime, seen_urls: set) -> List[EventCreate]:
+        """Scrape events for a single day"""
         events = []
 
         try:
-            # Fetch ICS feed
-            response = requests.get(
-                self.source_url,
-                timeout=30,
-                headers=self.get_browser_headers()
-            )
+            response = requests.get(url, timeout=30, headers=self.get_browser_headers())
+            if response.status_code == 404:
+                return []
             response.raise_for_status()
-            ics_content = response.text
 
-            # Parse ICS content
-            events = self._parse_ics(ics_content)
-            logger.info(f"Parsed {len(events)} events from Harvard Square ICS feed")
+            soup = BeautifulSoup(response.text, 'html.parser')
 
-        except Exception as e:
-            logger.error(f"Error fetching Harvard Square ICS feed: {e}")
+            # Find event containers - they're div.type-tribe_events
+            event_divs = soup.find_all('div', class_=lambda x: x and 'type-tribe_events' in str(x))
 
-        return events
-
-    def _parse_ics(self, ics_content: str) -> List[EventCreate]:
-        """Parse ICS content into EventCreate objects"""
-        events = []
-        now = datetime.now()
-
-        # Split into VEVENT blocks
-        vevent_pattern = re.compile(r'BEGIN:VEVENT(.*?)END:VEVENT', re.DOTALL)
-        vevent_matches = vevent_pattern.findall(ics_content)
-
-        for vevent in vevent_matches:
-            try:
-                event = self._parse_vevent(vevent)
-                if event:
-                    # Only include future events (within next 60 days)
-                    if event.start_datetime and event.start_datetime >= now:
-                        if event.start_datetime <= now + timedelta(days=60):
-                            events.append(event)
-            except Exception as e:
-                logger.warning(f"Error parsing VEVENT: {e}")
-                continue
-
-        return events
-
-    def _parse_vevent(self, vevent_content: str) -> Optional[EventCreate]:
-        """Parse a single VEVENT block"""
-
-        def get_ics_value(content: str, field: str) -> Optional[str]:
-            """Extract value for an ICS field, handling multi-line values"""
-            # ICS fields can have parameters like DTSTART;VALUE=DATE:20260120
-            pattern = rf'^{field}[;:]([^\r\n]*(?:\r?\n[ \t][^\r\n]*)*)'
-            match = re.search(pattern, content, re.MULTILINE | re.IGNORECASE)
-            if match:
-                value = match.group(1)
-                # Handle line continuations (lines starting with space/tab)
-                value = re.sub(r'\r?\n[ \t]', '', value)
-                # Remove any leading parameters (e.g., VALUE=DATE:)
-                if ':' in value and not value.startswith('http'):
-                    value = value.split(':', 1)[-1]
-                return value.strip()
-            return None
-
-        def parse_ics_datetime(dt_str: str) -> Optional[datetime]:
-            """Parse ICS datetime format"""
-            if not dt_str:
-                return None
-
-            # Remove any timezone suffix
-            dt_str = dt_str.replace('Z', '').strip()
-
-            # Try various formats
-            formats = [
-                '%Y%m%dT%H%M%S',  # 20260120T190000
-                '%Y%m%d',         # 20260120 (all-day event)
-            ]
-
-            for fmt in formats:
+            for event_div in event_divs:
                 try:
-                    return datetime.strptime(dt_str, fmt)
-                except ValueError:
+                    # Find title - h3.tribe-events-list-event-title
+                    title_elem = event_div.find('h3', class_='tribe-events-list-event-title')
+                    if not title_elem:
+                        continue
+
+                    link = title_elem.find('a')
+                    if not link:
+                        continue
+
+                    title = self.clean_text(link.get_text())
+                    event_url = link.get('href', '')
+
+                    if not title or len(title) < 3 or not event_url:
+                        continue
+
+                    # Skip if we've seen this URL
+                    if event_url in seen_urls:
+                        continue
+                    seen_urls.add(event_url)
+
+                    # Find time from span.tribe-event-date-start or div.time-details
+                    event_time = None
+                    time_details = event_div.find('div', class_='time-details')
+                    if time_details:
+                        time_text = self.clean_text(time_details.get_text())
+                        event_time = self._parse_time(time_text)
+
+                    # Build datetime
+                    if event_time:
+                        start_datetime = target_date.replace(
+                            hour=event_time[0],
+                            minute=event_time[1],
+                            second=0,
+                            microsecond=0
+                        )
+                    else:
+                        # Default to noon for all-day events
+                        start_datetime = target_date.replace(hour=12, minute=0, second=0, microsecond=0)
+
+                    # Find venue from div.tribe-events-venue-details
+                    venue_name = None
+                    venue_div = event_div.find('div', class_='tribe-events-venue-details')
+                    if venue_div:
+                        venue_link = venue_div.find('a')
+                        if venue_link and 'Google Map' not in venue_link.get_text():
+                            venue_name = self.clean_text(venue_link.get_text())
+                        else:
+                            # Try first link that's not Google Map
+                            for link in venue_div.find_all('a'):
+                                if 'Google Map' not in link.get_text():
+                                    venue_name = self.clean_text(link.get_text())
+                                    break
+
+                    # Find description from div.tribe-events-list-event-description
+                    description = None
+                    desc_div = event_div.find('div', class_='tribe-events-list-event-description')
+                    if desc_div:
+                        # Get text from p tags
+                        p_tags = desc_div.find_all('p')
+                        if p_tags:
+                            description = self.clean_text(' '.join(p.get_text() for p in p_tags))
+                        else:
+                            description = self.clean_text(desc_div.get_text())
+
+                    if not description:
+                        description = f"{title} - Event in Harvard Square"
+
+                    # Detect category
+                    category = self._detect_category(title, description, venue_name)
+
+                    event = EventCreate(
+                        title=title[:200],
+                        description=description[:2000],
+                        start_datetime=start_datetime,
+                        venue_name=venue_name,
+                        city="Cambridge",
+                        state="MA",
+                        category=category,
+                        source_name=self.source_name,
+                        source_url=event_url,
+                    )
+                    events.append(event)
+
+                except Exception as e:
+                    logger.debug(f"Error parsing event: {e}")
                     continue
 
+        except Exception as e:
+            logger.debug(f"Error fetching {url}: {e}")
+
+        return events
+
+    def _parse_time(self, time_text: str) -> Optional[tuple]:
+        """Parse time text like '7:00 PM' or '@ 5:00 pm' into (hour, minute) tuple"""
+        if not time_text:
             return None
 
-        # Extract fields
-        summary = get_ics_value(vevent_content, 'SUMMARY')
-        description = get_ics_value(vevent_content, 'DESCRIPTION')
-        location = get_ics_value(vevent_content, 'LOCATION')
-        url = get_ics_value(vevent_content, 'URL')
-        dtstart = get_ics_value(vevent_content, 'DTSTART')
-        dtend = get_ics_value(vevent_content, 'DTEND')
+        # First try to match "@ 5:00 pm" or "@ 5 pm" style (Harvard Square format)
+        match = re.search(r'@\s*(\d{1,2}):?(\d{2})?\s*(am|pm)', time_text, re.I)
+        if match:
+            hour = int(match.group(1))
+            minute = int(match.group(2) or 0)
+            am_pm = match.group(3).lower()
 
-        if not summary:
-            return None
+            if am_pm == 'pm' and hour != 12:
+                hour += 12
+            elif am_pm == 'am' and hour == 12:
+                hour = 0
 
-        # Parse dates
-        start_datetime = parse_ics_datetime(dtstart)
-        end_datetime = parse_ics_datetime(dtend)
+            return (hour, minute)
 
-        if not start_datetime:
-            logger.warning(f"Could not parse start date for event: {summary}")
-            return None
+        # Try to match standalone time like "7:00 PM" (must have am/pm to avoid matching dates)
+        match = re.search(r'\b(\d{1,2}):(\d{2})\s*(am|pm)\b', time_text, re.I)
+        if match:
+            hour = int(match.group(1))
+            minute = int(match.group(2))
+            am_pm = match.group(3).lower()
 
-        # Clean up description
-        if description:
-            # Unescape ICS special characters
-            description = description.replace('\\n', '\n')
-            description = description.replace('\\,', ',')
-            description = description.replace('\\;', ';')
-            description = description.replace('\\\\', '\\')
-            # Remove HTML if present
-            description = re.sub(r'<[^>]+>', '', description)
-            description = self.clean_text(description)
+            if am_pm == 'pm' and hour != 12:
+                hour += 12
+            elif am_pm == 'am' and hour == 12:
+                hour = 0
 
-        # Clean up title - unescape ICS special characters
-        title = summary.replace('\\,', ',').replace('\\;', ';').replace('\\n', ' ').replace('\\\\', '\\')
-        title = self.clean_text(title)
-        if not title or len(title) < 3:
-            return None
+            return (hour, minute)
 
-        # Parse location
-        venue_name = None
-        street_address = None
-        if location:
-            location = location.replace('\\,', ',')
-            location = location.replace('\\n', ', ')
-            parts = [p.strip() for p in location.split(',')]
-            if parts:
-                venue_name = parts[0]
-                if len(parts) > 1:
-                    # Try to extract street address
-                    street_address = ', '.join(parts[1:3])
-
-        # Build source URL
-        if url:
-            url = url.replace('\\', '')
-            if not url.startswith('http'):
-                url = f"https://{url}"
-        else:
-            url = "https://www.harvardsquare.com/events/"
-
-        # Detect category from title/description/venue
-        category = self._detect_category(title, description or "", venue_name)
-
-        # Create event
-        event = EventCreate(
-            title=title[:200],
-            description=(description or f"{title} - Event in Harvard Square")[:2000],
-            start_datetime=start_datetime,
-            end_datetime=end_datetime,
-            venue_name=venue_name,
-            street_address=street_address,
-            city="Cambridge",
-            state="MA",
-            category=category,
-            source_name=self.source_name,
-            source_url=url,
-        )
-
-        return event
+        return None
 
     def _detect_category(self, title: str, description: str, venue_name: str = None) -> EventCategory:
         """Detect event category from title, description, and venue"""
