@@ -681,6 +681,17 @@ async def chat_with_events(request: ChatRequest):
         )
 
 
+@app.get("/presentation", include_in_schema=False)
+async def get_presentation():
+    """Serve the project presentation slide deck"""
+    from fastapi.responses import HTMLResponse
+    presentation_file = BASE_DIR / "presentation.html"
+    if presentation_file.exists():
+        with open(presentation_file, 'r') as f:
+            return HTMLResponse(content=f.read())
+    raise HTTPException(status_code=404, detail="Presentation not found")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
