@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambridge Events - Project Overview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 80px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: #f1f5f9;
+            text-align: center;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        p {
+            font-size: 1.4rem;
+            line-height: 1.8;
+            color: #cbd5e1;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 1.8rem;
+            color: #94a3b8;
+            margin-top: 10px;
+        }
+
+        .highlight {
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 1000px;
+            margin-top: 20px;
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: left;
+        }
+
+        .card h4 {
+            font-size: 1.3rem;
+            color: #f1f5f9;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            font-size: 1.1rem;
+            text-align: left;
+            color: #94a3b8;
+        }
+
+        .icon {
+            font-size: 1.5rem;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            max-width: 1000px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+
+        .list {
+            text-align: left;
+            max-width: 800px;
+        }
+
+        .list li {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+            list-style: none;
+            padding-left: 35px;
+            position: relative;
+        }
+
+        .list li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #60a5fa;
+            font-weight: bold;
+        }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .flow-item {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 20px 30px;
+            text-align: center;
+        }
+
+        .flow-item h4 {
+            color: #f1f5f9;
+            font-size: 1.1rem;
+        }
+
+        .flow-item p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-top: 5px;
+        }
+
+        .flow-arrow {
+            color: #60a5fa;
+            font-size: 1.5rem;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            max-width: 800px;
+            margin-top: 30px;
+        }
+
+        .tech-badge {
+            background: rgba(96, 165, 250, 0.15);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            color: #60a5fa;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .screenshot {
+            max-width: 85%;
+            max-height: 55vh;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            margin-top: 20px;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #e2e8f0;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(51, 65, 85, 0.9);
+            border-color: #60a5fa;
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            transition: width 0.3s ease;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 35px;
+            right: 40px;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .title-slide {
+            background: radial-gradient(ellipse at center, #1e293b 0%, #0f172a 70%);
+        }
+
+        .title-slide::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23334155' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .emoji {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            max-width: 1100px;
+        }
+
+        .two-col .text {
+            text-align: left;
+        }
+
+        .two-col .text p {
+            text-align: left;
+        }
+
+        .quote {
+            font-size: 1.6rem;
+            font-style: italic;
+            color: #94a3b8;
+            border-left: 4px solid #60a5fa;
+            padding-left: 30px;
+            max-width: 700px;
+        }
+
+        .cta {
+            margin-top: 40px;
+        }
+
+        .cta a {
+            display: inline-block;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            color: #0f172a;
+            padding: 16px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(96, 165, 250, 0.3);
+        }
+
+        .source-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            max-width: 900px;
+            margin-top: 30px;
+        }
+
+        .source-item {
+            background: rgba(30, 41, 59, 0.6);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 40px 30px;
+            }
+            h1 { font-size: 2.2rem; }
+            h2 { font-size: 1.8rem; }
+            p { font-size: 1.1rem; }
+            .grid { grid-template-columns: 1fr; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .source-list { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress" id="progress"></div>
+
+    <div class="presentation" id="presentation">
+
+        <!-- Slide 1: Title -->
+        <div class="slide title-slide active">
+            <div class="emoji">📅</div>
+            <h1>Cambridge Events</h1>
+            <p class="subtitle">A community-driven local events aggregator</p>
+            <h3 style="margin-top: 60px; font-size: 1.2rem;">Bringing together events from 20+ venues across Cambridge & Somerville</h3>
+        </div>
+
+        <!-- Slide 2: The Problem -->
+        <div class="slide">
+            <h2>The Problem</h2>
+            <p class="quote">"What's happening in Cambridge this weekend?"</p>
+            <div class="grid" style="margin-top: 40px;">
+                <div class="card">
+                    <h4><span class="icon">🔍</span> Scattered Information</h4>
+                    <p>Events are spread across dozens of different websites, social media pages, and newsletters</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">⏰</span> Time-Consuming</h4>
+                    <p>Finding local events requires visiting many different sites and checking each one manually</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🎯</span> Easy to Miss</h4>
+                    <p>Great local events often go unnoticed because they're only promoted on venue-specific channels</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">📱</span> No Central Hub</h4>
+                    <p>No single place to discover music, theater, lectures, and community events together</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: The Solution -->
+        <div class="slide">
+            <h2>The Solution</h2>
+            <p style="font-size: 1.6rem; margin-bottom: 40px;">An automated system that <span class="highlight">aggregates events</span> from local venues<br>and makes them searchable in <span class="highlight">one place</span></p>
+            <div class="flow">
+                <div class="flow-item">
+                    <h4>20+ Venues</h4>
+                    <p>Local sources</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-item">
+                    <h4>Automated Scrapers</h4>
+                    <p>Daily collection</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-item">
+                    <h4>Validation</h4>
+                    <p>Quality control</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-item">
+                    <h4>Unified API</h4>
+                    <p>Easy access</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-item">
+                    <h4>Web & Chat</h4>
+                    <p>User interface</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: What We Scrape -->
+        <div class="slide">
+            <h2>Sources We Aggregate</h2>
+            <p style="margin-bottom: 20px;">Events from venues across Cambridge, Somerville, and Harvard Square</p>
+            <div class="source-list">
+                <div class="source-item">Club Passim</div>
+                <div class="source-item">The Sinclair</div>
+                <div class="source-item">Regattabar</div>
+                <div class="source-item">Middle East</div>
+                <div class="source-item">Brattle Theatre</div>
+                <div class="source-item">A.R.T.</div>
+                <div class="source-item">The Lilypad</div>
+                <div class="source-item">Comedy Studio</div>
+                <div class="source-item">Harvard Book Store</div>
+                <div class="source-item">Porter Square Books</div>
+                <div class="source-item">Lamplighter Brewing</div>
+                <div class="source-item">Aeronaut Brewing</div>
+                <div class="source-item">Dance Complex</div>
+                <div class="source-item">Sanders Theatre</div>
+                <div class="source-item">Harvard Art Museums</div>
+                <div class="source-item">Cambridge Gov</div>
+                <div class="source-item">Arts at the Armory</div>
+                <div class="source-item">Somerville Theatre</div>
+                <div class="source-item">First Parish</div>
+                <div class="source-item">+ many more...</div>
+            </div>
+        </div>
+
+        <!-- Slide 5: How Scraping Works -->
+        <div class="slide">
+            <h2>How It Works: Web Scraping</h2>
+            <p style="margin-bottom: 40px;">Each venue has a custom scraper that understands its website structure</p>
+            <div class="grid">
+                <div class="card">
+                    <h4><span class="icon">🌐</span> Fetch Web Pages</h4>
+                    <p>Automated browsers visit venue websites and retrieve their event listings</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🔎</span> Parse HTML</h4>
+                    <p>Extract event details: title, date, time, venue, description, and category</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">✅</span> Validate Data</h4>
+                    <p>Ensure events have required fields, valid dates, and clean formatting</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🔄</span> Deduplicate</h4>
+                    <p>Remove duplicate events that appear on multiple sites</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Tech Stack -->
+        <div class="slide">
+            <h2>Technology Stack</h2>
+            <p style="margin-bottom: 20px;">Built with modern, reliable open-source tools</p>
+            <div class="tech-stack">
+                <span class="tech-badge">Python</span>
+                <span class="tech-badge">FastAPI</span>
+                <span class="tech-badge">BeautifulSoup</span>
+                <span class="tech-badge">Selenium</span>
+                <span class="tech-badge">Pydantic</span>
+                <span class="tech-badge">GitHub Actions</span>
+                <span class="tech-badge">Railway</span>
+                <span class="tech-badge">Groq AI</span>
+            </div>
+            <div class="grid" style="margin-top: 40px;">
+                <div class="card">
+                    <h4>Backend</h4>
+                    <p>Python scrapers with FastAPI serving a REST API</p>
+                </div>
+                <div class="card">
+                    <h4>Automation</h4>
+                    <p>GitHub Actions runs scrapers daily at 6 AM UTC</p>
+                </div>
+                <div class="card">
+                    <h4>Hosting</h4>
+                    <p>Railway auto-deploys on every push to main</p>
+                </div>
+                <div class="card">
+                    <h4>AI Chat</h4>
+                    <p>Groq's Llama 3.3 70B for natural language queries</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: The API -->
+        <div class="slide">
+            <h2>REST API</h2>
+            <p style="margin-bottom: 30px;">A clean, fast API that developers can build on</p>
+            <div class="grid grid-3">
+                <div class="card">
+                    <h4>/events</h4>
+                    <p>List all events with filtering by date, category, venue</p>
+                </div>
+                <div class="card">
+                    <h4>/events/search</h4>
+                    <p>Full-text search across titles and descriptions</p>
+                </div>
+                <div class="card">
+                    <h4>/events/slim</h4>
+                    <p>Lightweight endpoint for maps and lists</p>
+                </div>
+                <div class="card">
+                    <h4>/categories</h4>
+                    <p>Music, Theater, Lectures, Food & Drink, and more</p>
+                </div>
+                <div class="card">
+                    <h4>/sources</h4>
+                    <p>See all venues we aggregate from</p>
+                </div>
+                <div class="card">
+                    <h4>/stats</h4>
+                    <p>Event counts and data freshness info</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: AI Chat -->
+        <div class="slide">
+            <h2>AI-Powered Chat</h2>
+            <p style="margin-bottom: 30px;">Ask questions in natural language and get personalized recommendations</p>
+            <div class="grid">
+                <div class="card">
+                    <h4><span class="icon">💬</span> Natural Language</h4>
+                    <p>"What jazz shows are happening this weekend?"</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">👨‍👩‍👧</span> Family Aware</h4>
+                    <p>"What can I do with my toddler on Saturday?"</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🎯</span> Smart Filtering</h4>
+                    <p>"Free events near Harvard Square tonight"</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🤖</span> Context Aware</h4>
+                    <p>Remembers conversation context for follow-up questions</p>
+                </div>
+            </div>
+            <p style="margin-top: 30px; font-size: 1.1rem; color: #64748b;">Powered by Llama 3.3 70B via Groq - fast inference with 500 events in context</p>
+        </div>
+
+        <!-- Slide 9: Event Categories -->
+        <div class="slide">
+            <h2>Event Categories</h2>
+            <p style="margin-bottom: 40px;">Events are automatically categorized for easy discovery</p>
+            <div class="grid grid-3">
+                <div class="card">
+                    <h4><span class="icon">🎵</span> Music</h4>
+                    <p>Concerts, jazz, folk, rock, classical performances</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🎭</span> Theater</h4>
+                    <p>Plays, comedy shows, improv, musicals</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🎨</span> Arts & Culture</h4>
+                    <p>Museum exhibits, gallery openings, art shows</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🎤</span> Lectures</h4>
+                    <p>Author readings, talks, book signings, seminars</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🍺</span> Food & Drink</h4>
+                    <p>Tastings, brewery events, food festivals</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🤝</span> Community</h4>
+                    <p>Meetups, fundraisers, volunteer opportunities</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Calendar Integration -->
+        <div class="slide">
+            <h2>Calendar Integration</h2>
+            <p style="margin-bottom: 40px;">Add events directly to your personal calendar with one click</p>
+            <div class="grid">
+                <div class="card">
+                    <h4><span class="icon">📅</span> Google Calendar</h4>
+                    <p>Direct link opens Google Calendar with event pre-filled</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">📧</span> Outlook</h4>
+                    <p>Works with Outlook.com and Office 365 calendars</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">📱</span> ICS Download</h4>
+                    <p>Download .ics file for Apple Calendar, any app</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🔗</span> API Endpoint</h4>
+                    <p>/events/{id}/calendar.ics for programmatic access</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Data Quality -->
+        <div class="slide">
+            <h2>Data Quality Pipeline</h2>
+            <p style="margin-bottom: 40px;">Multiple layers ensure accurate, useful event data</p>
+            <div class="flow">
+                <div class="flow-item">
+                    <h4>Scrape</h4>
+                    <p>Raw data</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-item">
+                    <h4>Clean</h4>
+                    <p>Fix formatting</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-item">
+                    <h4>Validate</h4>
+                    <p>Check required fields</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-item">
+                    <h4>Geocode</h4>
+                    <p>Add coordinates</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-item">
+                    <h4>Deduplicate</h4>
+                    <p>Remove copies</p>
+                </div>
+            </div>
+            <ul class="list" style="margin-top: 40px;">
+                <li>Title cleaning removes extra whitespace and normalizes text</li>
+                <li>Date validation ensures events are in the future</li>
+                <li>Venue geocoding adds map coordinates from cached lookups</li>
+                <li>Fuzzy matching catches duplicate events with different titles</li>
+            </ul>
+        </div>
+
+        <!-- Slide 12: Automation -->
+        <div class="slide">
+            <h2>Fully Automated</h2>
+            <p style="margin-bottom: 40px;">The system runs itself with no manual intervention needed</p>
+            <div class="grid">
+                <div class="card">
+                    <h4><span class="icon">⏰</span> Daily Scraping</h4>
+                    <p>GitHub Actions triggers scrapers every day at 6 AM UTC automatically</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">💾</span> Auto-Commit</h4>
+                    <p>New events are committed to the repository and pushed</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🚀</span> Auto-Deploy</h4>
+                    <p>Railway detects changes and deploys the updated API instantly</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">📊</span> Monitoring</h4>
+                    <p>Logs track scraper health and catch any issues early</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: Stats -->
+        <div class="slide">
+            <h2>By the Numbers</h2>
+            <div class="stat-grid" style="margin-top: 60px;">
+                <div class="stat">
+                    <div class="stat-number">2,600+</div>
+                    <div class="stat-label">Events</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">20+</div>
+                    <div class="stat-label">Sources</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">Daily</div>
+                    <div class="stat-label">Updates</div>
+                </div>
+            </div>
+            <p style="margin-top: 50px;">Fresh data every day, covering events for the next 30+ days</p>
+        </div>
+
+        <!-- Slide 14: Community Features -->
+        <div class="slide">
+            <h2>Community Contributions</h2>
+            <p style="margin-bottom: 40px;">Users can submit events that aren't captured by scrapers</p>
+            <div class="grid">
+                <div class="card">
+                    <h4><span class="icon">📝</span> Event Submission Form</h4>
+                    <p>Simple web form to add community events, private gatherings, or one-off happenings</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">✉️</span> Email Notifications</h4>
+                    <p>Admins receive email alerts when new events are submitted for review</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">✅</span> Approval Workflow</h4>
+                    <p>Events are reviewed and approved before appearing publicly</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🔄</span> Weekly Sync</h4>
+                    <p>Approved events are automatically added to the main database</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: Open Source -->
+        <div class="slide">
+            <h2>Open Source</h2>
+            <p style="margin-bottom: 40px;">The entire project is available on GitHub</p>
+            <div class="grid">
+                <div class="card">
+                    <h4><span class="icon">📖</span> Transparent</h4>
+                    <p>See exactly how every scraper works and how data is processed</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🔧</span> Extensible</h4>
+                    <p>Easy to add new venue scrapers following the base pattern</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🤝</span> Contributions Welcome</h4>
+                    <p>Anyone can submit pull requests for new features or venues</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">📚</span> Well Documented</h4>
+                    <p>Clear instructions for running locally and adding scrapers</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 16: Use Cases -->
+        <div class="slide">
+            <h2>Who Is This For?</h2>
+            <div class="grid" style="margin-top: 40px;">
+                <div class="card">
+                    <h4><span class="icon">🏠</span> Local Residents</h4>
+                    <p>Discover what's happening in your neighborhood this week</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">🎓</span> Students</h4>
+                    <p>Find free lectures, concerts, and campus events</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">👨‍👩‍👧‍👦</span> Families</h4>
+                    <p>Family-friendly filtering helps find kid-appropriate activities</p>
+                </div>
+                <div class="card">
+                    <h4><span class="icon">👨‍💻</span> Developers</h4>
+                    <p>Build apps using the free API - no authentication required</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17: Future Plans -->
+        <div class="slide">
+            <h2>Future Plans</h2>
+            <ul class="list">
+                <li>Add more venues: Somerville, Brookline, Boston expansions</li>
+                <li>Email digest: Weekly newsletter with personalized picks</li>
+                <li>Mobile app: Native iOS and Android experiences</li>
+                <li>Social features: Save favorites, share with friends</li>
+                <li>Venue partnerships: Direct integrations for real-time updates</li>
+                <li>Accessibility: Enhanced filtering for accessible venues</li>
+            </ul>
+        </div>
+
+        <!-- Slide 18: Try It -->
+        <div class="slide">
+            <h2>Try It Now</h2>
+            <p style="margin-bottom: 40px;">The API is live and free to use</p>
+            <div class="grid">
+                <div class="card">
+                    <h4>API Base URL</h4>
+                    <p style="font-family: monospace; color: #60a5fa;">cambridge-events-api.up.railway.app</p>
+                </div>
+                <div class="card">
+                    <h4>Documentation</h4>
+                    <p style="font-family: monospace; color: #60a5fa;">/docs (Swagger UI)</p>
+                </div>
+            </div>
+            <div class="cta">
+                <a href="https://cambridge-events-api.up.railway.app/docs" target="_blank">Explore the API →</a>
+            </div>
+        </div>
+
+        <!-- Slide 19: Thank You -->
+        <div class="slide title-slide">
+            <div class="emoji">🙏</div>
+            <h1>Thank You</h1>
+            <p class="subtitle">Questions?</p>
+            <div style="margin-top: 50px;">
+                <p style="font-size: 1.1rem; color: #64748b;">
+                    Built with Python, FastAPI, and a love for local community<br><br>
+                    GitHub: github.com/karakotaram/cambridge-events-api
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" onclick="prevSlide()">← Previous</button>
+        <button class="nav-btn" onclick="nextSlide()">Next →</button>
+    </div>
+
+    <div class="slide-counter">
+        <span id="currentSlide">1</span> / <span id="totalSlides">19</span>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('currentSlide').textContent = currentSlide + 1;
+            document.getElementById('progress').style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Touch swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            if (touchStartX - touchEndX > 50) {
+                nextSlide();
+            } else if (touchEndX - touchStartX > 50) {
+                prevSlide();
+            }
+        });
+    </script>
+</body>
+</html>
