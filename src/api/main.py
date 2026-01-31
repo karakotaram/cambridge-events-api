@@ -47,6 +47,8 @@ class EventSlim(BaseModel):
     family_friendly: bool = False
     image_url: Optional[str] = None
     source_url: str
+    source_name: Optional[str] = None
+    cost: Optional[str] = None
 
 
 app = FastAPI(
@@ -232,6 +234,8 @@ async def get_events(
 async def get_events_slim(
     category: Optional[EventCategory] = None,
     city: Optional[str] = None,
+    source: Optional[str] = Query(None, description="Filter by event source name"),
+    free_only: Optional[bool] = Query(None, description="Filter for free events only"),
     upcoming_only: bool = Query(True, description="Show only upcoming events (default: true)"),
     family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
     limit: int = Query(1000, ge=1, le=5000),
@@ -246,6 +250,8 @@ async def get_events_slim(
     Parameters:
     - category: Filter by event category
     - city: Filter by city
+    - source: Filter by event source name
+    - free_only: If true, only show free events
     - upcoming_only: If true (default), only show events from today forward
     - family_friendly: If true, only show family-friendly events
     - limit: Maximum number of events to return (default: 500)
@@ -277,6 +283,12 @@ async def get_events_slim(
     if city:
         events = [e for e in events if e.city and e.city.lower() == city.lower()]
 
+    if source:
+        events = [e for e in events if e.source_name and e.source_name.lower() == source.lower()]
+
+    if free_only:
+        events = [e for e in events if e.cost and e.cost.lower() in ['free', '$free', '0', '$0', 'free admission']]
+
     if family_friendly is not None:
         events = [e for e in events if getattr(e, 'family_friendly', False) == family_friendly]
 
@@ -306,7 +318,9 @@ async def get_events_slim(
             category=e.category,
             family_friendly=getattr(e, 'family_friendly', False),
             image_url=e.image_url,
-            source_url=e.source_url
+            source_url=e.source_url,
+            source_name=e.source_name,
+            cost=e.cost
         )
         for e in events
     ]
