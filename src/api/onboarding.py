@@ -214,15 +214,22 @@ async def track_click(
 
     All event links in emails are wrapped with this tracker.
     """
+    import urllib.parse
+
     try:
-        click = db.query(ClickTracking).filter(ClickTracking.id == click_id).first()
+        # Convert string to UUID for comparison
+        import uuid
+        click_uuid = uuid.UUID(click_id)
+        click = db.query(ClickTracking).filter(ClickTracking.id == click_uuid).first()
         if click:
             click.clicked_at = datetime.utcnow()
             db.commit()
-    except Exception:
-        pass  # Silently fail - don't break link clicking
+    except Exception as e:
+        print(f"Click tracking error: {e}")  # Log but don't break redirect
 
-    return RedirectResponse(url=redirect, status_code=302)
+    # Decode the redirect URL if it's encoded
+    decoded_redirect = urllib.parse.unquote(redirect)
+    return RedirectResponse(url=decoded_redirect, status_code=302)
 
 
 @router.get("/admin/stats", response_model=AdminStats)
