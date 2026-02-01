@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Cambridge Events</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #e74c3c;
+            margin: 0;
+            font-size: 28px;
+        }
+        .archetype-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .description {
+            background-color: #fef5f4;
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .secondary-note {
+            background-color: #f0f8ff;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 14px;
+        }
+        .what-next {
+            margin-top: 30px;
+        }
+        .what-next h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .what-next ul {
+            padding-left: 20px;
+        }
+        .what-next li {
+            margin-bottom: 10px;
+        }
+        .cta-section {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #e74c3c;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .cta-button:hover {
+            background-color: #c0392b;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #999;
+        }
+        .footer a {
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to Cambridge Events!</h1>
+            <p style="color: #666;">Your personalized event digest is on its way</p>
+        </div>
+
+        <div style="text-align: center;">
+            <p style="font-size: 16px; color: #666;">Based on your preferences, you are a...</p>
+            <div class="archetype-badge">{{ archetype_name }}</div>
+        </div>
+
+        <div class="description">
+            <p style="margin: 0;">{{ archetype_description }}</p>
+        </div>
+
+        {% if secondary_archetype_name %}
+        <div class="secondary-note">
+            <strong>Bonus:</strong> You also have traits of a <strong>{{ secondary_archetype_name }}</strong>!
+            We'll mix in some recommendations based on that too.
+        </div>
+        {% endif %}
+
+        <div class="what-next">
+            <h2>What happens next?</h2>
+            <ul>
+                <li><strong>Weekly Digest:</strong> Every week, you'll receive a personalized email with 5-7 events handpicked just for you.</li>
+                <li><strong>Smart Matching:</strong> Our recommendations learn from your preferences to show you the most relevant events in Cambridge and Somerville.</li>
+                <li><strong>One Click Away:</strong> Find something interesting? Just click through to get all the details and sign up.</li>
+            </ul>
+        </div>
+
+        <div class="cta-section">
+            <p style="margin: 0 0 15px; color: #666;">Can't wait for the first digest?</p>
+            <a href="https://web-production-00281.up.railway.app/events" class="cta-button">Browse All Events Now</a>
+        </div>
+
+        <div class="footer">
+            <p>
+                You're receiving this because you signed up for Cambridge-Somerville Events.<br>
+                <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+            </p>
+            <p>&copy; {{ current_year }} Cambridge-Somerville Events</p>
+        </div>
+    </div>
+</body>
+</html>

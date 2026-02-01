@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 from datetime import datetime, timedelta
 from pydantic import BaseModel
@@ -13,6 +14,7 @@ import time
 from groq import Groq
 
 from src.models.event import Event, EventCategory, EASTERN_TZ
+from src.api.onboarding import router as onboarding_router
 
 
 # In-memory cache for events
@@ -74,6 +76,14 @@ import pathlib
 BASE_DIR = pathlib.Path(__file__).parent.parent.parent
 DATA_DIR = BASE_DIR / "data"
 EVENTS_FILE = DATA_DIR / "events.json"
+STATIC_DIR = BASE_DIR / "static"
+
+# Register onboarding router
+app.include_router(onboarding_router)
+
+# Mount static files for onboarding page (if directory exists)
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 def load_events(use_cache: bool = True) -> List[Event]:
@@ -109,13 +119,16 @@ async def root():
     """API root endpoint"""
     return {
         "message": "Cambridge-Somerville Event Scraper API",
-        "version": "1.10.0",
+        "version": "1.11.0",
         "endpoints": {
             "/events": "Get all events (full data)",
             "/events/slim": "Get events with minimal fields (faster, for list/map views)",
             "/events/{event_id}": "Get specific event",
             "/events/{event_id}/calendar.ics": "Download ICS calendar file for event",
             "/events/search": "Search events",
+            "/signup": "Sign up for personalized weekly event emails",
+            "/onboarding/questions": "Get onboarding questionnaire",
+            "/onboarding/submit": "Submit questionnaire and subscribe",
             "/health": "Health check"
         }
     }
@@ -136,9 +149,9 @@ async def health_check():
 async def version_check():
     """Version check endpoint to verify deployment"""
     return {
-        "version": "1.10.0",
+        "version": "1.11.0",
         "context_events": 500,
-        "message": "Added ICS calendar download endpoint"
+        "message": "Added user onboarding and email recommendation system"
     }
 
 
@@ -704,6 +717,49 @@ async def get_presentation():
         with open(presentation_file, 'r') as f:
             return HTMLResponse(content=f.read())
     raise HTTPException(status_code=404, detail="Presentation not found")
+
+
+@app.get("/signup", include_in_schema=False)
+async def get_onboarding_page():
+    """Serve the onboarding signup page"""
+    from fastapi.responses import HTMLResponse
+    onboarding_file = STATIC_DIR / "onboarding" / "index.html"
+    if onboarding_file.exists():
+        with open(onboarding_file, 'r') as f:
+            return HTMLResponse(content=f.read())
+    raise HTTPException(status_code=404, detail="Onboarding page not found")
+
+
+@app.get("/init-db")
+async def initialize_database(api_key: str = Query(None)):
+    """
+    Initialize database tables. Requires ADMIN_API_KEY.
+
+    Usage: /init-db?api_key=YOUR_ADMIN_KEY
+    """
+    expected_key = os.environ.get("ADMIN_API_KEY", "")
+    if not expected_key or api_key != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+    try:
+        from src.db.database import engine, Base
+        from src.models.user import User, EmailLog, ClickTracking, EventPopularity
+
+        if engine is None:
+            raise HTTPException(status_code=500, detail="DATABASE_URL not configured")
+
+        Base.metadata.create_all(bind=engine)
+
+        # List created tables
+        tables = list(Base.metadata.tables.keys())
+
+        return {
+            "success": True,
+            "message": "Database tables created successfully",
+            "tables": tables
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating tables: {str(e)}")
 
 
 if __name__ == "__main__":

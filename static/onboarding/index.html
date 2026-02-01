@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Personalized Event Recommendations | Cambridge-Somerville Events</title>
+    <style>
+        :root {
+            --primary: #e74c3c;
+            --primary-dark: #c0392b;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --text: #333;
+            --text-light: #666;
+            --bg: #f5f5f5;
+            --white: #ffffff;
+            --border: #ddd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0 30px;
+        }
+
+        header h1 {
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
+        .progress-step {
+            width: 40px;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            transition: background 0.3s;
+        }
+
+        .progress-step.active {
+            background: var(--primary);
+        }
+
+        .progress-step.completed {
+            background: var(--success);
+        }
+
+        .question {
+            display: none;
+        }
+
+        .question.active {
+            display: block;
+        }
+
+        .question h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .option:hover {
+            border-color: var(--primary);
+            background: #fef5f4;
+        }
+
+        .option.selected {
+            border-color: var(--primary);
+            background: #fef5f4;
+        }
+
+        .option-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .option.selected .option-radio {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+
+        .option.selected .option-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .option-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .option.selected .option-checkbox {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+
+        .option.selected .option-checkbox::after {
+            content: '\2713';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .option-content {
+            flex: 1;
+        }
+
+        .option-label {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text);
+        }
+
+        .option-description {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .multi-hint {
+            font-size: 14px;
+            color: var(--secondary);
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        button {
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-back {
+            background: var(--white);
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .btn-back:hover {
+            border-color: var(--text-light);
+        }
+
+        .btn-next {
+            background: var(--primary);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-next:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-next:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Email step */
+        .email-step {
+            display: none;
+        }
+
+        .email-step.active {
+            display: block;
+        }
+
+        .email-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .email-input:focus {
+            border-color: var(--primary);
+        }
+
+        .privacy-note {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        /* Result step */
+        .result-step {
+            display: none;
+            text-align: center;
+        }
+
+        .result-step.active {
+            display: block;
+        }
+
+        .archetype-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+
+        .archetype-description {
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--text);
+            margin: 20px 0;
+            text-align: left;
+            background: #fef5f4;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+            color: white;
+        }
+
+        .result-cta {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .browse-button {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .browse-button:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Loading state */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error state */
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .archetype-badge {
+                font-size: 18px;
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cambridge-Somerville Events</h1>
+            <p>Get personalized event recommendations delivered weekly</p>
+        </header>
+
+        <div class="card">
+            <div class="progress-bar">
+                <div class="progress-step" id="step-1"></div>
+                <div class="progress-step" id="step-2"></div>
+                <div class="progress-step" id="step-3"></div>
+                <div class="progress-step" id="step-4"></div>
+                <div class="progress-step" id="step-5"></div>
+            </div>
+
+            <!-- Questions will be dynamically inserted here -->
+            <div id="questions-container"></div>
+
+            <!-- Email step -->
+            <div class="email-step" id="email-step">
+                <h2>Almost done! Where should we send your recommendations?</h2>
+                <input type="email" class="email-input" id="email-input" placeholder="your@email.com" required>
+                <div class="error-message" id="email-error"></div>
+                <p class="privacy-note">We'll send you a weekly digest. Unsubscribe anytime.</p>
+                <div class="nav-buttons">
+                    <button class="btn-back" onclick="goBack()">Back</button>
+                    <button class="btn-next" onclick="submitForm()">Get My Events</button>
+                </div>
+            </div>
+
+            <!-- Loading state -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Finding your perfect events...</p>
+            </div>
+
+            <!-- Result step -->
+            <div class="result-step" id="result-step">
+                <div class="success-icon">&#10003;</div>
+                <h2>You're all set!</h2>
+                <div class="archetype-badge" id="archetype-name"></div>
+                <div class="archetype-description" id="archetype-description"></div>
+                <div class="result-cta">
+                    <p>Your first weekly digest is on its way!</p>
+                    <a href="/events" class="browse-button">Browse All Events Now</a>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Discover the best events in Cambridge & Somerville</p>
+            <p><a href="/">Home</a> | <a href="/events">All Events</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // State
+        let currentStep = 0;
+        let questions = [];
+        let responses = {};
+
+        // DOM elements
+        const questionsContainer = document.getElementById('questions-container');
+        const emailStep = document.getElementById('email-step');
+        const loadingStep = document.getElementById('loading');
+        const resultStep = document.getElementById('result-step');
+
+        // Fetch questions on load
+        async function fetchQuestions() {
+            try {
+                const response = await fetch('/onboarding/questions');
+                const data = await response.json();
+                questions = data.questions;
+                renderQuestions();
+                updateProgress();
+            } catch (error) {
+                console.error('Failed to load questions:', error);
+                questionsContainer.innerHTML = '<p>Failed to load questionnaire. Please refresh the page.</p>';
+            }
+        }
+
+        function renderQuestions() {
+            questionsContainer.innerHTML = questions.map((q, index) => `
+                <div class="question" id="question-${index}">
+                    <h2>${q.question}</h2>
+                    ${q.type === 'multi' ? `<p class="multi-hint">Select up to ${q.max_selections} options</p>` : ''}
+                    <div class="options">
+                        ${q.options.map(opt => `
+                            <div class="option" data-question="${q.id}" data-value="${opt.value}" onclick="selectOption(this, '${q.id}', '${opt.value}', ${q.type === 'multi'}, ${q.max_selections || 2})">
+                                <div class="${q.type === 'multi' ? 'option-checkbox' : 'option-radio'}"></div>
+                                <div class="option-content">
+                                    <div class="option-label">${opt.label}</div>
+                                    ${opt.description ? `<div class="option-description">${opt.description}</div>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="nav-buttons">
+                        ${index > 0 ? '<button class="btn-back" onclick="goBack()">Back</button>' : '<div></div>'}
+                        <button class="btn-next" id="next-${index}" onclick="goNext()" disabled>Next</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Show first question
+            document.getElementById('question-0').classList.add('active');
+        }
+
+        function selectOption(element, questionId, value, isMulti, maxSelections) {
+            if (isMulti) {
+                // Multi-select logic
+                if (!responses[questionId]) {
+                    responses[questionId] = [];
+                }
+
+                if (element.classList.contains('selected')) {
+                    // Deselect
+                    element.classList.remove('selected');
+                    responses[questionId] = responses[questionId].filter(v => v !== value);
+                } else {
+                    // Select (if under max)
+                    if (responses[questionId].length < maxSelections) {
+                        element.classList.add('selected');
+                        responses[questionId].push(value);
+                    }
+                }
+            } else {
+                // Single-select logic
+                const options = element.parentElement.querySelectorAll('.option');
+                options.forEach(opt => opt.classList.remove('selected'));
+                element.classList.add('selected');
+                responses[questionId] = value;
+            }
+
+            // Enable/disable next button
+            const nextBtn = document.getElementById(`next-${currentStep}`);
+            if (nextBtn) {
+                const hasSelection = isMulti
+                    ? responses[questionId] && responses[questionId].length > 0
+                    : responses[questionId];
+                nextBtn.disabled = !hasSelection;
+            }
+        }
+
+        function goNext() {
+            // Hide current step
+            if (currentStep < questions.length) {
+                document.getElementById(`question-${currentStep}`).classList.remove('active');
+            }
+
+            currentStep++;
+            updateProgress();
+
+            // Show next step
+            if (currentStep < questions.length) {
+                document.getElementById(`question-${currentStep}`).classList.add('active');
+            } else {
+                // Show email step
+                emailStep.classList.add('active');
+                document.getElementById('email-input').focus();
+            }
+        }
+
+        function goBack() {
+            if (currentStep === questions.length) {
+                // Coming from email step
+                emailStep.classList.remove('active');
+            } else {
+                document.getElementById(`question-${currentStep}`).classList.remove('active');
+            }
+
+            currentStep--;
+            updateProgress();
+
+            if (currentStep >= 0 && currentStep < questions.length) {
+                document.getElementById(`question-${currentStep}`).classList.add('active');
+            }
+        }
+
+        function updateProgress() {
+            for (let i = 0; i <= 4; i++) {
+                const step = document.getElementById(`step-${i + 1}`);
+                step.classList.remove('active', 'completed');
+
+                if (i < currentStep) {
+                    step.classList.add('completed');
+                } else if (i === currentStep) {
+                    step.classList.add('active');
+                }
+            }
+        }
+
+        async function submitForm() {
+            const email = document.getElementById('email-input').value;
+            const errorEl = document.getElementById('email-error');
+
+            // Validate email
+            if (!email || !email.includes('@')) {
+                errorEl.textContent = 'Please enter a valid email address';
+                errorEl.classList.add('visible');
+                return;
+            }
+
+            errorEl.classList.remove('visible');
+
+            // Show loading
+            emailStep.classList.remove('active');
+            loadingStep.classList.add('active');
+
+            try {
+                const response = await fetch('/onboarding/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        responses: {
+                            lifestyle: responses.lifestyle,
+                            interests: responses.interests || [],
+                            timing: responses.timing,
+                            budget: responses.budget
+                        }
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Show result
+                    loadingStep.classList.remove('active');
+                    resultStep.classList.add('active');
+
+                    document.getElementById('archetype-name').textContent = data.primary_archetype.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    document.getElementById('archetype-description').textContent = data.archetype_description;
+
+                    // Update progress to complete
+                    for (let i = 0; i <= 4; i++) {
+                        document.getElementById(`step-${i + 1}`).classList.add('completed');
+                    }
+                } else {
+                    throw new Error(data.detail || 'Failed to submit');
+                }
+            } catch (error) {
+                console.error('Submit error:', error);
+                loadingStep.classList.remove('active');
+                emailStep.classList.add('active');
+                errorEl.textContent = error.message || 'Something went wrong. Please try again.';
+                errorEl.classList.add('visible');
+            }
+        }
+
+        // Initialize
+        fetchQuestions();
+    </script>
+</body>
+</html>

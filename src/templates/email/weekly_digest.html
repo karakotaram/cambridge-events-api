@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Weekly Cambridge Events</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            color: #e74c3c;
+            margin: 0;
+            font-size: 24px;
+        }
+        .header p {
+            color: #666;
+            margin: 10px 0 0;
+        }
+        .intro {
+            background-color: #fef5f4;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        .event {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .event-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background-color: #f0f0f0;
+        }
+        .event-content {
+            padding: 15px;
+        }
+        .event-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 8px;
+            color: #333;
+        }
+        .event-title a {
+            color: #e74c3c;
+            text-decoration: none;
+        }
+        .event-title a:hover {
+            text-decoration: underline;
+        }
+        .event-meta {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .event-meta span {
+            display: inline-block;
+            margin-right: 15px;
+        }
+        .event-description {
+            font-size: 14px;
+            color: #555;
+            margin: 0;
+        }
+        .category-badge {
+            display: inline-block;
+            background-color: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            text-transform: capitalize;
+        }
+        .family-badge {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        .cta-button:hover {
+            background-color: #c0392b;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #999;
+        }
+        .footer a {
+            color: #999;
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .event-meta span {
+                display: block;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cambridge-Somerville Events</h1>
+            <p>Your personalized weekly digest</p>
+        </div>
+
+        <div class="intro">
+            <strong>Hey {{ archetype_name }}!</strong><br>
+            Here are {{ events|length }} events handpicked for you this week. Enjoy!
+        </div>
+
+        {% for event in events %}
+        <div class="event">
+            {% if event.image_url %}
+            <img src="{{ event.image_url }}" alt="{{ event.title }}" class="event-image">
+            {% endif %}
+            <div class="event-content">
+                <h2 class="event-title">
+                    <a href="{{ event.tracked_link }}">{{ event.title }}</a>
+                </h2>
+                <div class="event-meta">
+                    <span>{{ event.date }} at {{ event.time }}</span>
+                    <span>{{ event.venue }}</span>
+                    <span>{{ event.cost }}</span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <span class="category-badge">{{ event.category }}</span>
+                    {% if event.family_friendly %}
+                    <span class="family-badge">Family Friendly</span>
+                    {% endif %}
+                </div>
+                <p class="event-description">{{ event.description }}</p>
+                <a href="{{ event.tracked_link }}" class="cta-button">Learn More</a>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="footer">
+            <p>
+                You're receiving this because you signed up for Cambridge-Somerville Events.<br>
+                <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+            </p>
+            <p>&copy; {{ current_year }} Cambridge-Somerville Events</p>
+        </div>
+    </div>
+
+    <!-- Open tracking pixel -->
+    <img src="{{ tracking_pixel_url }}" width="1" height="1" alt="" style="display:none;">
+</body>
+</html>
