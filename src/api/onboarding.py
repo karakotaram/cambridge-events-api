@@ -356,3 +356,72 @@ async def send_test_email(
         return {"success": True, "email_log_id": email_log_id, "events_sent": len(recommended)}
     else:
         raise HTTPException(status_code=500, detail="Failed to send email")
+
+
+@router.post("/admin/trigger-weekly-email")
+async def trigger_weekly_email(
+    max_users: int = Query(100, ge=1, le=500),
+    verified: bool = Depends(verify_admin_key),
+    db: Session = Depends(get_db)
+):
+    """
+    Trigger the weekly email job.
+
+    This endpoint is called by the GitHub Action cron job.
+    """
+    import json
+    from pathlib import Path
+    from datetime import timedelta
+
+    # Load events
+    project_root = Path(__file__).parent.parent.parent
+    events_file = project_root / "data" / "events.json"
+
+    if not events_file.exists():
+        raise HTTPException(status_code=500, detail="Events file not found")
+
+    from src.models.event import Event
+    with open(events_file, 'r') as f:
+        data = json.load(f)
+        events = [Event(**event) for event in data]
+
+    # Get users who need emails (haven't received in 6+ days)
+    six_days_ago = datetime.utcnow() - timedelta(days=6)
+    users = db.query(User).filter(
+        User.email_opt_in == True,
+        (User.last_email_sent == None) | (User.last_email_sent < six_days_ago)
+    ).limit(max_users).all()
+
+    if not users:
+        return {"success": True, "message": "No users need emails", "sent": 0, "failed": 0}
+
+    # Send emails
+    from src.services.recommendation import get_weekly_digest_events
+    from src.services.email_service import send_weekly_digest
+
+    sent = 0
+    failed = 0
+
+    for user in users:
+        recommended = get_weekly_digest_events(
+            events,
+            user.primary_archetype,
+            user.secondary_archetype
+        )
+
+        if not recommended:
+            continue
+
+        email_log_id = send_weekly_digest(user, recommended, db)
+        if email_log_id:
+            sent += 1
+        else:
+            failed += 1
+
+    return {
+        "success": True,
+        "message": f"Weekly email job complete",
+        "users_processed": len(users),
+        "sent": sent,
+        "failed": failed
+    }

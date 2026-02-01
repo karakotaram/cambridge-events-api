@@ -1,0 +1,17 @@
+name: Send Weekly Email Digest
+
+on:
+  schedule:
+    # Runs every Sunday at 10 AM Eastern (3 PM UTC)
+    - cron: '0 15 * * 0'
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  send-emails:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger weekly email job
+        run: |
+          curl -X POST "${{ secrets.API_BASE_URL }}/onboarding/admin/trigger-weekly-email?api_key=${{ secrets.ADMIN_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body
