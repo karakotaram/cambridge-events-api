@@ -40,6 +40,16 @@ from src.scrapers.somerville_theatre import SomervilleTheatreScraper
 from src.scrapers.grolier import GrolierPoetryBookshopScraper
 from src.scrapers.multicultural_arts import MulticulturalArtsCenterScraper
 from src.scrapers.harvard_square import HarvardSquareScraper
+from src.scrapers.rockwell import RockwellScraper
+from src.scrapers.mad_monkfish import MadMonkfishScraper
+from src.scrapers.mount_auburn import MountAuburnScraper
+from src.scrapers.longy import LongyScraper
+from src.scrapers.mit_calendar import MITCalendarScraper
+from src.scrapers.mit_music_theater import MITMusicTheaterScraper
+from src.scrapers.memorial_church import MemorialChurchScraper
+from src.scrapers.cambridge_library import CambridgeLibraryScraper
+from src.scrapers.openspace_mit import OpenSpaceMITScraper
+from src.scrapers.skip_small_talk import SkipSmallTalkScraper
 from src.models.event import EventCreate, Event
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
@@ -215,8 +225,11 @@ def main():
     orchestrator.register_scraper(BrattleTheaterScraper())
     orchestrator.register_scraper(GrolierPoetryBookshopScraper())
     orchestrator.register_scraper(MulticulturalArtsCenterScraper())
+    orchestrator.register_scraper(RockwellScraper())
+    orchestrator.register_scraper(MadMonkfishScraper())
+    orchestrator.register_scraper(MountAuburnScraper())
 
-    # Selenium scrapers (run after non-Selenium to reduce Chrome restarts)
+    # Selenium/Playwright scrapers (run after non-Selenium to reduce browser restarts)
     orchestrator.register_scraper(CambridgeGovScraper())
     orchestrator.register_scraper(LilyPadScraper())
     orchestrator.register_scraper(MideastClubScraper())
@@ -230,6 +243,15 @@ def main():
     if not is_ci:
         orchestrator.register_scraper(AeronautScraper())
         orchestrator.register_scraper(SomervilleTheatreScraper())
+
+    # Playwright scrapers
+    orchestrator.register_scraper(LongyScraper())
+    orchestrator.register_scraper(MITCalendarScraper())
+    orchestrator.register_scraper(MITMusicTheaterScraper())
+    orchestrator.register_scraper(MemorialChurchScraper())
+    orchestrator.register_scraper(CambridgeLibraryScraper())
+    orchestrator.register_scraper(OpenSpaceMITScraper())
+    orchestrator.register_scraper(SkipSmallTalkScraper())
 
     # Aggregator scrapers (run last so original sources take priority in deduplication)
     orchestrator.register_scraper(HarvardSquareScraper())
