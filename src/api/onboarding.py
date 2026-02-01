@@ -318,44 +318,57 @@ async def send_test_email(
     Requires API key authentication.
     """
     import json
+    import os
+    import traceback
     from pathlib import Path
 
-    # Find user
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    try:
+        # Check if RESEND_API_KEY is set
+        if not os.environ.get("RESEND_API_KEY"):
+            raise HTTPException(status_code=500, detail="RESEND_API_KEY not configured in environment variables")
 
-    # Load events
-    project_root = Path(__file__).parent.parent.parent
-    events_file = project_root / "data" / "events.json"
+        # Find user
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail=f"User not found. Make sure {email} has signed up first at /signup")
 
-    if not events_file.exists():
-        raise HTTPException(status_code=500, detail="Events file not found")
+        # Load events
+        project_root = Path(__file__).parent.parent.parent
+        events_file = project_root / "data" / "events.json"
 
-    from src.models.event import Event
-    with open(events_file, 'r') as f:
-        data = json.load(f)
-        events = [Event(**event) for event in data]
+        if not events_file.exists():
+            raise HTTPException(status_code=500, detail=f"Events file not found at {events_file}")
 
-    # Get recommendations
-    from src.services.recommendation import get_weekly_digest_events
-    recommended = get_weekly_digest_events(
-        events,
-        user.primary_archetype,
-        user.secondary_archetype
-    )
+        from src.models.event import Event
+        with open(events_file, 'r') as f:
+            data = json.load(f)
+            events = [Event(**event) for event in data]
 
-    if not recommended:
-        raise HTTPException(status_code=400, detail="No events to recommend")
+        # Get recommendations
+        from src.services.recommendation import get_weekly_digest_events
+        recommended = get_weekly_digest_events(
+            events,
+            user.primary_archetype,
+            user.secondary_archetype
+        )
 
-    # Send email
-    from src.services.email_service import send_weekly_digest
-    email_log_id = send_weekly_digest(user, recommended, db)
+        if not recommended:
+            raise HTTPException(status_code=400, detail="No events to recommend for this user's archetype")
 
-    if email_log_id:
-        return {"success": True, "email_log_id": email_log_id, "events_sent": len(recommended)}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to send email")
+        # Send email
+        from src.services.email_service import send_weekly_digest
+        email_log_id = send_weekly_digest(user, recommended, db)
+
+        if email_log_id:
+            return {"success": True, "email_log_id": email_log_id, "events_sent": len(recommended)}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to send email - check RESEND_API_KEY is valid")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_details = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}\n\n{error_details}")
 
 
 @router.post("/admin/trigger-weekly-email")
