@@ -86,6 +86,12 @@ def render_weekly_digest(
         date_str = event_dt.strftime("%A, %B %d")
         time_str = event_dt.strftime("%I:%M %p").lstrip("0")
 
+        # Handle category as string or enum
+        if event.category:
+            category = event.category.value if hasattr(event.category, 'value') else str(event.category)
+        else:
+            category = "Event"
+
         events_data.append({
             "title": event.title,
             "description": event.description[:200] + "..." if len(event.description) > 200 else event.description,
@@ -93,7 +99,7 @@ def render_weekly_digest(
             "time": time_str,
             "venue": event.venue_name or "TBA",
             "cost": event.cost or "See website",
-            "category": event.category.value if event.category else "Event",
+            "category": category,
             "image_url": event.image_url,
             "tracked_link": tracked_link,
             "family_friendly": event.family_friendly,
