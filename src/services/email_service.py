@@ -42,7 +42,8 @@ def get_resend_client():
 
 def get_api_base_url() -> str:
     """Get base URL for tracking links"""
-    return os.environ.get("API_BASE_URL", "https://web-production-00281.up.railway.app")
+    url = os.environ.get("API_BASE_URL", "https://web-production-00281.up.railway.app")
+    return url.strip()  # Remove any accidental whitespace
 
 
 def create_tracked_event_link(
