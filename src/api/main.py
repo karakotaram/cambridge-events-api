@@ -729,30 +729,23 @@ async def get_interaction_analytics(
             by_type = {row.interaction_type: row.count for row in type_breakdown}
 
             # Top events by interaction count (with weighted score)
+            from sqlalchemy import case
+            weighted_case = case(
+                (WebsiteInteraction.interaction_type == 'card_expand', 1),
+                (WebsiteInteraction.interaction_type == 'click_external', 3),
+                (WebsiteInteraction.interaction_type == 'calendar_add', 5),
+                else_=0
+            )
             top_events_query = db.query(
                 WebsiteInteraction.event_id,
                 func.count(WebsiteInteraction.id).label('total_count'),
-                func.sum(
-                    func.case(
-                        (WebsiteInteraction.interaction_type == 'card_expand', 1),
-                        (WebsiteInteraction.interaction_type == 'click_external', 3),
-                        (WebsiteInteraction.interaction_type == 'calendar_add', 5),
-                        else_=0
-                    )
-                ).label('weighted_score')
+                func.sum(weighted_case).label('weighted_score')
             ).filter(
                 WebsiteInteraction.created_at >= cutoff
             ).group_by(
                 WebsiteInteraction.event_id
             ).order_by(
-                func.sum(
-                    func.case(
-                        (WebsiteInteraction.interaction_type == 'card_expand', 1),
-                        (WebsiteInteraction.interaction_type == 'click_external', 3),
-                        (WebsiteInteraction.interaction_type == 'calendar_add', 5),
-                        else_=0
-                    )
-                ).desc()
+                func.sum(weighted_case).desc()
             ).limit(20).all()
 
             # Load events to get titles
