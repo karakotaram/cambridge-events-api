@@ -15,6 +15,9 @@ from groq import Groq
 
 from src.models.event import Event, EventCategory, EASTERN_TZ
 from src.api.onboarding import router as onboarding_router
+from src.models.interactions import WebsiteInteraction
+from src.services.scoring import calculate_event_score
+from src.db.database import SessionLocal
 
 
 # In-memory cache for events
@@ -51,6 +54,13 @@ class EventSlim(BaseModel):
     source_url: str
     source_name: Optional[str] = None
     cost: Optional[str] = None
+    score: Optional[float] = None
+
+
+class TrackRequest(BaseModel):
+    """Request model for tracking interactions"""
+    event_id: str
+    interaction_type: str
 
 
 app = FastAPI(
@@ -143,6 +153,46 @@ async def health_check():
         "total_events": len(events),
         "last_updated": datetime.utcnow().isoformat()
     }
+
+
+@app.post("/track")
+async def track_interaction(request: TrackRequest):
+    """
+    Track a user interaction with an event (fire-and-forget).
+
+    Interaction types:
+    - card_expand: User expanded event card to see details
+    - click_external: User clicked through to source URL
+    - calendar_add: User added event to calendar
+
+    This endpoint is designed to be non-blocking. Errors are logged
+    but don't fail the request.
+    """
+    try:
+        if SessionLocal is None:
+            # Database not configured, silently skip
+            return {"status": "ok"}
+
+        # Validate interaction type
+        valid_types = {'card_expand', 'click_external', 'calendar_add'}
+        if request.interaction_type not in valid_types:
+            return {"status": "ok"}  # Silently ignore invalid types
+
+        db = SessionLocal()
+        try:
+            interaction = WebsiteInteraction(
+                event_id=request.event_id,
+                interaction_type=request.interaction_type,
+            )
+            db.add(interaction)
+            db.commit()
+        finally:
+            db.close()
+    except Exception as e:
+        # Don't fail the request, just log
+        print(f"Track error: {e}")
+
+    return {"status": "ok"}
 
 
 @app.get("/version")
@@ -243,6 +293,48 @@ async def get_events(
     return events
 
 
+def get_interaction_counts_from_db() -> dict:
+    """
+    Fetch interaction counts for all events from the last 30 days.
+
+    Returns:
+        Dict mapping event_id -> {interaction_type: count}
+    """
+    if SessionLocal is None:
+        return {}
+
+    try:
+        from sqlalchemy import func, text
+        db = SessionLocal()
+        try:
+            # Query counts grouped by event_id and interaction_type
+            thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+            results = db.query(
+                WebsiteInteraction.event_id,
+                WebsiteInteraction.interaction_type,
+                func.count(WebsiteInteraction.id).label('count')
+            ).filter(
+                WebsiteInteraction.created_at >= thirty_days_ago
+            ).group_by(
+                WebsiteInteraction.event_id,
+                WebsiteInteraction.interaction_type
+            ).all()
+
+            # Build nested dict: event_id -> {type: count}
+            counts = {}
+            for event_id, interaction_type, count in results:
+                if event_id not in counts:
+                    counts[event_id] = {}
+                counts[event_id][interaction_type] = count
+
+            return counts
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"Error fetching interaction counts: {e}")
+        return {}
+
+
 @app.get("/events/slim", response_model=List[EventSlim])
 async def get_events_slim(
     category: Optional[EventCategory] = None,
@@ -251,6 +343,7 @@ async def get_events_slim(
     free_only: Optional[bool] = Query(None, description="Filter for free events only"),
     upcoming_only: bool = Query(True, description="Show only upcoming events (default: true)"),
     family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
+    ranked: bool = Query(False, description="Sort by relevance score instead of date"),
     limit: int = Query(1000, ge=1, le=5000),
     offset: int = Query(0, ge=0)
 ):
@@ -267,6 +360,7 @@ async def get_events_slim(
     - free_only: If true, only show free events
     - upcoming_only: If true (default), only show events from today forward
     - family_friendly: If true, only show family-friendly events
+    - ranked: If true, sort by relevance score (considers popularity, recency, temporal urgency)
     - limit: Maximum number of events to return (default: 500)
     - offset: Number of events to skip
     """
@@ -305,21 +399,48 @@ async def get_events_slim(
     if family_friendly is not None:
         events = [e for e in events if getattr(e, 'family_friendly', False) == family_friendly]
 
-    # Sort by start date
-    def get_sort_key(event):
-        dt = event.start_datetime
-        if dt.tzinfo is not None:
-            return dt.replace(tzinfo=None)
-        return dt
+    # Calculate scores and sort
+    event_scores = {}
+    if ranked:
+        # Fetch interaction counts from database
+        interaction_counts = get_interaction_counts_from_db()
+        now = datetime.utcnow()
 
-    events.sort(key=get_sort_key)
+        # Calculate score for each event
+        for e in events:
+            # Get category as string
+            cat_str = None
+            if e.category:
+                cat_str = e.category.value if hasattr(e.category, 'value') else str(e.category)
+
+            event_scores[e.id] = calculate_event_score(
+                source_name=e.source_name,
+                category=cat_str,
+                cost=e.cost,
+                start_datetime=e.start_datetime,
+                scraped_at=e.scraped_at,
+                interaction_counts=interaction_counts.get(e.id, {}),
+                now=now
+            )
+
+        # Sort by score descending
+        events.sort(key=lambda e: event_scores.get(e.id, 0), reverse=True)
+    else:
+        # Sort by start date (original behavior)
+        def get_sort_key(event):
+            dt = event.start_datetime
+            if dt.tzinfo is not None:
+                return dt.replace(tzinfo=None)
+            return dt
+        events.sort(key=get_sort_key)
 
     # Apply pagination
     events = events[offset:offset + limit]
 
     # Convert to slim format
-    slim_events = [
-        EventSlim(
+    slim_events = []
+    for e in events:
+        slim = EventSlim(
             id=e.id,
             title=e.title,
             start_datetime=e.start_datetime,
@@ -335,8 +456,10 @@ async def get_events_slim(
             source_name=e.source_name,
             cost=e.cost
         )
-        for e in events
-    ]
+        # Include score in response if ranked
+        if ranked and e.id in event_scores:
+            slim.score = round(event_scores[e.id], 3)
+        slim_events.append(slim)
 
     return slim_events
 
@@ -545,6 +668,197 @@ async def get_stats():
     }
 
 
+@app.get("/analytics/interactions")
+async def get_interaction_analytics(
+    api_key: str = Query(..., description="Admin API key for authentication"),
+    days: int = Query(7, ge=1, le=90, description="Number of days to analyze")
+):
+    """
+    Get analytics data for user interactions with events.
+
+    Requires ADMIN_API_KEY for authentication.
+
+    Returns:
+    - Summary statistics (total interactions, unique events)
+    - Breakdown by interaction type
+    - Top events by interaction count
+    - Daily interaction trends
+    - Top sources by engagement
+    """
+    # Verify API key
+    expected_key = os.environ.get("ADMIN_API_KEY", "")
+    if not expected_key or api_key != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+    if SessionLocal is None:
+        return {
+            "error": "Database not configured",
+            "summary": {"total_interactions": 0, "unique_events": 0},
+            "by_type": {},
+            "top_events": [],
+            "daily_trend": [],
+            "top_sources": []
+        }
+
+    try:
+        from sqlalchemy import func, cast, Date
+
+        db = SessionLocal()
+        try:
+            cutoff = datetime.utcnow() - timedelta(days=days)
+
+            # Total interactions and unique events
+            summary_query = db.query(
+                func.count(WebsiteInteraction.id).label('total'),
+                func.count(func.distinct(WebsiteInteraction.event_id)).label('unique_events')
+            ).filter(WebsiteInteraction.created_at >= cutoff).first()
+
+            total_interactions = summary_query.total or 0
+            unique_events = summary_query.unique_events or 0
+
+            # Breakdown by interaction type
+            type_breakdown = db.query(
+                WebsiteInteraction.interaction_type,
+                func.count(WebsiteInteraction.id).label('count')
+            ).filter(
+                WebsiteInteraction.created_at >= cutoff
+            ).group_by(
+                WebsiteInteraction.interaction_type
+            ).all()
+
+            by_type = {row.interaction_type: row.count for row in type_breakdown}
+
+            # Top events by interaction count (with weighted score)
+            top_events_query = db.query(
+                WebsiteInteraction.event_id,
+                func.count(WebsiteInteraction.id).label('total_count'),
+                func.sum(
+                    func.case(
+                        (WebsiteInteraction.interaction_type == 'card_expand', 1),
+                        (WebsiteInteraction.interaction_type == 'click_external', 3),
+                        (WebsiteInteraction.interaction_type == 'calendar_add', 5),
+                        else_=0
+                    )
+                ).label('weighted_score')
+            ).filter(
+                WebsiteInteraction.created_at >= cutoff
+            ).group_by(
+                WebsiteInteraction.event_id
+            ).order_by(
+                func.sum(
+                    func.case(
+                        (WebsiteInteraction.interaction_type == 'card_expand', 1),
+                        (WebsiteInteraction.interaction_type == 'click_external', 3),
+                        (WebsiteInteraction.interaction_type == 'calendar_add', 5),
+                        else_=0
+                    )
+                ).desc()
+            ).limit(20).all()
+
+            # Load events to get titles
+            events = load_events()
+            event_map = {e.id: e for e in events}
+
+            top_events = []
+            for row in top_events_query:
+                event = event_map.get(row.event_id)
+                top_events.append({
+                    "event_id": row.event_id,
+                    "title": event.title if event else "Unknown Event",
+                    "source_name": event.source_name if event else None,
+                    "total_interactions": row.total_count,
+                    "weighted_score": row.weighted_score or 0
+                })
+
+            # Daily interaction trend
+            daily_query = db.query(
+                cast(WebsiteInteraction.created_at, Date).label('date'),
+                func.count(WebsiteInteraction.id).label('count')
+            ).filter(
+                WebsiteInteraction.created_at >= cutoff
+            ).group_by(
+                cast(WebsiteInteraction.created_at, Date)
+            ).order_by(
+                cast(WebsiteInteraction.created_at, Date)
+            ).all()
+
+            daily_trend = [
+                {"date": row.date.isoformat(), "count": row.count}
+                for row in daily_query
+            ]
+
+            # Top sources by engagement
+            source_engagement = {}
+            for row in top_events_query:
+                event = event_map.get(row.event_id)
+                if event and event.source_name:
+                    if event.source_name not in source_engagement:
+                        source_engagement[event.source_name] = {
+                            "interactions": 0,
+                            "weighted_score": 0,
+                            "event_count": 0
+                        }
+                    source_engagement[event.source_name]["interactions"] += row.total_count
+                    source_engagement[event.source_name]["weighted_score"] += row.weighted_score or 0
+                    source_engagement[event.source_name]["event_count"] += 1
+
+            top_sources = sorted(
+                [
+                    {"source": k, **v}
+                    for k, v in source_engagement.items()
+                ],
+                key=lambda x: x["weighted_score"],
+                reverse=True
+            )[:10]
+
+            # Recent interactions (last 50)
+            recent_query = db.query(
+                WebsiteInteraction.event_id,
+                WebsiteInteraction.interaction_type,
+                WebsiteInteraction.created_at
+            ).order_by(
+                WebsiteInteraction.created_at.desc()
+            ).limit(50).all()
+
+            recent_interactions = []
+            for row in recent_query:
+                event = event_map.get(row.event_id)
+                recent_interactions.append({
+                    "event_id": row.event_id,
+                    "title": event.title if event else "Unknown Event",
+                    "interaction_type": row.interaction_type,
+                    "timestamp": row.created_at.isoformat()
+                })
+
+            return {
+                "summary": {
+                    "total_interactions": total_interactions,
+                    "unique_events": unique_events,
+                    "period_days": days
+                },
+                "by_type": by_type,
+                "top_events": top_events,
+                "daily_trend": daily_trend,
+                "top_sources": top_sources,
+                "recent_interactions": recent_interactions
+            }
+
+        finally:
+            db.close()
+
+    except Exception as e:
+        import traceback
+        return {
+            "error": str(e),
+            "details": traceback.format_exc(),
+            "summary": {"total_interactions": 0, "unique_events": 0},
+            "by_type": {},
+            "top_events": [],
+            "daily_trend": [],
+            "top_sources": []
+        }
+
+
 def format_events_for_context(events: List[Event], limit: int = 500) -> str:
     """Format events into a compressed context string for the LLM"""
     # Sort by date and take upcoming events
@@ -744,6 +1058,7 @@ async def initialize_database(api_key: str = Query(None)):
     try:
         from src.db.database import engine, Base
         from src.models.user import User, EmailLog, ClickTracking, EventPopularity
+        from src.models.interactions import WebsiteInteraction  # noqa: F401
 
         if engine is None:
             raise HTTPException(status_code=500, detail="DATABASE_URL not configured")
