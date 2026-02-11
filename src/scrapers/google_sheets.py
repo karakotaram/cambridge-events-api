@@ -111,7 +111,7 @@ class GoogleSheetsScraper(BaseScraper):
             raise
 
     def fetch_approved_events(self) -> List[dict]:
-        """Fetch all approved events that haven't been uploaded yet"""
+        """Fetch events that are approved and haven't been uploaded yet"""
         service = self._get_sheets_service()
         sheet_name = self._get_first_sheet_name()
 
@@ -156,11 +156,11 @@ class GoogleSheetsScraper(BaseScraper):
             approved = row[12]
             uploaded = row[13]
 
-            # Only process approved and not-yet-uploaded events
-            is_approved = approved.strip().lower() == 'yes'
+            # Only process events that are approved and not yet uploaded
+            is_approved = approved.strip().lower() in ('approved', 'yes', 'true')
             is_uploaded = uploaded.strip().lower().startswith('yes')
 
-            if is_approved and not is_uploaded:
+            if is_approved and not is_uploaded and event_name.strip():
                 approved_events.append({
                     'row_index': row_idx + 2,  # 1-indexed, +1 for header row
                     'timestamp': timestamp,
@@ -176,11 +176,13 @@ class GoogleSheetsScraper(BaseScraper):
                     'image_url': image_url,
                     'contact_email': contact_email,
                 })
-                logger.debug(f"Found approved event: {event_name}")
-            elif is_approved and is_uploaded:
+                logger.debug(f"Found new event: {event_name}")
+            elif not is_approved and event_name.strip():
+                logger.debug(f"Skipping unapproved event: {event_name} (status: {approved})")
+            elif is_uploaded:
                 logger.debug(f"Skipping already uploaded event: {event_name}")
 
-        logger.info(f"Found {len(approved_events)} approved events pending upload")
+        logger.info(f"Found {len(approved_events)} events pending upload")
         return approved_events
 
     def mark_as_uploaded(self, row_indices: List[int] = None):

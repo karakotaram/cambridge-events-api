@@ -37,6 +37,46 @@ logger = logging.getLogger(__name__)
 SOURCE_NAME = "User Submitted"
 AUDIT_FILE = "user_submitted_audit.html"
 EVENTS_FILE = "data/events.json"
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "")
+
+
+def send_admin_notification(new_events: List[Event]):
+    """Send email notification to admin about newly synced events"""
+    if not ADMIN_EMAIL:
+        logger.info("ADMIN_EMAIL not set, skipping notification")
+        return
+
+    try:
+        from src.services.email_service import send_email
+    except Exception as e:
+        logger.warning(f"Could not import email service: {e}")
+        return
+
+    lines = []
+    for event in new_events:
+        dt = event.start_datetime.strftime('%a, %b %d at %I:%M %p')
+        venue = event.venue_name or 'TBA'
+        lines.append(
+            f"<li><strong>{event.title}</strong><br>"
+            f"{dt} — {venue}<br>"
+            f"<em>{event.description[:150]}</em></li>"
+        )
+
+    html_body = f"""
+    <h2>{len(new_events)} New User-Submitted Event{'s' if len(new_events) != 1 else ''} Synced</h2>
+    <p>The following approved events were synced from Google Sheets to the calendar:</p>
+    <ul>{''.join(lines)}</ul>
+    <p>View them in the <a href="https://docs.google.com/spreadsheets/d/{os.environ.get('GOOGLE_SHEET_ID', '')}">Google Sheet</a>
+    or remove any that look like spam.</p>
+    """
+
+    subject = f"[Cambridge Events] {len(new_events)} new submitted event{'s' if len(new_events) != 1 else ''} auto-approved"
+
+    try:
+        send_email(ADMIN_EMAIL, subject, html_body)
+        logger.info(f"Sent admin notification to {ADMIN_EMAIL}")
+    except Exception as e:
+        logger.warning(f"Failed to send admin notification: {e}")
 
 
 def generate_audit_html(events: List[Event], output_path: str = AUDIT_FILE):
@@ -206,11 +246,11 @@ def main():
         # Fetch approved events from Google Sheets
         logger.info("Fetching events from Google Sheets...")
         events = scraper.scrape_events()
-        logger.info(f"Fetched {len(events)} approved events from Google Sheets")
+        logger.info(f"Fetched {len(events)} new events from Google Sheets")
 
         if not events:
-            logger.info("No new approved events to process")
-            print("No new approved events to sync.")
+            logger.info("No new events to process")
+            print("No new events to sync.")
             return
 
         # Validate events
@@ -317,6 +357,10 @@ def main():
         if row_indices:
             logger.info(f"Marking {len(row_indices)} events as uploaded in Google Sheets...")
             scraper.mark_as_uploaded(row_indices)
+
+        # Send admin notification about new events
+        if new_events:
+            send_admin_notification(new_events)
 
         # Summary
         logger.info("=" * 60)
