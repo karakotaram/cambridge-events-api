@@ -63,8 +63,8 @@ def send_admin_notification(new_events: List[Event]):
         )
 
     html_body = f"""
-    <h2>{len(new_events)} New User-Submitted Event{'s' if len(new_events) != 1 else ''} Synced</h2>
-    <p>The following approved events were synced from Google Sheets to the calendar:</p>
+    <h2>{len(new_events)} New User-Submitted Event{'s' if len(new_events) != 1 else ''} Auto-Approved</h2>
+    <p>The following events were auto-approved and added to the calendar. Review and delete any spam:</p>
     <ul>{''.join(lines)}</ul>
     <p>View them in the <a href="https://docs.google.com/spreadsheets/d/{os.environ.get('GOOGLE_SHEET_ID', '')}">Google Sheet</a>
     or remove any that look like spam.</p>

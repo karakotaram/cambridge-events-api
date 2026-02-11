@@ -111,7 +111,7 @@ class GoogleSheetsScraper(BaseScraper):
             raise
 
     def fetch_approved_events(self) -> List[dict]:
-        """Fetch events that are approved and haven't been uploaded yet"""
+        """Fetch all submitted events that haven't been uploaded yet (auto-approved)"""
         service = self._get_sheets_service()
         sheet_name = self._get_first_sheet_name()
 
@@ -156,11 +156,10 @@ class GoogleSheetsScraper(BaseScraper):
             approved = row[12]
             uploaded = row[13]
 
-            # Only process events that are approved and not yet uploaded
-            is_approved = approved.strip().lower() in ('approved', 'yes', 'true')
+            # Auto-approve: process all non-uploaded events
             is_uploaded = uploaded.strip().lower().startswith('yes')
 
-            if is_approved and not is_uploaded and event_name.strip():
+            if not is_uploaded and event_name.strip():
                 approved_events.append({
                     'row_index': row_idx + 2,  # 1-indexed, +1 for header row
                     'timestamp': timestamp,
@@ -177,8 +176,6 @@ class GoogleSheetsScraper(BaseScraper):
                     'contact_email': contact_email,
                 })
                 logger.debug(f"Found new event: {event_name}")
-            elif not is_approved and event_name.strip():
-                logger.debug(f"Skipping unapproved event: {event_name} (status: {approved})")
             elif is_uploaded:
                 logger.debug(f"Skipping already uploaded event: {event_name}")
 
@@ -199,9 +196,9 @@ class GoogleSheetsScraper(BaseScraper):
 
         for row_idx in indices_to_mark:
             try:
-                # Update Uploaded column (N)
-                range_name = f"'{sheet_name}'!N{row_idx}"
-                body = {'values': [[f'Yes - {now}']]}
+                # Update Approved column (M) and Uploaded column (N)
+                range_name = f"'{sheet_name}'!M{row_idx}:N{row_idx}"
+                body = {'values': [['approved', f'Yes - {now}']]}
 
                 service.spreadsheets().values().update(
                     spreadsheetId=self.sheet_id,
@@ -210,7 +207,7 @@ class GoogleSheetsScraper(BaseScraper):
                     body=body
                 ).execute()
 
-                logger.debug(f"Marked row {row_idx} as uploaded")
+                logger.debug(f"Marked row {row_idx} as approved and uploaded")
             except Exception as e:
                 logger.error(f"Failed to mark row {row_idx} as uploaded: {e}")
 
