@@ -28,23 +28,27 @@ if _POSTHOG_API_KEY:
         import posthog
         posthog.api_key = _POSTHOG_API_KEY
         posthog.host = os.environ.get("POSTHOG_HOST", "https://us.i.posthog.com")
+        posthog.debug = os.environ.get("POSTHOG_DEBUG", "").lower() in ("1", "true")
         posthog.disabled = False
         _posthog = posthog
-        print(f"[POSTHOG] Initialized (host={posthog.host})")
+        print(f"[POSTHOG] Initialized (host={posthog.host}, key={_POSTHOG_API_KEY[:8]}...)")
     except ImportError:
         print("[POSTHOG] posthog package not installed, skipping")
+else:
+    print("[POSTHOG] No POSTHOG_API_KEY set, analytics disabled")
 
 
 def _posthog_capture(request: Request, event_name: str, properties: dict = None):
-    """Fire a PostHog event using SHA256-hashed IP as distinct_id."""
+    """Fire a PostHog event using SHA256-hashed IP as distinct_id, then flush."""
     if _posthog is None:
         return
     try:
         client_ip = request.client.host if request.client else "unknown"
         distinct_id = hashlib.sha256(client_ip.encode()).hexdigest()[:16]
         _posthog.capture(distinct_id, event_name, properties or {})
-    except Exception:
-        pass  # Never let analytics break the request
+        _posthog.flush()
+    except Exception as e:
+        print(f"[POSTHOG] Capture error: {e}")
 
 
 # In-memory cache for events
@@ -241,9 +245,9 @@ async def track_interaction(body: TrackRequest, http_request: Request):
 async def version_check():
     """Version check endpoint to verify deployment"""
     return {
-        "version": "1.11.0",
-        "context_events": 500,
-        "message": "Added user onboarding and email recommendation system"
+        "version": "1.12.0",
+        "posthog_enabled": _posthog is not None,
+        "posthog_host": _posthog.host if _posthog else None,
     }
 
 
