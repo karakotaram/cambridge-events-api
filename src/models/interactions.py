@@ -1,7 +1,7 @@
 """Website interaction tracking models for event ranking system"""
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Index
+from sqlalchemy import Column, String, DateTime, Float, Integer, Index
 from sqlalchemy.dialects.postgresql import UUID
 
 from src.db.database import Base
@@ -23,6 +23,12 @@ class WebsiteInteraction(Base):
     event_id = Column(String(64), nullable=False, index=True)
     interaction_type = Column(String(32), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Analytics enrichment fields (nullable for backwards compatibility)
+    position = Column(Integer, nullable=True)
+    score = Column(Float, nullable=True)
+    event_title = Column(String(256), nullable=True)
+    source_name = Column(String(128), nullable=True)
 
     __table_args__ = (
         # Composite index for efficient queries by event and time range

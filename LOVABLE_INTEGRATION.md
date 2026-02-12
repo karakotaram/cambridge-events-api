@@ -554,6 +554,52 @@ export default EventChat;
 
 ---
 
+## Analytics with PostHog
+
+PostHog provides session replay, heatmaps, and autocapture for the frontend. The backend already sends server-side events (interactions, page views, chat messages) when `POSTHOG_API_KEY` is set on Railway.
+
+### Frontend Setup
+
+Add this snippet to your Lovable app's `index.html` (inside `<head>`):
+
+```html
+<script>
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse getActiveMatchingSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+  posthog.init('YOUR_POSTHOG_PROJECT_KEY', {
+    api_host: 'https://us.i.posthog.com',
+    autocapture: true,
+    capture_pageview: true,
+    capture_pageleave: true,
+    session_recording: {
+      maskAllInputs: false,
+      maskInputOptions: { password: true },
+    },
+  });
+</script>
+```
+
+Replace `YOUR_POSTHOG_PROJECT_KEY` with your PostHog project API key (found in PostHog > Settings > Project API Key).
+
+### What You Get
+
+- **Autocapture**: All clicks, form submissions, and page views tracked automatically
+- **Session Replay**: Watch real user sessions to see how people browse events
+- **Heatmaps**: See which event cards and UI elements get the most attention
+- **Server Events**: `event_interaction`, `events_list_viewed`, and `chat_message_sent` are captured server-side and linked by hashed IP
+
+### Sending Custom Frontend Events
+
+```javascript
+// Track when user applies a filter
+posthog.capture('filter_applied', { category: 'music', city: 'Cambridge' });
+
+// Track when user shares an event
+posthog.capture('event_shared', { event_id: 'abc123', method: 'copy_link' });
+```
+
+---
+
 ## Need Help?
 
 - API Documentation: `YOUR_API_URL/` (root endpoint shows all available endpoints)

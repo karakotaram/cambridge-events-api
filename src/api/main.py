@@ -1,5 +1,5 @@
 """FastAPI application for event data access"""
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, Response
@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+import hashlib
 import json
 import os
 import pytz
@@ -18,6 +19,32 @@ from src.api.onboarding import router as onboarding_router
 from src.models.interactions import WebsiteInteraction
 from src.services.scoring import calculate_event_score
 from src.db.database import SessionLocal
+
+# PostHog analytics (no-op if POSTHOG_API_KEY not set)
+_posthog = None
+_POSTHOG_API_KEY = os.environ.get("POSTHOG_API_KEY", "")
+if _POSTHOG_API_KEY:
+    try:
+        import posthog
+        posthog.api_key = _POSTHOG_API_KEY
+        posthog.host = os.environ.get("POSTHOG_HOST", "https://us.i.posthog.com")
+        posthog.disabled = False
+        _posthog = posthog
+        print(f"[POSTHOG] Initialized (host={posthog.host})")
+    except ImportError:
+        print("[POSTHOG] posthog package not installed, skipping")
+
+
+def _posthog_capture(request: Request, event_name: str, properties: dict = None):
+    """Fire a PostHog event using SHA256-hashed IP as distinct_id."""
+    if _posthog is None:
+        return
+    try:
+        client_ip = request.client.host if request.client else "unknown"
+        distinct_id = hashlib.sha256(client_ip.encode()).hexdigest()[:16]
+        _posthog.capture(distinct_id, event_name, properties or {})
+    except Exception:
+        pass  # Never let analytics break the request
 
 
 # In-memory cache for events
@@ -61,6 +88,10 @@ class TrackRequest(BaseModel):
     """Request model for tracking interactions"""
     event_id: str
     interaction_type: str
+    position: Optional[int] = None
+    score: Optional[float] = None
+    event_title: Optional[str] = None
+    source_name: Optional[str] = None
 
 
 app = FastAPI(
@@ -156,7 +187,7 @@ async def health_check():
 
 
 @app.post("/track")
-async def track_interaction(request: TrackRequest):
+async def track_interaction(body: TrackRequest, http_request: Request):
     """
     Track a user interaction with an event (fire-and-forget).
 
@@ -175,19 +206,30 @@ async def track_interaction(request: TrackRequest):
 
         # Validate interaction type
         valid_types = {'card_expand', 'click_external', 'calendar_add'}
-        if request.interaction_type not in valid_types:
+        if body.interaction_type not in valid_types:
             return {"status": "ok"}  # Silently ignore invalid types
 
         db = SessionLocal()
         try:
             interaction = WebsiteInteraction(
-                event_id=request.event_id,
-                interaction_type=request.interaction_type,
+                event_id=body.event_id,
+                interaction_type=body.interaction_type,
+                position=body.position,
+                score=body.score,
+                event_title=body.event_title[:256] if body.event_title else None,
+                source_name=body.source_name[:128] if body.source_name else None,
             )
             db.add(interaction)
             db.commit()
         finally:
             db.close()
+
+        _posthog_capture(http_request, "event_interaction", {
+            "event_id": body.event_id,
+            "type": body.interaction_type,
+            "position": body.position,
+            "score": body.score,
+        })
     except Exception as e:
         # Don't fail the request, just log
         print(f"Track error: {e}")
@@ -337,6 +379,7 @@ def get_interaction_counts_from_db() -> dict:
 
 @app.get("/events/slim", response_model=List[EventSlim])
 async def get_events_slim(
+    http_request: Request,
     category: Optional[EventCategory] = None,
     city: Optional[str] = None,
     source: Optional[str] = Query(None, description="Filter by event source name"),
@@ -425,6 +468,19 @@ async def get_events_slim(
 
         # Sort by score descending
         events.sort(key=lambda e: event_scores.get(e.id, 0), reverse=True)
+
+        # Log ranking score summary stats
+        if event_scores:
+            all_scores = sorted(event_scores.values(), reverse=True)
+            total_scored = len(all_scores)
+            top10_avg = sum(all_scores[:10]) / min(10, total_scored)
+            median_score = all_scores[total_scored // 2] if total_scored else 0
+            interaction_pct = 0
+            if interaction_counts:
+                events_with_interactions = sum(1 for eid in event_scores if interaction_counts.get(eid))
+                interaction_pct = round(events_with_interactions / total_scored * 100, 1)
+            print(f"[RANKING] total_scored={total_scored} top10_avg={top10_avg:.3f} "
+                  f"median={median_score:.3f} pct_with_interactions={interaction_pct}%")
     else:
         # Sort by start date (original behavior)
         def get_sort_key(event):
@@ -460,6 +516,16 @@ async def get_events_slim(
         if ranked and e.id in event_scores:
             slim.score = round(event_scores[e.id], 3)
         slim_events.append(slim)
+
+    _posthog_capture(http_request, "events_list_viewed", {
+        "count": len(slim_events),
+        "ranked": ranked,
+        "category": category.value if category else None,
+        "city": city,
+        "source": source,
+        "free_only": free_only,
+        "family_friendly": family_friendly,
+    })
 
     return slim_events
 
@@ -736,10 +802,13 @@ async def get_interaction_analytics(
                 (WebsiteInteraction.interaction_type == 'calendar_add', 5),
                 else_=0
             )
+            # Use func.max to grab a stored event_title/source_name as fallback
             top_events_query = db.query(
                 WebsiteInteraction.event_id,
                 func.count(WebsiteInteraction.id).label('total_count'),
-                func.sum(weighted_case).label('weighted_score')
+                func.sum(weighted_case).label('weighted_score'),
+                func.max(WebsiteInteraction.event_title).label('stored_title'),
+                func.max(WebsiteInteraction.source_name).label('stored_source'),
             ).filter(
                 WebsiteInteraction.created_at >= cutoff
             ).group_by(
@@ -757,8 +826,8 @@ async def get_interaction_analytics(
                 event = event_map.get(row.event_id)
                 top_events.append({
                     "event_id": row.event_id,
-                    "title": event.title if event else "Unknown Event",
-                    "source_name": event.source_name if event else None,
+                    "title": event.title if event else (row.stored_title or "Unknown Event"),
+                    "source_name": event.source_name if event else (row.stored_source or None),
                     "total_interactions": row.total_count,
                     "weighted_score": row.weighted_score or 0
                 })
@@ -784,16 +853,17 @@ async def get_interaction_analytics(
             source_engagement = {}
             for row in top_events_query:
                 event = event_map.get(row.event_id)
-                if event and event.source_name:
-                    if event.source_name not in source_engagement:
-                        source_engagement[event.source_name] = {
+                src_name = event.source_name if event else (row.stored_source or None)
+                if src_name:
+                    if src_name not in source_engagement:
+                        source_engagement[src_name] = {
                             "interactions": 0,
                             "weighted_score": 0,
                             "event_count": 0
                         }
-                    source_engagement[event.source_name]["interactions"] += row.total_count
-                    source_engagement[event.source_name]["weighted_score"] += row.weighted_score or 0
-                    source_engagement[event.source_name]["event_count"] += 1
+                    source_engagement[src_name]["interactions"] += row.total_count
+                    source_engagement[src_name]["weighted_score"] += row.weighted_score or 0
+                    source_engagement[src_name]["event_count"] += 1
 
             top_sources = sorted(
                 [
@@ -808,7 +878,11 @@ async def get_interaction_analytics(
             recent_query = db.query(
                 WebsiteInteraction.event_id,
                 WebsiteInteraction.interaction_type,
-                WebsiteInteraction.created_at
+                WebsiteInteraction.created_at,
+                WebsiteInteraction.event_title,
+                WebsiteInteraction.source_name,
+                WebsiteInteraction.position,
+                WebsiteInteraction.score,
             ).order_by(
                 WebsiteInteraction.created_at.desc()
             ).limit(50).all()
@@ -818,10 +892,75 @@ async def get_interaction_analytics(
                 event = event_map.get(row.event_id)
                 recent_interactions.append({
                     "event_id": row.event_id,
-                    "title": event.title if event else "Unknown Event",
+                    "title": event.title if event else (row.event_title or "Unknown Event"),
                     "interaction_type": row.interaction_type,
-                    "timestamp": row.created_at.isoformat()
+                    "timestamp": row.created_at.isoformat(),
+                    "position": row.position,
+                    "score": row.score,
                 })
+
+            # Position-based CTR analysis
+            position_analysis = []
+            buckets = [(1, 5), (6, 10), (11, 20), (21, None)]
+            for low, high in buckets:
+                pos_filter = [WebsiteInteraction.position >= low]
+                if high is not None:
+                    pos_filter.append(WebsiteInteraction.position <= high)
+
+                bucket_query = db.query(
+                    WebsiteInteraction.interaction_type,
+                    func.count(WebsiteInteraction.id).label('count')
+                ).filter(
+                    WebsiteInteraction.created_at >= cutoff,
+                    WebsiteInteraction.position.isnot(None),
+                    *pos_filter
+                ).group_by(
+                    WebsiteInteraction.interaction_type
+                ).all()
+
+                type_counts = {r.interaction_type: r.count for r in bucket_query}
+                impressions = type_counts.get('card_expand', 0)
+                clicks = type_counts.get('click_external', 0)
+                label = f"{low}-{high}" if high else f"{low}+"
+                position_analysis.append({
+                    "bucket": label,
+                    "impressions": impressions,
+                    "clicks": clicks,
+                    "ctr": round(clicks / impressions, 4) if impressions > 0 else 0,
+                    "total": sum(type_counts.values()),
+                })
+
+            # Week-over-week trends
+            now_utc = datetime.utcnow()
+            current_week_start = now_utc - timedelta(days=7)
+            previous_week_start = now_utc - timedelta(days=14)
+
+            current_week_q = db.query(
+                func.count(WebsiteInteraction.id).label('total'),
+                func.count(func.distinct(WebsiteInteraction.event_id)).label('unique_events')
+            ).filter(WebsiteInteraction.created_at >= current_week_start).first()
+
+            previous_week_q = db.query(
+                func.count(WebsiteInteraction.id).label('total'),
+                func.count(func.distinct(WebsiteInteraction.event_id)).label('unique_events')
+            ).filter(
+                WebsiteInteraction.created_at >= previous_week_start,
+                WebsiteInteraction.created_at < current_week_start
+            ).first()
+
+            curr_total = current_week_q.total or 0
+            prev_total = previous_week_q.total or 0
+            curr_unique = current_week_q.unique_events or 0
+            prev_unique = previous_week_q.unique_events or 0
+
+            trends = {
+                "current_week_interactions": curr_total,
+                "previous_week_interactions": prev_total,
+                "wow_change_pct": round(((curr_total - prev_total) / prev_total) * 100, 1) if prev_total > 0 else None,
+                "current_week_unique_events": curr_unique,
+                "previous_week_unique_events": prev_unique,
+                "wow_unique_change_pct": round(((curr_unique - prev_unique) / prev_unique) * 100, 1) if prev_unique > 0 else None,
+            }
 
             return {
                 "summary": {
@@ -833,7 +972,9 @@ async def get_interaction_analytics(
                 "top_events": top_events,
                 "daily_trend": daily_trend,
                 "top_sources": top_sources,
-                "recent_interactions": recent_interactions
+                "recent_interactions": recent_interactions,
+                "position_analysis": position_analysis,
+                "trends": trends,
             }
 
         finally:
@@ -848,7 +989,9 @@ async def get_interaction_analytics(
             "by_type": {},
             "top_events": [],
             "daily_trend": [],
-            "top_sources": []
+            "top_sources": [],
+            "position_analysis": [],
+            "trends": {},
         }
 
 
@@ -963,7 +1106,7 @@ Wrong: Jazz Night - 7pm at Club Passim"""
 
 
 @app.post("/chat")
-async def chat_with_events(request: ChatRequest):
+async def chat_with_events(request: ChatRequest, http_request: Request):
     """
     Chat with an AI assistant about local events
 
@@ -1001,6 +1144,10 @@ async def chat_with_events(request: ChatRequest):
             max_tokens=1024
         )
 
+        _posthog_capture(http_request, "chat_message_sent", {
+            "message_length": len(request.message),
+        })
+
         return ChatResponse(
             response=response.choices[0].message.content,
             events=None
@@ -1037,6 +1184,39 @@ async def get_onboarding_page():
     raise HTTPException(status_code=404, detail="Onboarding page not found")
 
 
+def _run_migrations():
+    """Add new columns to existing tables if they don't exist."""
+    from src.db.database import engine
+    if engine is None:
+        return
+
+    from sqlalchemy import inspect, text
+    try:
+        inspector = inspect(engine)
+        if "website_interactions" in inspector.get_table_names():
+            existing = {c["name"] for c in inspector.get_columns("website_interactions")}
+            migrations = {
+                "position": "INTEGER",
+                "score": "DOUBLE PRECISION",
+                "event_title": "VARCHAR(256)",
+                "source_name": "VARCHAR(128)",
+            }
+            with engine.begin() as conn:
+                for col_name, col_type in migrations.items():
+                    if col_name not in existing:
+                        conn.execute(text(
+                            f"ALTER TABLE website_interactions ADD COLUMN {col_name} {col_type}"
+                        ))
+                        print(f"[MIGRATION] Added column website_interactions.{col_name}")
+    except Exception as e:
+        print(f"[MIGRATION] Error: {e}")
+
+
+@app.on_event("startup")
+async def startup_migrations():
+    _run_migrations()
+
+
 @app.get("/init-db")
 async def initialize_database(api_key: str = Query(None)):
     """
@@ -1057,13 +1237,14 @@ async def initialize_database(api_key: str = Query(None)):
             raise HTTPException(status_code=500, detail="DATABASE_URL not configured")
 
         Base.metadata.create_all(bind=engine)
+        _run_migrations()
 
         # List created tables
         tables = list(Base.metadata.tables.keys())
 
         return {
             "success": True,
-            "message": "Database tables created successfully",
+            "message": "Database tables created/migrated successfully",
             "tables": tables
         }
     except Exception as e:

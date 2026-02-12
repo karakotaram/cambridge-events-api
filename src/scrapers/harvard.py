@@ -66,22 +66,50 @@ class HarvardBookStoreScraper(BaseScraper):
         except Exception as e:
             return ""
 
+    def _fetch_page_items(self, page: int) -> list:
+        """Fetch event item elements from a single page."""
+        url = f"{self.source_url}?page={page}" if page > 0 else self.source_url
+        html = self.fetch_html(url)
+        soup = self.parse_html(html)
+        view_content = soup.find(class_='view-content')
+        if not view_content:
+            return []
+        return view_content.find_all('div', class_='views-row')
+
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from Harvard Book Store"""
+        """Scrape events from Harvard Book Store (all pages)"""
+        events = []
+
+        # Fetch first page and detect pagination
         html = self.fetch_html(self.source_url)
         soup = self.parse_html(html)
 
-        events = []
+        # Determine total pages from pager
+        max_page = 0
+        pager = soup.find(class_='pager')
+        if pager:
+            last_li = pager.find('li', class_='pager-last')
+            if last_li:
+                last_link = last_li.find('a')
+                if last_link:
+                    href = last_link.get('href', '')
+                    page_match = re.search(r'page=(\d+)', href)
+                    if page_match:
+                        max_page = int(page_match.group(1))
 
-        # Find all event items in view-content
+        # Collect event items from all pages
+        event_items = []
         view_content = soup.find(class_='view-content')
-        if not view_content:
-            return events
+        if view_content:
+            event_items.extend(view_content.find_all('div', class_='views-row'))
 
-        event_items = view_content.find_all('div', class_='views-row')
+        for page in range(1, max_page + 1):
+            page_items = self._fetch_page_items(page)
+            if not page_items:
+                break
+            event_items.extend(page_items)
 
-        # Limit to reasonable number
-        event_items = event_items[:30]
+        logger.info(f"Found {len(event_items)} event items across {max_page + 1} pages")
 
         for item in event_items:
             try:
