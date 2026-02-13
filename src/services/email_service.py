@@ -173,7 +173,10 @@ def send_email(
             "subject": subject,
             "html": html_body,
         })
-        return response.get("id")
+        # Resend SDK 2.x returns an object; older versions return a dict
+        if isinstance(response, dict):
+            return response.get("id")
+        return getattr(response, "id", None)
     except Exception as e:
         print(f"Error sending email to {to_email}: {e}")
         return None
