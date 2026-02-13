@@ -473,20 +473,13 @@
         /* Archetype picker chips */
         .archetype-picker {
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
-            overflow-x: auto;
             padding: 4px 0 12px;
             margin-bottom: 8px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-
-        .archetype-picker::-webkit-scrollbar {
-            display: none;
         }
 
         .archetype-chip {
-            flex-shrink: 0;
             padding: 6px 14px;
             border-radius: 20px;
             font-size: 13px;
@@ -496,7 +489,6 @@
             background: var(--white);
             color: var(--text);
             transition: all 0.2s;
-            white-space: nowrap;
         }
 
         .archetype-chip:hover {
@@ -552,15 +544,15 @@
             <div class="email-step" id="email-step">
                 <h2>Almost done! Where should we send your recommendations?</h2>
 
-                <!-- Archetype picker -->
-                <div class="archetype-picker" id="archetype-picker"></div>
-
                 <!-- Sample events preview -->
                 <div class="sample-events" id="sample-events">
                     <p class="sample-events-label">Here's a taste of what's coming up this week:</p>
                     <div class="sample-events-list" id="sample-events-list"></div>
                     <p class="sample-events-more" id="sample-events-more"></p>
                 </div>
+
+                <!-- Archetype picker -->
+                <div class="archetype-picker" id="archetype-picker"></div>
 
                 <input type="email" class="email-input" id="email-input" placeholder="your@email.com" required>
                 <div class="error-message" id="email-error"></div>
