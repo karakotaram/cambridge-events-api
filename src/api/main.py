@@ -1287,12 +1287,13 @@ def _run_migrations():
 
 @app.on_event("startup")
 async def startup_migrations():
-    # Create any new tables (e.g. curated_digests)
     from src.db.database import engine, Base
     if engine is not None:
         from src.models.user import CuratedDigest  # noqa: F401
+        # Run migrations first (may drop old tables with wrong schema)
+        _run_migrations()
+        # Then create all tables (including any that were just dropped)
         Base.metadata.create_all(bind=engine)
-    _run_migrations()
 
 
 @app.get("/init-db")
