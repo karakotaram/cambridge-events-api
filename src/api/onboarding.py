@@ -868,10 +868,11 @@ async def trigger_weekly_email(
         if not recommended:
             continue
 
-        email_log_id = send_weekly_digest(user, recommended, db)
-        if email_log_id:
+        try:
+            email_log_id = send_weekly_digest(user, recommended, db)
             sent += 1
-        else:
+        except Exception as e:
+            print(f"Failed to send to {user.email}: {e}")
             failed += 1
 
     return {

@@ -166,20 +166,16 @@ def send_email(
     """
     client = get_resend_client()
 
-    try:
-        response = resend.Emails.send({
-            "from": from_email,
-            "to": [to_email],
-            "subject": subject,
-            "html": html_body,
-        })
-        # Resend SDK 2.x returns an object; older versions return a dict
-        if isinstance(response, dict):
-            return response.get("id")
-        return getattr(response, "id", None)
-    except Exception as e:
-        print(f"Error sending email to {to_email}: {e}")
-        return None
+    response = resend.Emails.send({
+        "from": from_email,
+        "to": [to_email],
+        "subject": subject,
+        "html": html_body,
+    })
+    # Resend SDK 2.x returns an object; older versions return a dict
+    if isinstance(response, dict):
+        return response.get("id")
+    return getattr(response, "id", None)
 
 
 def send_weekly_digest(
@@ -219,19 +215,14 @@ def send_weekly_digest(
     # Update email log with subject
     email_log.subject = subject
 
-    # Send email
+    # Send email — let exceptions propagate so callers see the real error
     message_id = send_email(user.email, subject, html_body)
 
-    if message_id:
-        email_log.resend_message_id = message_id
-        user.last_email_sent = datetime.utcnow()
-    else:
-        from src.models.user import EmailStatus
-        email_log.status = EmailStatus.FAILED
-
+    email_log.resend_message_id = message_id
+    user.last_email_sent = datetime.utcnow()
     db_session.commit()
 
-    return str(email_log.id) if message_id else None
+    return str(email_log.id)
 
 
 def send_welcome_email_to_user(user: User, db_session) -> Optional[str]:
