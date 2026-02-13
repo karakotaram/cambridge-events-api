@@ -50,6 +50,7 @@ from src.scrapers.memorial_church import MemorialChurchScraper
 from src.scrapers.cambridge_library import CambridgeLibraryScraper
 from src.scrapers.openspace_mit import OpenSpaceMITScraper
 from src.scrapers.skip_small_talk import SkipSmallTalkScraper
+from src.scrapers.harvard_athletics import HarvardAthleticsScraper
 from src.models.event import EventCreate, Event
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
@@ -111,6 +112,24 @@ class ScraperOrchestrator:
         # Deduplicate events
         deduplicated_events = self.deduplicator.deduplicate_events(validated_events)
         logger.info(f"Events after deduplication: {len(deduplicated_events)}")
+
+        # Run enrichment agent (non-fatal)
+        try:
+            from src.agents.enrichment import EnrichmentAgent
+            enrichment = EnrichmentAgent()
+            enrich_result = enrichment.enrich_events(
+                [e.model_dump(mode='json') for e in deduplicated_events]
+            )
+            # Rebuild EventCreate objects from enriched dicts
+            enriched_dicts = enrich_result.get("events", [])
+            if enriched_dicts:
+                deduplicated_events = [EventCreate(**d) for d in enriched_dicts]
+                logger.info(
+                    f"Enrichment: {enrich_result.get('categories_improved', 0)} categories, "
+                    f"{enrich_result.get('fuzzy_dedup_removed', 0)} dedup removed"
+                )
+        except Exception as e:
+            logger.warning(f"Enrichment agent failed (non-fatal): {e}")
 
         # Convert to full Event objects with IDs
         final_events = self.finalize_events(deduplicated_events)
@@ -228,6 +247,7 @@ def main():
     orchestrator.register_scraper(RockwellScraper())
     orchestrator.register_scraper(MadMonkfishScraper())
     orchestrator.register_scraper(MountAuburnScraper())
+    orchestrator.register_scraper(HarvardAthleticsScraper())
 
     # Selenium/Playwright scrapers (run after non-Selenium to reduce browser restarts)
     orchestrator.register_scraper(CambridgeGovScraper())
@@ -262,6 +282,23 @@ def main():
     logger.info("=" * 80)
     logger.info(f"SCRAPING COMPLETE - {len(events)} events collected")
     logger.info("=" * 80)
+
+    # Run monitoring agents (non-fatal)
+    try:
+        from src.agents.health_monitor import HealthMonitorAgent
+        health = HealthMonitorAgent()
+        health_result = health.run()
+        logger.info(f"Health monitor: {health_result.get('summary', 'done')}")
+    except Exception as e:
+        logger.warning(f"Health monitor agent failed (non-fatal): {e}")
+
+    try:
+        from src.agents.ci_monitor import CIMonitorAgent
+        ci = CIMonitorAgent()
+        ci_result = ci.run()
+        logger.info(f"CI monitor: {ci_result.get('summary', 'done')}")
+    except Exception as e:
+        logger.warning(f"CI monitor agent failed (non-fatal): {e}")
 
     # Generate HTML view
     try:

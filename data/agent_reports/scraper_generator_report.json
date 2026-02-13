@@ -1,0 +1,1013 @@
+{
+  "status": "dry_run",
+  "investigation": {
+    "url": "https://harvardartmuseums.org/calendar",
+    "best_source": {
+      "type": "embedded_json",
+      "pattern": "initialEvents",
+      "sample": [
+        {
+          "id": 3950,
+          "enabled": 1,
+          "title": "Art Study Center Seminar: Conversations on Conservation",
+          "date": "2026-02-13T16:00:49.000000Z",
+          "description": "*This event is at capacity.*\n\n*This event requires registration; see further details below.* \n\nIn this seminar, you will get a behind-the-scenes view of recent and ongoing projects undertaken in the Straus Center for Conservation and Technical Studies. Staff members from the Straus Center will share some works in progress and details about the numerous techniques and materials available to them in the care of objects and advancement of technical studies.\n\nThe Straus Center for Conservation and Technical Studies is a world leader in fine arts conservation, research, and training. The center\u2019s laboratories are where conservation, conservation science, and curatorial practice intersect, coming together to enrich the understanding of and care for the approximately 250,000 objects in the Harvard Art Museums collections.\n\nFree admission, but registration is required. You can register by clicking on the event [\"on this form\":https://secure.touchnet.net/C20832_ustores/web/store_cat.jsp?STOREID=99&CATID=258&SINGLESTORE=true], beginning on Tuesday, February 3, at 10am.\n\nPlease arrive 15 minutes before the start of the program to allow sufficient time to sign in at the Art Study Center reception desk (Level 4), and be prepared to present a photo ID. Late seating is not permitted. All coats and bags must be placed in a locker prior to entering the study room, with lockers available on the Lower Level, Level 1, and Level 4. Children age 14 and older are welcome but must be accompanied by an adult.\n\nThe Harvard Art Museums offer [\"free admission\":https://harvardartmuseums.org/visit/policies/plan-your-visit] every day, Tuesday through Sunday. Please see the [\"museum visit page\":https://harvardartmuseums.org/visit/policies/general-policies] to learn about our general policies for visiting the museums.\n\n_The Harvard Art Museums are committed to accessibility for all visitors. For anyone requiring accessibility accommodations for our programs, please contact us at \"am_register@harvard.edu\":mailto:am_register@harvard.edu at least 48 hours in advance._",
+          "image_source": null,
+          "city": "Cambridge",
+          "state": "MA",
+          "country": null,
+          "position": 0,
+          "created_at": "2025-12-09T16:22:55.000000Z",
+          "updated_at": "2026-02-04T15:33:37.000000Z",
+          "featured": 0,
+          "exhibition_id": null,
+          "address": "32 Quincy Street",
+          "outbound_link": null,
+          "featured_homepage": 0,
+          "image_caption": "\u00a9 Nic Lehoux",
+          "institution": "Harvard Art Museums",
+          "type": 10,
+          "status": 4,
+          "description_tail": null,
+          "endowed": null,
+          "zipcode": null,
+          "end_date": "2026-02-13T17:00:00.000000Z",
+          "image_file_name": "006afd2150f46f85.jpg",
+          "image_file_size": 878415,
+          "image_content_type": "image/jpeg",
+          "image_updated_at": "2025-12-09 11:22:55",
+          "floorplan": 4,
+          "slug": "art-study-center-seminar-conversations-on-conservation-4",
+          "room": null,
+          "summary": "Join members of the Straus Center team for a behind-the-scenes look at some of the techniques and materials used for treating works of art.",
+          "image_caption_link": null,
+          "show_image_rss": 0,
+          "shopify_url": null,
+          "publication_date_control": 0,
+          "publication_start_date": "2025-12-09T16:22:00.000000Z",
+          "publication_end_date": "2025-12-09T16:22:00.000000Z",
+          "image_alt": "Two conservators work on respective artworks in their large laboratory space, which is illuminated by natural light.",
+          "original_file": null,
+          "participation": 3,
+          "image": {
+            "original": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/950/original/006afd2150f46f85.jpg",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/original/006afd2150f46f85.jpg"
+            },
+            "hero": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/950/hero/006afd2150f46f85.jpg",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/hero/006afd2150f46f85.jpg"
+            },
+            "list": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/950/list/006afd2150f46f85.jpg",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/list/006afd2150f46f85.jpg"
+            },
+            "related": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/950/related/006afd2150f46f85.jpg",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/related/006afd2150f46f85.jpg"
+            },
+            "thumb": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/950/thumb/006afd2150f46f85.jpg",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/thumb/006afd2150f46f85.jpg"
+            },
+            "home": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/950/home/006afd2150f46f85.jpg",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/home/006afd2150f46f85.jpg"
+            }
+          },
+          "status_title": "Art Study Center Seminar: Conversations on Conservation [AT CAPACITY]",
+          "start_time": "11:00 AM",
+          "event_link": "https://harvardartmuseums.org/calendar/art-study-center-seminar-conversations-on-conservation-4",
+          "image_styles": {
+            "hero": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/conversions/006afd2150f46f85-hero.jpg",
+            "list": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/conversions/006afd2150f46f85-list.jpg",
+            "related": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/conversions/006afd2150f46f85-related.jpg",
+            "thumb": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/conversions/006afd2150f46f85-thumb.jpg",
+            "home": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/conversions/006afd2150f46f85-home.jpg"
+          },
+          "html_attributes": {
+            "image_caption": "<p>\u00a9 Nic Lehoux</p>",
+            "image_source": "",
+            "description": "<p><strong>This event is at capacity.</strong></p>\n\n<p><strong>This event requires registration; see further details below.</strong> </p>\n\n<p>In this seminar, you will get a behind-the-scenes view of recent and ongoing projects undertaken in the Straus Center for Conservation and Technical Studies. Staff members from the Straus Center will share some works in progress and details about the numerous techniques and materials available to them in the care of objects and advancement of technical studies.</p>\n\n<p>The Straus Center for Conservation and Technical Studies is a world leader in fine arts conservation, research, and training. The center\u2019s laboratories are where conservation, conservation science, and curatorial practice intersect, coming together to enrich the understanding of and care for the approximately 250,000 objects in the Harvard Art Museums collections.</p>\n\n<p>Free admission, but registration is required. You can register by clicking on the event <a href=\"https://secure.touchnet.net/C20832_ustores/web/store_cat.jsp?STOREID=99&amp;CATID=258&amp;SINGLESTORE=true\">on this form</a>, beginning on Tuesday, February 3, at 10am.</p>\n\n<p>Please arrive 15 minutes before the start of the program to allow sufficient time to sign in at the Art Study Center reception desk (Level 4), and be prepared to present a photo ID. Late seating is not permitted. All coats and bags must be placed in a locker prior to entering the study room, with lockers available on the Lower Level, Level 1, and Level 4. Children age 14 and older are welcome but must be accompanied by an adult.</p>\n\n<p>The Harvard Art Museums offer <a href=\"https://harvardartmuseums.org/visit/policies/plan-your-visit\">free admission</a> every day, Tuesday through Sunday. Please see the <a href=\"https://harvardartmuseums.org/visit/policies/general-policies\">museum visit page</a> to learn about our general policies for visiting the museums.</p>\n\n<p><em>The Harvard Art Museums are committed to accessibility for all visitors. For anyone requiring accessibility accommodations for our programs, please contact us at <a href=\"mailto:am_register@harvard.edu\">am_register@harvard.edu</a> at least 48 hours in advance.</em></p>",
+            "description_tail": "",
+            "title": "Art Study Center Seminar: Conversations on Conservation",
+            "summary": "<p>Join members of the Straus Center team for a behind-the-scenes look at some of the techniques and materials used for treating works of art.</p>",
+            "status_title": "Art Study Center Seminar: Conversations on Conservation [AT CAPACITY]"
+          },
+          "event_type": "Seminar",
+          "media": [
+            {
+              "id": 22,
+              "model_type": "App\\Models\\CalendarEvent",
+              "model_id": 3950,
+              "uuid": "2761d4c5-df84-42f3-93d6-8b1750215c3a",
+              "collection_name": "image",
+              "name": "migrate_jAt31J",
+              "file_name": "006afd2150f46f85.jpg",
+              "mime_type": "image/jpeg",
+              "disk": "library",
+              "conversions_disk": "library",
+              "size": 878415,
+              "manipulations": [],
+              "custom_properties": [],
+              "generated_conversions": {
+                "hero": true,
+                "home": true,
+                "list": true,
+                "thumb": true,
+                "related": true
+              },
+              "responsive_images": [],
+              "order_column": 1,
+              "created_at": "2025-12-09T16:23:02.000000Z",
+              "updated_at": "2025-12-09T16:23:28.000000Z",
+              "original_url": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/006afd2150f46f85.jpg",
+              "preview_url": ""
+            }
+          ]
+        },
+        {
+          "id": 3988,
+          "enabled": 1,
+          "title": "Spotlight Tour: The Moods of Love, with Diana Ochoa-Chavez \u201926",
+          "date": "2026-02-14T16:00:01.000000Z",
+          "description": "*This event does not require registration; see further details below.*\n\nDiana Ochoa-Chavez \u201926 will lead this tour in praise of love, exploring what it means to love and how love transforms us. The tour stops are _[\"Sleeping Cupid &lpar;Eros&rpar;\":https://harvardartmuseums.org/collections/object/289265?position=138]_ (Rome, 2nd century), a Safavid Persian [\"torch stand &lpar;mash\u2019al&rpar;\":https://harvardartmuseums.org/collections/object/216818?position=1], and the painting _[\"The Blessed Damozel\":https://harvardartmuseums.org/collections/object/299805?position=0]_ (1871\u201378) by Dante Gabriel Rossetti. \n\nSpotlight Tours offer a chance to explore the collections of the Harvard Art Museums through the eyes of a Harvard student. Free and open to the public, these tours start outside the museum shop on Saturdays and Sundays at 11am and 2pm. Drop in and join the conversation! And find out what the Student Guides are up to anytime on Instagram [\"@harvardarthappens\":https://www.instagram.com/harvardarthappens/?hl=en].\n\nPlease check in with museum staff at the Visitor Services desk in the Calderwood Courtyard to request to join the tour. Space is limited, and tours are available on a first-come, first-served basis; no registration is required.\n\nThe Harvard Art Museums offer [\"free admission\":https://harvardartmuseums.org/visit/policies/plan-your-visit] every day, Tuesday through Sunday. Please see the [\"museum visit page\":https://harvardartmuseums.org/visit/policies/general-policies] to learn about our general policies for visiting the museums.\n\nThis program is supported by the Ho Family Student Guide Fund.\n\nThe Ho Family Student Guide Program at the Harvard Art Museums prepares students to develop original, research-based tours of the collections. Through their training, Student Guides gain knowledge of the collections and develop skills in critical thinking, visual analysis, public speaking, and leadership.\n\n_The Harvard Art Museums welcome individuals with disabilities to participate in our programs and activities. If you would like to request accommodations or have questions about the physical access provided, please contact Visitor Services at \"am_register@harvard.edu\":mailto:am_register@harvard.edu or 617-495-9400 in advance of your visit._",
+          "image_source": null,
+          "city": "Cambridge",
+          "state": "MA",
+          "country": null,
+          "position": 0,
+          "created_at": "2026-01-28T17:25:53.000000Z",
+          "updated_at": "2026-02-05T18:01:25.000000Z",
+          "featured": 0,
+          "exhibition_id": null,
+          "address": "32 Quincy Street",
+          "outbound_link": null,
+          "featured_homepage": 0,
+          "image_caption": "One of the works Diana Ochoa-Chavez will spotlight is The Blessed Damozel (1871\u201378) by Dante Gabriel Rossetti.",
+          "institution": "Harvard Art Museums",
+          "type": 12,
+          "status": 0,
+          "description_tail": null,
+          "endowed": null,
+          "zipcode": null,
+          "end_date": "2026-02-14T16:50:00.000000Z",
+          "image_file_name": "efe99a819deece5e.png",
+          "image_file_size": 2311510,
+          "image_content_type": "image/png",
+          "image_updated_at": "2025-08-26 12:59:23",
+          "floorplan": 1,
+          "slug": "spotlight-tour-the-moods-of-love-with-diana-ochoa-chavez-26",
+          "room": null,
+          "summary": "This is a tour in praise of love, exploring what it means to love and how love transforms us. ",
+          "image_caption_link": null,
+          "show_image_rss": 0,
+          "shopify_url": null,
+          "publication_date_control": 0,
+          "publication_start_date": "2026-01-28T17:25:00.000000Z",
+          "publication_end_date": "2026-01-28T17:25:00.000000Z",
+          "image_alt": "In this photomontage, a smiling young woman gestures toward a large gold-framed painting of young women and flowers in an almost celestial setting; in a section at the bottom, a reclining man stares up at them.",
+          "original_file": null,
+          "participation": 3,
+          "image": {
+            "original": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/988/original/efe99a819deece5e.png",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/original/efe99a819deece5e.png"
+            },
+            "hero": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/988/hero/efe99a819deece5e.png",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/hero/efe99a819deece5e.png"
+            },
+            "list": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/988/list/efe99a819deece5e.png",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/list/efe99a819deece5e.png"
+            },
+            "related": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/988/related/efe99a819deece5e.png",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/related/efe99a819deece5e.png"
+            },
+            "thumb": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/988/thumb/efe99a819deece5e.png",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/thumb/efe99a819deece5e.png"
+            },
+            "home": {
+              "path": "production/file_uploads/CalendarEvent/images/000/003/988/home/efe99a819deece5e.png",
+              "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/home/efe99a819deece5e.png"
+            }
+          },
+          "status_title": "Spotlight Tour: The Moods of Love, with Diana Ochoa-Chavez \u201926",
+          "start_time": "11:00 AM",
+          "event_link": "https://harvardartmuseums.org/calendar/spotlight-tour-the-moods-of-love-with-diana-ochoa-chavez-26",
+          "image_styles": {
+            "hero": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/conversions/01KG2TFADSXPKM02WV91S22GDS-hero.jpg",
+            "list": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/conversions/01KG2TFADSXPKM02WV91S22GDS-list.jpg",
+            "related": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/conversions/01KG2TFADSXPKM02WV91S22GDS-related.jpg",
+            "thumb": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/conversions/01KG2TFADSXPKM02WV91S22GDS-thumb.jpg",
+            "home": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/conversions/01KG2TFADSXPKM02WV91S22GDS-home.jpg"
+          },
+          "html_attributes": {
+            "image_caption": "<p>One of the works Diana Ochoa-Chavez will spotlight is The Blessed Damozel (1871\u201378) by Dante Gabriel Rossetti.</p>",
+            "image_source": "",
+            "description": "<p><strong>This event does not require registration; see further details below.</strong></p>\n\n<p>Diana Ochoa-Chavez \u201926 will lead this tour in praise of love, exploring what it means to love and how love transforms us. The tour stops are <em><a href=\"https://harvardartmuseums.org/collections/object/289265?position=138\">Sleeping Cupid &lpar;Eros&rpar;</a></em> (Rome, 2nd century), a Safavid Persian <a href=\"https://harvardartmuseums.org/collections/object/216818?position=1\">torch stand &lpar;mash\u2019al&rpar;</a>, and the painting <em><a href=\"https://harvardartmuseums.org/collections/object/299805?position=0\">The Blessed Damozel</a></em> (1871\u201378) by Dante Gabriel Rossetti. </p>\n\n<p>Spotlight Tours offer a chance to explore the collections of the Harvard Art Museums through the eyes of a Harvard student. Free and open to the public, these tours start outside the museum shop on Saturdays and Sundays at 11am and 2pm. Drop in and join the conversation! And find out what the Student Guides are up to anytime on Instagram <a href=\"https://www.instagram.com/harvardarthappens/?hl=en\">@harvardarthappens</a>.</p>\n\n<p>Please check in with museum staff at the Visitor Services desk in the Calderwood Courtyard to request to join the tour. Space is limited, and tours are available on a first-come, first-served basis; no registration is required.</p>\n\n<p>The Harvard Art Museums offer <a href=\"https://harvardartmuseums.org/visit/policies/plan-your-visit\">free admission</a> every day, Tuesday through Sunday. Please see the <a href=\"https://harvardartmuseums.org/visit/policies/general-policies\">museum visit page</a> to learn about our general policies for visiting the museums.</p>\n\n<p>This program is supported by the Ho Family Student Guide Fund.</p>\n\n<p>The Ho Family Student Guide Program at the Harvard Art Museums prepares students to develop original, research-based tours of the collections. Through their training, Student Guides gain knowledge of the collections and develop skills in critical thinking, visual analysis, public speaking, and leadership.</p>\n\n<p><em>The Harvard Art Museums welcome individuals with disabilities to participate in our programs and activities. If you would like to request accommodations or have questions about the physical access provided, please contact Visitor Services at <a href=\"mailto:am_register@harvard.edu\">am_register@harvard.edu</a> or 617-495-9400 in advance of your visit.</em></p>",
+            "description_tail": "",
+            "title": "Spotlight Tour: The Moods of Love, with Diana Ochoa-Chavez \u201926",
+            "summary": "<p>This is a tour in praise of love, exploring what it means to love and how love transforms us. </p>",
+            "status_title": "Spotlight Tour: The Moods of Love, with Diana Ochoa-Chavez \u201926"
+          },
+          "event_type": "Tour",
+          "media": [
+            {
+              "id": 1540,
+              "model_type": "App\\Models\\CalendarEvent",
+              "model_id": 3988,
+              "uuid": "2190ab13-0efc-404f-8d0f-5879bc87f4fb",
+              "collection_name": "image",
+              "name": "The Moods of Love Diana Ochoa-Chavez publicity",
+              "file_name": "01KG2TFADSXPKM02WV91S22GDS.jpg",
+              "mime_type": "image/jpeg",
+              "disk": "library",
+              "conversions_disk": "library",
+              "size": 332313,
+              "manipulations": [],
+              "custom_properties": {
+                "custom_headers": {
+                  "ContentType": "image/jpeg"
+                }
+              },
+              "generated_conversions": {
+                "hero": true,
+                "home": true,
+                "list": true,
+                "thumb": true,
+                "related": true
+              },
+              "responsive_images": [],
+              "order_column": 1,
+              "created_at": "2026-01-28T17:30:00.000000Z",
+              "updated_at": "2026-01-28T17:30:05.000000Z",
+              "original_url": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/01KG2TFADSXPKM02WV91S22GDS.jpg",
+              "preview_url": ""
+            }
+          ]
+        },
+        {
+          "id": 3972,
+          "enabled": 1,
+          "title": "Second Saturdays Story Time",
+          "date": "2026-02-14T16:00:05.000000Z",
+          "description": "p(((. *Know Before You Go*\n\np(((. *How to join:* Check in at the Visitor Services desk in the Calderwood Courtyard.\n*Fee:* This is a free event.\n*Age restrictions:* Ages 3 to 7. Caregivers must be present with their children. \n*Accessibility accommodations:* Email \"am_register@harvard.edu\":mailto:am_register@harvard.edu at least 48 hours in advance, including the name and date of the program in the subject line.\n*General info:* The [\"museum visit page\":https://harvardartmuseums.org/visit/policies/plan-your-visit] has general guidelines for your visit.\n\nJoin us for Second Saturdays Story Time in the galleries, an event in partnership with librarians from Cambridge, Somerville, Watertown, and Medford. In this wonderful, art-filled experience held every second Saturday of the month, librarians will choose thematic books to share with you and yours.\n\nThis program is organized in partnership with the Cambridge Public Library, Somerville Public Library, Watertown Public Library, and Medford Public Library.",
+          "image_source": null,
+          "city": "Cambridge",
+          "state": "MA",
+          "country": null,
+          "position": null,
+          "created_at": "2026-01-22T14:52:23.000000Z",
+          "updated_at": "2026-02-05T18:08:00.000000Z",
+          "featured": 0,
+          "exhibition_id": null,
+          "address": "32 Quincy Street",
+          "outbound_link": null,
+          "featured_homepage": 0,
+          "image_caption": "Photo: Bess Paupeck ",
+          "institution": "Harvard Art Museums",
+          "type": 7,
+          "status": 0,
+          "description_tail": null,
+          "endowed": null,
+          "zipcode": null,
+          "end_date": "2026-02-14T16:30:00.000000Z",
+          "image_file_name": null,
+          "image_file_size": null,
+          "image_content_type": null,
+          "image_updated_at": null,
+          "floorplan": null,
+          "slug": "second-saturdays-story-time-13",
+          "room": null,
+          "summary": "Join us for Second Saturdays Story Time, where local librarians read stories in the galleries!",
+          "image_caption_link": null,
+          "show_image_rss": 0,
+          "shopify_url": null,
+          "publication_date_control": 0,
+          "publication_start_date": "2026-01-22T14:50:00.000000Z",
+          "publication_end_date": "2026-01-22T14:50:00.000000Z",
+          "image_alt": "A woman reads to a group of children and caregivers in front of a glass window in a museum.",
+          "original_file": null,
+          "participation": 3,
+          "image": [],
+          "status_title": "Second Saturdays Story Time",
+          "start_time": "11:00 AM",
+          "event_link": "https://harvardartmuseums.org/calendar/second-saturdays-story-time-13",
+          "image_styles": {
+            "hero": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/conversions/01KFK32DXSSPGKJF2DNWE00VE7-hero.jpg",
+            "list": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/conversions/01KFK32DXSSPGKJF2DNWE00VE7-list.jpg",
+            "related": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/conversions/01KFK32DXSSPGKJF2DNWE00VE7-related.jpg",
+            "thumb": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/conversions/01KFK32DXSSPGKJF2DNWE00VE7-thumb.jpg",
+            "home": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/conversions/01KFK32DXSSPGKJF2DNWE00VE7-home.jpg"
+          },
+          "html_attributes": {
+            "image_caption": "<p>Photo: Bess Paupeck </p>",
+            "image_source": "",
+            "description": "<p style=\"padding-left:3em;\"><strong>Know Before You Go</strong></p>\n\n<p style=\"padding-left:3em;\"><strong>How to join:</strong> Check in at the Visitor Services desk in the Calderwood Courtyard.<br />\n<strong>Fee:</strong> This is a free event.<br />\n<strong>Age restrictions:</strong> Ages 3 to 7. Caregivers must be present with their children. <br />\n<strong>Accessibility accommodations:</strong> Email <a href=\"mailto:am_register@harvard.edu\">am_register@harvard.edu</a> at least 48 hours in advance, including the name and date of the program in the subject line.<br />\n<strong>General info:</strong> The <a href=\"https://harvardartmuseums.org/visit/policies/plan-your-visit\">museum visit page</a> has general guidelines for your visit.</p>\n\n<p>Join us for Second Saturdays Story Time in the galleries, an event in partnership with librarians from Cambridge, Somerville, Watertown, and Medford. In this wonderful, art-filled experience held every second Saturday of the month, librarians will choose thematic books to share with you and yours.</p>\n\n<p>This program is organized in partnership with the Cambridge Public Library, Somerville Public Library, Watertown Public Library, and Medford Public Library.</p>",
+            "description_tail": "",
+            "title": "Second Saturdays Story Time",
+            "summary": "<p>Join us for Second Saturdays Story Time, where local librarians read stories in the galleries!</p>",
+            "status_title": "Second Saturdays Story Time"
+          },
+          "event_type": "Special Event",
+          "media": [
+            {
+              "id": 1522,
+              "model_type": "App\\Models\\CalendarEvent",
+              "model_id": 3972,
+              "uuid": "ca0462ee-2e22-4075-9871-a965db285bba",
+              "collection_name": "image",
+              "name": "Storytime2026image",
+              "file_name": "01KFK32DXSSPGKJF2DNWE00VE7.jpg",
+              "mime_type": "image/jpeg",
+              "disk": "library",
+              "conversions_disk": "library",
+              "size": 113514,
+              "manipulations": [],
+              "custom_properties": {
+                "custom_headers": {
+                  "ContentType": "image/jpeg"
+                }
+              },
+              "generated_conversions": {
+                "hero": true,
+                "home": true,
+                "list": true,
+                "thumb": true,
+                "related": true
+              },
+              "responsive_images": [],
+              "order_column": 1,
+              "created_at": "2026-01-22T14:52:23.000000Z",
+              "updated_at": "2026-01-22T14:52:58.000000Z",
+              "original_url": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/01KFK32DXSSPGKJF2DNWE00VE7.jpg",
+              "preview_url": ""
+            }
+          ]
+        }
+      ],
+      "total_items": 67
+    },
+    "apis": [],
+    "embedded_json": [
+      {
+        "pattern_name": "initialEvents",
+        "item_count": 67,
+        "sample": [
+          {
+            "id": 3950,
+            "enabled": 1,
+            "title": "Art Study Center Seminar: Conversations on Conservation",
+            "date": "2026-02-13T16:00:49.000000Z",
+            "description": "*This event is at capacity.*\n\n*This event requires registration; see further details below.* \n\nIn this seminar, you will get a behind-the-scenes view of recent and ongoing projects undertaken in the Straus Center for Conservation and Technical Studies. Staff members from the Straus Center will share some works in progress and details about the numerous techniques and materials available to them in the care of objects and advancement of technical studies.\n\nThe Straus Center for Conservation and Technical Studies is a world leader in fine arts conservation, research, and training. The center\u2019s laboratories are where conservation, conservation science, and curatorial practice intersect, coming together to enrich the understanding of and care for the approximately 250,000 objects in the Harvard Art Museums collections.\n\nFree admission, but registration is required. You can register by clicking on the event [\"on this form\":https://secure.touchnet.net/C20832_ustores/web/store_cat.jsp?STOREID=99&CATID=258&SINGLESTORE=true], beginning on Tuesday, February 3, at 10am.\n\nPlease arrive 15 minutes before the start of the program to allow sufficient time to sign in at the Art Study Center reception desk (Level 4), and be prepared to present a photo ID. Late seating is not permitted. All coats and bags must be placed in a locker prior to entering the study room, with lockers available on the Lower Level, Level 1, and Level 4. Children age 14 and older are welcome but must be accompanied by an adult.\n\nThe Harvard Art Museums offer [\"free admission\":https://harvardartmuseums.org/visit/policies/plan-your-visit] every day, Tuesday through Sunday. Please see the [\"museum visit page\":https://harvardartmuseums.org/visit/policies/general-policies] to learn about our general policies for visiting the museums.\n\n_The Harvard Art Museums are committed to accessibility for all visitors. For anyone requiring accessibility accommodations for our programs, please contact us at \"am_register@harvard.edu\":mailto:am_register@harvard.edu at least 48 hours in advance._",
+            "image_source": null,
+            "city": "Cambridge",
+            "state": "MA",
+            "country": null,
+            "position": 0,
+            "created_at": "2025-12-09T16:22:55.000000Z",
+            "updated_at": "2026-02-04T15:33:37.000000Z",
+            "featured": 0,
+            "exhibition_id": null,
+            "address": "32 Quincy Street",
+            "outbound_link": null,
+            "featured_homepage": 0,
+            "image_caption": "\u00a9 Nic Lehoux",
+            "institution": "Harvard Art Museums",
+            "type": 10,
+            "status": 4,
+            "description_tail": null,
+            "endowed": null,
+            "zipcode": null,
+            "end_date": "2026-02-13T17:00:00.000000Z",
+            "image_file_name": "006afd2150f46f85.jpg",
+            "image_file_size": 878415,
+            "image_content_type": "image/jpeg",
+            "image_updated_at": "2025-12-09 11:22:55",
+            "floorplan": 4,
+            "slug": "art-study-center-seminar-conversations-on-conservation-4",
+            "room": null,
+            "summary": "Join members of the Straus Center team for a behind-the-scenes look at some of the techniques and materials used for treating works of art.",
+            "image_caption_link": null,
+            "show_image_rss": 0,
+            "shopify_url": null,
+            "publication_date_control": 0,
+            "publication_start_date": "2025-12-09T16:22:00.000000Z",
+            "publication_end_date": "2025-12-09T16:22:00.000000Z",
+            "image_alt": "Two conservators work on respective artworks in their large laboratory space, which is illuminated by natural light.",
+            "original_file": null,
+            "participation": 3,
+            "image": {
+              "original": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/950/original/006afd2150f46f85.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/original/006afd2150f46f85.jpg"
+              },
+              "hero": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/950/hero/006afd2150f46f85.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/hero/006afd2150f46f85.jpg"
+              },
+              "list": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/950/list/006afd2150f46f85.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/list/006afd2150f46f85.jpg"
+              },
+              "related": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/950/related/006afd2150f46f85.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/related/006afd2150f46f85.jpg"
+              },
+              "thumb": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/950/thumb/006afd2150f46f85.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/thumb/006afd2150f46f85.jpg"
+              },
+              "home": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/950/home/006afd2150f46f85.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/950/home/006afd2150f46f85.jpg"
+              }
+            },
+            "status_title": "Art Study Center Seminar: Conversations on Conservation [AT CAPACITY]",
+            "start_time": "11:00 AM",
+            "event_link": "https://harvardartmuseums.org/calendar/art-study-center-seminar-conversations-on-conservation-4",
+            "image_styles": {
+              "hero": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/conversions/006afd2150f46f85-hero.jpg",
+              "list": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/conversions/006afd2150f46f85-list.jpg",
+              "related": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/conversions/006afd2150f46f85-related.jpg",
+              "thumb": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/conversions/006afd2150f46f85-thumb.jpg",
+              "home": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/conversions/006afd2150f46f85-home.jpg"
+            },
+            "html_attributes": {
+              "image_caption": "<p>\u00a9 Nic Lehoux</p>",
+              "image_source": "",
+              "description": "<p><strong>This event is at capacity.</strong></p>\n\n<p><strong>This event requires registration; see further details below.</strong> </p>\n\n<p>In this seminar, you will get a behind-the-scenes view of recent and ongoing projects undertaken in the Straus Center for Conservation and Technical Studies. Staff members from the Straus Center will share some works in progress and details about the numerous techniques and materials available to them in the care of objects and advancement of technical studies.</p>\n\n<p>The Straus Center for Conservation and Technical Studies is a world leader in fine arts conservation, research, and training. The center\u2019s laboratories are where conservation, conservation science, and curatorial practice intersect, coming together to enrich the understanding of and care for the approximately 250,000 objects in the Harvard Art Museums collections.</p>\n\n<p>Free admission, but registration is required. You can register by clicking on the event <a href=\"https://secure.touchnet.net/C20832_ustores/web/store_cat.jsp?STOREID=99&amp;CATID=258&amp;SINGLESTORE=true\">on this form</a>, beginning on Tuesday, February 3, at 10am.</p>\n\n<p>Please arrive 15 minutes before the start of the program to allow sufficient time to sign in at the Art Study Center reception desk (Level 4), and be prepared to present a photo ID. Late seating is not permitted. All coats and bags must be placed in a locker prior to entering the study room, with lockers available on the Lower Level, Level 1, and Level 4. Children age 14 and older are welcome but must be accompanied by an adult.</p>\n\n<p>The Harvard Art Museums offer <a href=\"https://harvardartmuseums.org/visit/policies/plan-your-visit\">free admission</a> every day, Tuesday through Sunday. Please see the <a href=\"https://harvardartmuseums.org/visit/policies/general-policies\">museum visit page</a> to learn about our general policies for visiting the museums.</p>\n\n<p><em>The Harvard Art Museums are committed to accessibility for all visitors. For anyone requiring accessibility accommodations for our programs, please contact us at <a href=\"mailto:am_register@harvard.edu\">am_register@harvard.edu</a> at least 48 hours in advance.</em></p>",
+              "description_tail": "",
+              "title": "Art Study Center Seminar: Conversations on Conservation",
+              "summary": "<p>Join members of the Straus Center team for a behind-the-scenes look at some of the techniques and materials used for treating works of art.</p>",
+              "status_title": "Art Study Center Seminar: Conversations on Conservation [AT CAPACITY]"
+            },
+            "event_type": "Seminar",
+            "media": [
+              {
+                "id": 22,
+                "model_type": "App\\Models\\CalendarEvent",
+                "model_id": 3950,
+                "uuid": "2761d4c5-df84-42f3-93d6-8b1750215c3a",
+                "collection_name": "image",
+                "name": "migrate_jAt31J",
+                "file_name": "006afd2150f46f85.jpg",
+                "mime_type": "image/jpeg",
+                "disk": "library",
+                "conversions_disk": "library",
+                "size": 878415,
+                "manipulations": [],
+                "custom_properties": [],
+                "generated_conversions": {
+                  "hero": true,
+                  "home": true,
+                  "list": true,
+                  "thumb": true,
+                  "related": true
+                },
+                "responsive_images": [],
+                "order_column": 1,
+                "created_at": "2025-12-09T16:23:02.000000Z",
+                "updated_at": "2025-12-09T16:23:28.000000Z",
+                "original_url": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/22/006afd2150f46f85.jpg",
+                "preview_url": ""
+              }
+            ]
+          },
+          {
+            "id": 3988,
+            "enabled": 1,
+            "title": "Spotlight Tour: The Moods of Love, with Diana Ochoa-Chavez \u201926",
+            "date": "2026-02-14T16:00:01.000000Z",
+            "description": "*This event does not require registration; see further details below.*\n\nDiana Ochoa-Chavez \u201926 will lead this tour in praise of love, exploring what it means to love and how love transforms us. The tour stops are _[\"Sleeping Cupid &lpar;Eros&rpar;\":https://harvardartmuseums.org/collections/object/289265?position=138]_ (Rome, 2nd century), a Safavid Persian [\"torch stand &lpar;mash\u2019al&rpar;\":https://harvardartmuseums.org/collections/object/216818?position=1], and the painting _[\"The Blessed Damozel\":https://harvardartmuseums.org/collections/object/299805?position=0]_ (1871\u201378) by Dante Gabriel Rossetti. \n\nSpotlight Tours offer a chance to explore the collections of the Harvard Art Museums through the eyes of a Harvard student. Free and open to the public, these tours start outside the museum shop on Saturdays and Sundays at 11am and 2pm. Drop in and join the conversation! And find out what the Student Guides are up to anytime on Instagram [\"@harvardarthappens\":https://www.instagram.com/harvardarthappens/?hl=en].\n\nPlease check in with museum staff at the Visitor Services desk in the Calderwood Courtyard to request to join the tour. Space is limited, and tours are available on a first-come, first-served basis; no registration is required.\n\nThe Harvard Art Museums offer [\"free admission\":https://harvardartmuseums.org/visit/policies/plan-your-visit] every day, Tuesday through Sunday. Please see the [\"museum visit page\":https://harvardartmuseums.org/visit/policies/general-policies] to learn about our general policies for visiting the museums.\n\nThis program is supported by the Ho Family Student Guide Fund.\n\nThe Ho Family Student Guide Program at the Harvard Art Museums prepares students to develop original, research-based tours of the collections. Through their training, Student Guides gain knowledge of the collections and develop skills in critical thinking, visual analysis, public speaking, and leadership.\n\n_The Harvard Art Museums welcome individuals with disabilities to participate in our programs and activities. If you would like to request accommodations or have questions about the physical access provided, please contact Visitor Services at \"am_register@harvard.edu\":mailto:am_register@harvard.edu or 617-495-9400 in advance of your visit._",
+            "image_source": null,
+            "city": "Cambridge",
+            "state": "MA",
+            "country": null,
+            "position": 0,
+            "created_at": "2026-01-28T17:25:53.000000Z",
+            "updated_at": "2026-02-05T18:01:25.000000Z",
+            "featured": 0,
+            "exhibition_id": null,
+            "address": "32 Quincy Street",
+            "outbound_link": null,
+            "featured_homepage": 0,
+            "image_caption": "One of the works Diana Ochoa-Chavez will spotlight is The Blessed Damozel (1871\u201378) by Dante Gabriel Rossetti.",
+            "institution": "Harvard Art Museums",
+            "type": 12,
+            "status": 0,
+            "description_tail": null,
+            "endowed": null,
+            "zipcode": null,
+            "end_date": "2026-02-14T16:50:00.000000Z",
+            "image_file_name": "efe99a819deece5e.png",
+            "image_file_size": 2311510,
+            "image_content_type": "image/png",
+            "image_updated_at": "2025-08-26 12:59:23",
+            "floorplan": 1,
+            "slug": "spotlight-tour-the-moods-of-love-with-diana-ochoa-chavez-26",
+            "room": null,
+            "summary": "This is a tour in praise of love, exploring what it means to love and how love transforms us. ",
+            "image_caption_link": null,
+            "show_image_rss": 0,
+            "shopify_url": null,
+            "publication_date_control": 0,
+            "publication_start_date": "2026-01-28T17:25:00.000000Z",
+            "publication_end_date": "2026-01-28T17:25:00.000000Z",
+            "image_alt": "In this photomontage, a smiling young woman gestures toward a large gold-framed painting of young women and flowers in an almost celestial setting; in a section at the bottom, a reclining man stares up at them.",
+            "original_file": null,
+            "participation": 3,
+            "image": {
+              "original": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/988/original/efe99a819deece5e.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/original/efe99a819deece5e.png"
+              },
+              "hero": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/988/hero/efe99a819deece5e.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/hero/efe99a819deece5e.png"
+              },
+              "list": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/988/list/efe99a819deece5e.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/list/efe99a819deece5e.png"
+              },
+              "related": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/988/related/efe99a819deece5e.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/related/efe99a819deece5e.png"
+              },
+              "thumb": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/988/thumb/efe99a819deece5e.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/thumb/efe99a819deece5e.png"
+              },
+              "home": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/988/home/efe99a819deece5e.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/988/home/efe99a819deece5e.png"
+              }
+            },
+            "status_title": "Spotlight Tour: The Moods of Love, with Diana Ochoa-Chavez \u201926",
+            "start_time": "11:00 AM",
+            "event_link": "https://harvardartmuseums.org/calendar/spotlight-tour-the-moods-of-love-with-diana-ochoa-chavez-26",
+            "image_styles": {
+              "hero": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/conversions/01KG2TFADSXPKM02WV91S22GDS-hero.jpg",
+              "list": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/conversions/01KG2TFADSXPKM02WV91S22GDS-list.jpg",
+              "related": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/conversions/01KG2TFADSXPKM02WV91S22GDS-related.jpg",
+              "thumb": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/conversions/01KG2TFADSXPKM02WV91S22GDS-thumb.jpg",
+              "home": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/conversions/01KG2TFADSXPKM02WV91S22GDS-home.jpg"
+            },
+            "html_attributes": {
+              "image_caption": "<p>One of the works Diana Ochoa-Chavez will spotlight is The Blessed Damozel (1871\u201378) by Dante Gabriel Rossetti.</p>",
+              "image_source": "",
+              "description": "<p><strong>This event does not require registration; see further details below.</strong></p>\n\n<p>Diana Ochoa-Chavez \u201926 will lead this tour in praise of love, exploring what it means to love and how love transforms us. The tour stops are <em><a href=\"https://harvardartmuseums.org/collections/object/289265?position=138\">Sleeping Cupid &lpar;Eros&rpar;</a></em> (Rome, 2nd century), a Safavid Persian <a href=\"https://harvardartmuseums.org/collections/object/216818?position=1\">torch stand &lpar;mash\u2019al&rpar;</a>, and the painting <em><a href=\"https://harvardartmuseums.org/collections/object/299805?position=0\">The Blessed Damozel</a></em> (1871\u201378) by Dante Gabriel Rossetti. </p>\n\n<p>Spotlight Tours offer a chance to explore the collections of the Harvard Art Museums through the eyes of a Harvard student. Free and open to the public, these tours start outside the museum shop on Saturdays and Sundays at 11am and 2pm. Drop in and join the conversation! And find out what the Student Guides are up to anytime on Instagram <a href=\"https://www.instagram.com/harvardarthappens/?hl=en\">@harvardarthappens</a>.</p>\n\n<p>Please check in with museum staff at the Visitor Services desk in the Calderwood Courtyard to request to join the tour. Space is limited, and tours are available on a first-come, first-served basis; no registration is required.</p>\n\n<p>The Harvard Art Museums offer <a href=\"https://harvardartmuseums.org/visit/policies/plan-your-visit\">free admission</a> every day, Tuesday through Sunday. Please see the <a href=\"https://harvardartmuseums.org/visit/policies/general-policies\">museum visit page</a> to learn about our general policies for visiting the museums.</p>\n\n<p>This program is supported by the Ho Family Student Guide Fund.</p>\n\n<p>The Ho Family Student Guide Program at the Harvard Art Museums prepares students to develop original, research-based tours of the collections. Through their training, Student Guides gain knowledge of the collections and develop skills in critical thinking, visual analysis, public speaking, and leadership.</p>\n\n<p><em>The Harvard Art Museums welcome individuals with disabilities to participate in our programs and activities. If you would like to request accommodations or have questions about the physical access provided, please contact Visitor Services at <a href=\"mailto:am_register@harvard.edu\">am_register@harvard.edu</a> or 617-495-9400 in advance of your visit.</em></p>",
+              "description_tail": "",
+              "title": "Spotlight Tour: The Moods of Love, with Diana Ochoa-Chavez \u201926",
+              "summary": "<p>This is a tour in praise of love, exploring what it means to love and how love transforms us. </p>",
+              "status_title": "Spotlight Tour: The Moods of Love, with Diana Ochoa-Chavez \u201926"
+            },
+            "event_type": "Tour",
+            "media": [
+              {
+                "id": 1540,
+                "model_type": "App\\Models\\CalendarEvent",
+                "model_id": 3988,
+                "uuid": "2190ab13-0efc-404f-8d0f-5879bc87f4fb",
+                "collection_name": "image",
+                "name": "The Moods of Love Diana Ochoa-Chavez publicity",
+                "file_name": "01KG2TFADSXPKM02WV91S22GDS.jpg",
+                "mime_type": "image/jpeg",
+                "disk": "library",
+                "conversions_disk": "library",
+                "size": 332313,
+                "manipulations": [],
+                "custom_properties": {
+                  "custom_headers": {
+                    "ContentType": "image/jpeg"
+                  }
+                },
+                "generated_conversions": {
+                  "hero": true,
+                  "home": true,
+                  "list": true,
+                  "thumb": true,
+                  "related": true
+                },
+                "responsive_images": [],
+                "order_column": 1,
+                "created_at": "2026-01-28T17:30:00.000000Z",
+                "updated_at": "2026-01-28T17:30:05.000000Z",
+                "original_url": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1540/01KG2TFADSXPKM02WV91S22GDS.jpg",
+                "preview_url": ""
+              }
+            ]
+          },
+          {
+            "id": 3972,
+            "enabled": 1,
+            "title": "Second Saturdays Story Time",
+            "date": "2026-02-14T16:00:05.000000Z",
+            "description": "p(((. *Know Before You Go*\n\np(((. *How to join:* Check in at the Visitor Services desk in the Calderwood Courtyard.\n*Fee:* This is a free event.\n*Age restrictions:* Ages 3 to 7. Caregivers must be present with their children. \n*Accessibility accommodations:* Email \"am_register@harvard.edu\":mailto:am_register@harvard.edu at least 48 hours in advance, including the name and date of the program in the subject line.\n*General info:* The [\"museum visit page\":https://harvardartmuseums.org/visit/policies/plan-your-visit] has general guidelines for your visit.\n\nJoin us for Second Saturdays Story Time in the galleries, an event in partnership with librarians from Cambridge, Somerville, Watertown, and Medford. In this wonderful, art-filled experience held every second Saturday of the month, librarians will choose thematic books to share with you and yours.\n\nThis program is organized in partnership with the Cambridge Public Library, Somerville Public Library, Watertown Public Library, and Medford Public Library.",
+            "image_source": null,
+            "city": "Cambridge",
+            "state": "MA",
+            "country": null,
+            "position": null,
+            "created_at": "2026-01-22T14:52:23.000000Z",
+            "updated_at": "2026-02-05T18:08:00.000000Z",
+            "featured": 0,
+            "exhibition_id": null,
+            "address": "32 Quincy Street",
+            "outbound_link": null,
+            "featured_homepage": 0,
+            "image_caption": "Photo: Bess Paupeck ",
+            "institution": "Harvard Art Museums",
+            "type": 7,
+            "status": 0,
+            "description_tail": null,
+            "endowed": null,
+            "zipcode": null,
+            "end_date": "2026-02-14T16:30:00.000000Z",
+            "image_file_name": null,
+            "image_file_size": null,
+            "image_content_type": null,
+            "image_updated_at": null,
+            "floorplan": null,
+            "slug": "second-saturdays-story-time-13",
+            "room": null,
+            "summary": "Join us for Second Saturdays Story Time, where local librarians read stories in the galleries!",
+            "image_caption_link": null,
+            "show_image_rss": 0,
+            "shopify_url": null,
+            "publication_date_control": 0,
+            "publication_start_date": "2026-01-22T14:50:00.000000Z",
+            "publication_end_date": "2026-01-22T14:50:00.000000Z",
+            "image_alt": "A woman reads to a group of children and caregivers in front of a glass window in a museum.",
+            "original_file": null,
+            "participation": 3,
+            "image": [],
+            "status_title": "Second Saturdays Story Time",
+            "start_time": "11:00 AM",
+            "event_link": "https://harvardartmuseums.org/calendar/second-saturdays-story-time-13",
+            "image_styles": {
+              "hero": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/conversions/01KFK32DXSSPGKJF2DNWE00VE7-hero.jpg",
+              "list": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/conversions/01KFK32DXSSPGKJF2DNWE00VE7-list.jpg",
+              "related": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/conversions/01KFK32DXSSPGKJF2DNWE00VE7-related.jpg",
+              "thumb": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/conversions/01KFK32DXSSPGKJF2DNWE00VE7-thumb.jpg",
+              "home": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/conversions/01KFK32DXSSPGKJF2DNWE00VE7-home.jpg"
+            },
+            "html_attributes": {
+              "image_caption": "<p>Photo: Bess Paupeck </p>",
+              "image_source": "",
+              "description": "<p style=\"padding-left:3em;\"><strong>Know Before You Go</strong></p>\n\n<p style=\"padding-left:3em;\"><strong>How to join:</strong> Check in at the Visitor Services desk in the Calderwood Courtyard.<br />\n<strong>Fee:</strong> This is a free event.<br />\n<strong>Age restrictions:</strong> Ages 3 to 7. Caregivers must be present with their children. <br />\n<strong>Accessibility accommodations:</strong> Email <a href=\"mailto:am_register@harvard.edu\">am_register@harvard.edu</a> at least 48 hours in advance, including the name and date of the program in the subject line.<br />\n<strong>General info:</strong> The <a href=\"https://harvardartmuseums.org/visit/policies/plan-your-visit\">museum visit page</a> has general guidelines for your visit.</p>\n\n<p>Join us for Second Saturdays Story Time in the galleries, an event in partnership with librarians from Cambridge, Somerville, Watertown, and Medford. In this wonderful, art-filled experience held every second Saturday of the month, librarians will choose thematic books to share with you and yours.</p>\n\n<p>This program is organized in partnership with the Cambridge Public Library, Somerville Public Library, Watertown Public Library, and Medford Public Library.</p>",
+              "description_tail": "",
+              "title": "Second Saturdays Story Time",
+              "summary": "<p>Join us for Second Saturdays Story Time, where local librarians read stories in the galleries!</p>",
+              "status_title": "Second Saturdays Story Time"
+            },
+            "event_type": "Special Event",
+            "media": [
+              {
+                "id": 1522,
+                "model_type": "App\\Models\\CalendarEvent",
+                "model_id": 3972,
+                "uuid": "ca0462ee-2e22-4075-9871-a965db285bba",
+                "collection_name": "image",
+                "name": "Storytime2026image",
+                "file_name": "01KFK32DXSSPGKJF2DNWE00VE7.jpg",
+                "mime_type": "image/jpeg",
+                "disk": "library",
+                "conversions_disk": "library",
+                "size": 113514,
+                "manipulations": [],
+                "custom_properties": {
+                  "custom_headers": {
+                    "ContentType": "image/jpeg"
+                  }
+                },
+                "generated_conversions": {
+                  "hero": true,
+                  "home": true,
+                  "list": true,
+                  "thumb": true,
+                  "related": true
+                },
+                "responsive_images": [],
+                "order_column": 1,
+                "created_at": "2026-01-22T14:52:23.000000Z",
+                "updated_at": "2026-01-22T14:52:58.000000Z",
+                "original_url": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1522/01KFK32DXSSPGKJF2DNWE00VE7.jpg",
+                "preview_url": ""
+              }
+            ]
+          },
+          {
+            "id": 3982,
+            "enabled": 1,
+            "title": "Spotlight Tour: The Nature of Art, with Alyssia Wiesenbauer \u201926",
+            "date": "2026-02-14T19:00:42.000000Z",
+            "description": "*This event does not require registration; see further details below.*\n\nAlyssia Wiesenbauer \u201926 will explore the relationship between art and the natural world on this tour that takes you from a depiction of grandeur in the galleries to a living organism outside. The stops on the tour are the painting _[\"Rocky Mountains, \"Lander\u2019s Peak\"\":https://harvardartmuseums.org/collections/object/303976?position=0]_ (1863) by Albert Bierstadt, _[\"Study of Trees\":https://harvardartmuseums.org/collections/object/213825?position=1]_ (c. 1904) by Paul C\u00e9zanne, and a swamp white oak near the museums\u2019 entrance.  \n\nSpotlight Tours offer a chance to explore the collections of the Harvard Art Museums through the eyes of a Harvard student. Free and open to the public, these tours start outside the museum shop on Saturdays and Sundays at 11am and 2pm. Drop in and join the conversation! And find out what the Student Guides are up to anytime on Instagram [\"@harvardarthappens\":https://www.instagram.com/harvardarthappens/?hl=en].\n\nPlease check in with museum staff at the Visitor Services desk in the Calderwood Courtyard to request to join the tour. Space is limited, and tours are available on a first-come, first-served basis; no registration is required.\n\nThe Harvard Art Museums offer [\"free admission\":https://harvardartmuseums.org/visit/policies/plan-your-visit] every day, Tuesday through Sunday. Please see the [\"museum visit page\":https://harvardartmuseums.org/visit/policies/general-policies] to learn about our general policies for visiting the museums.\n\nThis program is supported by the Ho Family Student Guide Fund.\n\nThe Ho Family Student Guide Program at the Harvard Art Museums prepares students to develop original, research-based tours of the collections. Through their training, Student Guides gain knowledge of the collections and develop skills in critical thinking, visual analysis, public speaking, and leadership.\n\n_The Harvard Art Museums welcome individuals with disabilities to participate in our programs and activities. If you would like to request accommodations or have questions about the physical access provided, please contact Visitor Services at \"am_register@harvard.edu\":mailto:am_register@harvard.edu or 617-495-9400 in advance of your visit._",
+            "image_source": null,
+            "city": "Cambridge",
+            "state": "MA",
+            "country": null,
+            "position": null,
+            "created_at": "2026-01-28T17:21:26.000000Z",
+            "updated_at": "2026-01-28T17:21:48.000000Z",
+            "featured": 0,
+            "exhibition_id": null,
+            "address": "32 Quincy Street",
+            "outbound_link": null,
+            "featured_homepage": 0,
+            "image_caption": "One of the works Alyssia Wiesenbauer will spotlight is _Rocky Mountains, \u201cLander\u2019s Peak\u201d_ (1863) by Albert Bierstadt.",
+            "institution": "Harvard Art Museums",
+            "type": 12,
+            "status": 0,
+            "description_tail": null,
+            "endowed": null,
+            "zipcode": null,
+            "end_date": "2026-02-14T19:50:00.000000Z",
+            "image_file_name": "f584aa564566e467.jpg",
+            "image_file_size": 514629,
+            "image_content_type": "image/jpeg",
+            "image_updated_at": "2025-10-21 10:46:00",
+            "floorplan": 1,
+            "slug": "spotlight-tour-the-nature-of-art-with-alyssia-wiesenbauer-26-6",
+            "room": null,
+            "summary": "Wiesenbauer will explore the relationship between art and the natural world on this tour that takes you from the galleries to nearby grounds. ",
+            "image_caption_link": null,
+            "show_image_rss": 0,
+            "shopify_url": null,
+            "publication_date_control": 0,
+            "publication_start_date": "2026-01-28T17:21:00.000000Z",
+            "publication_end_date": "2026-01-28T17:21:00.000000Z",
+            "image_alt": "In this photomontage, a smiling young woman gestures toward a floating painting showing sunlight on a mountainous landscape. She stands in a wooded area wearing a blue sweater and blue jeans.",
+            "original_file": null,
+            "participation": 3,
+            "image": {
+              "original": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/982/original/f584aa564566e467.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/982/original/f584aa564566e467.jpg"
+              },
+              "hero": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/982/hero/f584aa564566e467.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/982/hero/f584aa564566e467.jpg"
+              },
+              "list": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/982/list/f584aa564566e467.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/982/list/f584aa564566e467.jpg"
+              },
+              "related": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/982/related/f584aa564566e467.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/982/related/f584aa564566e467.jpg"
+              },
+              "thumb": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/982/thumb/f584aa564566e467.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/982/thumb/f584aa564566e467.jpg"
+              },
+              "home": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/982/home/f584aa564566e467.jpg",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/982/home/f584aa564566e467.jpg"
+              }
+            },
+            "status_title": "Spotlight Tour: The Nature of Art, with Alyssia Wiesenbauer \u201926",
+            "start_time": "2:00 PM",
+            "event_link": "https://harvardartmuseums.org/calendar/spotlight-tour-the-nature-of-art-with-alyssia-wiesenbauer-26-6",
+            "image_styles": {
+              "hero": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1533/conversions/f584aa564566e467-hero.jpg",
+              "list": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1533/conversions/f584aa564566e467-list.jpg",
+              "related": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1533/conversions/f584aa564566e467-related.jpg",
+              "thumb": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1533/conversions/f584aa564566e467-thumb.jpg",
+              "home": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1533/conversions/f584aa564566e467-home.jpg"
+            },
+            "html_attributes": {
+              "image_caption": "<p>One of the works Alyssia Wiesenbauer will spotlight is <em>Rocky Mountains, \u201cLander\u2019s Peak\u201d</em> (1863) by Albert Bierstadt.</p>",
+              "image_source": "",
+              "description": "<p><strong>This event does not require registration; see further details below.</strong></p>\n\n<p>Alyssia Wiesenbauer \u201926 will explore the relationship between art and the natural world on this tour that takes you from a depiction of grandeur in the galleries to a living organism outside. The stops on the tour are the painting <em><a href=\"https://harvardartmuseums.org/collections/object/303976?position=0\">Rocky Mountains, &#8220;Lander\u2019s Peak&#8221;</a></em> (1863) by Albert Bierstadt, <em><a href=\"https://harvardartmuseums.org/collections/object/213825?position=1\">Study of Trees</a></em> (c. 1904) by Paul C\u00e9zanne, and a swamp white oak near the museums\u2019 entrance.  </p>\n\n<p>Spotlight Tours offer a chance to explore the collections of the Harvard Art Museums through the eyes of a Harvard student. Free and open to the public, these tours start outside the museum shop on Saturdays and Sundays at 11am and 2pm. Drop in and join the conversation! And find out what the Student Guides are up to anytime on Instagram <a href=\"https://www.instagram.com/harvardarthappens/?hl=en\">@harvardarthappens</a>.</p>\n\n<p>Please check in with museum staff at the Visitor Services desk in the Calderwood Courtyard to request to join the tour. Space is limited, and tours are available on a first-come, first-served basis; no registration is required.</p>\n\n<p>The Harvard Art Museums offer <a href=\"https://harvardartmuseums.org/visit/policies/plan-your-visit\">free admission</a> every day, Tuesday through Sunday. Please see the <a href=\"https://harvardartmuseums.org/visit/policies/general-policies\">museum visit page</a> to learn about our general policies for visiting the museums.</p>\n\n<p>This program is supported by the Ho Family Student Guide Fund.</p>\n\n<p>The Ho Family Student Guide Program at the Harvard Art Museums prepares students to develop original, research-based tours of the collections. Through their training, Student Guides gain knowledge of the collections and develop skills in critical thinking, visual analysis, public speaking, and leadership.</p>\n\n<p><em>The Harvard Art Museums welcome individuals with disabilities to participate in our programs and activities. If you would like to request accommodations or have questions about the physical access provided, please contact Visitor Services at <a href=\"mailto:am_register@harvard.edu\">am_register@harvard.edu</a> or 617-495-9400 in advance of your visit.</em></p>",
+              "description_tail": "",
+              "title": "Spotlight Tour: The Nature of Art, with Alyssia Wiesenbauer \u201926",
+              "summary": "<p>Wiesenbauer will explore the relationship between art and the natural world on this tour that takes you from the galleries to nearby grounds. </p>",
+              "status_title": "Spotlight Tour: The Nature of Art, with Alyssia Wiesenbauer \u201926"
+            },
+            "event_type": "Tour",
+            "media": [
+              {
+                "id": 1533,
+                "model_type": "App\\Models\\CalendarEvent",
+                "model_id": 3982,
+                "uuid": "00be936f-d8e4-4a6c-b24a-32f578e79bed",
+                "collection_name": "image",
+                "name": "f584aa564566e467",
+                "file_name": "f584aa564566e467.jpg",
+                "mime_type": "image/jpeg",
+                "disk": "library",
+                "conversions_disk": "library",
+                "size": 514629,
+                "manipulations": [],
+                "custom_properties": [],
+                "generated_conversions": {
+                  "hero": true,
+                  "home": true,
+                  "list": true,
+                  "thumb": true,
+                  "related": true
+                },
+                "responsive_images": [],
+                "order_column": 1,
+                "created_at": "2026-01-28T17:21:26.000000Z",
+                "updated_at": "2026-01-28T17:21:28.000000Z",
+                "original_url": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1533/f584aa564566e467.jpg",
+                "preview_url": ""
+              }
+            ]
+          },
+          {
+            "id": 3983,
+            "enabled": 1,
+            "title": "Spotlight Tour: Contained, with Priya Allen \u201927",
+            "date": "2026-02-15T16:00:49.000000Z",
+            "description": "*This event does not require registration; see further details below.*\n\nOn this tour, Priya Allen \u201927 will explore the design and politics of historical drinking vessels and containers. The stops on the tour are a [\"Persian jug\":https://harvardartmuseums.org/collections/object/165533?position=165533] from the 9th\u201310th century; a British [\"abolition jug\":https://harvardartmuseums.org/collections/object/353260?position=353260] (c. 1810\u201320); and a [\"samovar\":https://harvardartmuseums.org/collections/object/225530?position=225530] designed by Marianne Brandt in the Bauhaus metal workshop in Germany in 1925.\n\nSpotlight Tours offer a chance to explore the collections of the Harvard Art Museums through the eyes of a Harvard student. Free and open to the public, these tours start outside the museum shop on Saturdays and Sundays at 11am and 2pm. Drop in and join the conversation! And find out what the Student Guides are up to anytime on Instagram [\"@harvardarthappens\":https://www.instagram.com/harvardarthappens/?hl=en].\n\nPlease check in with museum staff at the Visitor Services desk in the Calderwood Courtyard to request to join the tour. Space is limited, and tours are available on a first-come, first-served basis; no registration is required.\n\nThe Harvard Art Museums offer [\"free admission\":https://harvardartmuseums.org/visit/policies/plan-your-visit] every day, Tuesday through Sunday. Please see the [\"museum visit page\":https://harvardartmuseums.org/visit/policies/general-policies] to learn about our general policies for visiting the museums.\n\nThis program is supported by the Ho Family Student Guide Fund.\n\nThe Ho Family Student Guide Program at the Harvard Art Museums prepares students to develop original, research-based tours of the collections. Through their training, Student Guides gain knowledge of the collections and develop skills in critical thinking, visual analysis, public speaking, and leadership.\n\n_The Harvard Art Museums are committed to accessibility for all visitors. For anyone requiring accessibility accommodations for our programs, please contact us at \"am_register@harvard.edu\":mailto:am_register@harvard.edu at least 48 hours in advance. Please include the name and date of the program in the subject line of your email._",
+            "image_source": null,
+            "city": "Cambridge",
+            "state": "MA",
+            "country": null,
+            "position": null,
+            "created_at": "2026-01-28T17:22:10.000000Z",
+            "updated_at": "2026-01-28T17:22:31.000000Z",
+            "featured": 0,
+            "exhibition_id": null,
+            "address": "32 Quincy Street",
+            "outbound_link": null,
+            "featured_homepage": 0,
+            "image_caption": "One of the works Priya Allen will spotlight is this British [\"abolition jug\":https://harvardartmuseums.org/collections/object/353260?position=353260] (c. 1810\u201320).",
+            "institution": "Harvard Art Museums",
+            "type": 12,
+            "status": 0,
+            "description_tail": null,
+            "endowed": null,
+            "zipcode": null,
+            "end_date": "2026-02-15T16:50:00.000000Z",
+            "image_file_name": "c064efd16ac73c8f.png",
+            "image_file_size": 1991076,
+            "image_content_type": "image/png",
+            "image_updated_at": "2025-10-21 10:44:48",
+            "floorplan": 1,
+            "slug": "spotlight-tour-contained-with-priya-allen-27-7",
+            "room": null,
+            "summary": "Priya Allen will explore the design and politics of historical drinking vessels and containers.",
+            "image_caption_link": null,
+            "show_image_rss": 0,
+            "shopify_url": null,
+            "publication_date_control": 0,
+            "publication_start_date": "2026-01-28T17:22:00.000000Z",
+            "publication_end_date": "2026-01-28T17:22:00.000000Z",
+            "image_alt": "In this photomontage, a smiling young woman gestures toward a jug that appears to float. Printed in black on the jug\u2019s surface is a Black man gesturing toward his chained wrist and the words \u201cAM NOT I A MAN AND A BROTHER.\u201d   ",
+            "original_file": null,
+            "participation": 3,
+            "image": {
+              "original": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/983/original/c064efd16ac73c8f.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/983/original/c064efd16ac73c8f.png"
+              },
+              "hero": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/983/hero/c064efd16ac73c8f.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/983/hero/c064efd16ac73c8f.png"
+              },
+              "list": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/983/list/c064efd16ac73c8f.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/983/list/c064efd16ac73c8f.png"
+              },
+              "related": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/983/related/c064efd16ac73c8f.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/983/related/c064efd16ac73c8f.png"
+              },
+              "thumb": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/983/thumb/c064efd16ac73c8f.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/983/thumb/c064efd16ac73c8f.png"
+              },
+              "home": {
+                "path": "production/file_uploads/CalendarEvent/images/000/003/983/home/c064efd16ac73c8f.png",
+                "url": "https://s3.amazonaws.com/media.harvardartmuseums.org/production/file_uploads/CalendarEvent/images/000/003/983/home/c064efd16ac73c8f.png"
+              }
+            },
+            "status_title": "Spotlight Tour: Contained, with Priya Allen \u201927",
+            "start_time": "11:00 AM",
+            "event_link": "https://harvardartmuseums.org/calendar/spotlight-tour-contained-with-priya-allen-27-7",
+            "image_styles": {
+              "hero": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1534/conversions/c064efd16ac73c8f-hero.jpg",
+              "list": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1534/conversions/c064efd16ac73c8f-list.jpg",
+              "related": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1534/conversions/c064efd16ac73c8f-related.jpg",
+              "thumb": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1534/conversions/c064efd16ac73c8f-thumb.jpg",
+              "home": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1534/conversions/c064efd16ac73c8f-home.jpg"
+            },
+            "html_attributes": {
+              "image_caption": "<p>One of the works Priya Allen will spotlight is this British <a href=\"https://harvardartmuseums.org/collections/object/353260?position=353260\">abolition jug</a> (c. 1810\u201320).</p>",
+              "image_source": "",
+              "description": "<p><strong>This event does not require registration; see further details below.</strong></p>\n\n<p>On this tour, Priya Allen \u201927 will explore the design and politics of historical drinking vessels and containers. The stops on the tour are a <a href=\"https://harvardartmuseums.org/collections/object/165533?position=165533\">Persian jug</a> from the 9th\u201310th century; a British <a href=\"https://harvardartmuseums.org/collections/object/353260?position=353260\">abolition jug</a> (c. 1810\u201320); and a <a href=\"https://harvardartmuseums.org/collections/object/225530?position=225530\">samovar</a> designed by Marianne Brandt in the Bauhaus metal workshop in Germany in 1925.</p>\n\n<p>Spotlight Tours offer a chance to explore the collections of the Harvard Art Museums through the eyes of a Harvard student. Free and open to the public, these tours start outside the museum shop on Saturdays and Sundays at 11am and 2pm. Drop in and join the conversation! And find out what the Student Guides are up to anytime on Instagram <a href=\"https://www.instagram.com/harvardarthappens/?hl=en\">@harvardarthappens</a>.</p>\n\n<p>Please check in with museum staff at the Visitor Services desk in the Calderwood Courtyard to request to join the tour. Space is limited, and tours are available on a first-come, first-served basis; no registration is required.</p>\n\n<p>The Harvard Art Museums offer <a href=\"https://harvardartmuseums.org/visit/policies/plan-your-visit\">free admission</a> every day, Tuesday through Sunday. Please see the <a href=\"https://harvardartmuseums.org/visit/policies/general-policies\">museum visit page</a> to learn about our general policies for visiting the museums.</p>\n\n<p>This program is supported by the Ho Family Student Guide Fund.</p>\n\n<p>The Ho Family Student Guide Program at the Harvard Art Museums prepares students to develop original, research-based tours of the collections. Through their training, Student Guides gain knowledge of the collections and develop skills in critical thinking, visual analysis, public speaking, and leadership.</p>\n\n<p><em>The Harvard Art Museums are committed to accessibility for all visitors. For anyone requiring accessibility accommodations for our programs, please contact us at <a href=\"mailto:am_register@harvard.edu\">am_register@harvard.edu</a> at least 48 hours in advance. Please include the name and date of the program in the subject line of your email.</em></p>",
+              "description_tail": "",
+              "title": "Spotlight Tour: Contained, with Priya Allen \u201927",
+              "summary": "<p>Priya Allen will explore the design and politics of historical drinking vessels and containers.</p>",
+              "status_title": "Spotlight Tour: Contained, with Priya Allen \u201927"
+            },
+            "event_type": "Tour",
+            "media": [
+              {
+                "id": 1534,
+                "model_type": "App\\Models\\CalendarEvent",
+                "model_id": 3983,
+                "uuid": "33760fd3-e052-4920-b8a2-98ed8c074ad9",
+                "collection_name": "image",
+                "name": "c064efd16ac73c8f",
+                "file_name": "c064efd16ac73c8f.png",
+                "mime_type": "image/png",
+                "disk": "library",
+                "conversions_disk": "library",
+                "size": 1991076,
+                "manipulations": [],
+                "custom_properties": [],
+                "generated_conversions": {
+                  "hero": true,
+                  "home": true,
+                  "list": true,
+                  "thumb": true,
+                  "related": true
+                },
+                "responsive_images": [],
+                "order_column": 1,
+                "created_at": "2026-01-28T17:22:10.000000Z",
+                "updated_at": "2026-01-28T17:22:30.000000Z",
+                "original_url": "https://s3.amazonaws.com/library.harvardartmuseums.org/production/1534/c064efd16ac73c8f.png",
+                "preview_url": ""
+              }
+            ]
+          }
+        ],
+        "keys": [
+          "id",
+          "enabled",
+          "title",
+          "date",
+          "description",
+          "image_source",
+          "city",
+          "state",
+          "country",
+          "position",
+          "created_at",
+          "updated_at",
+          "featured",
+          "exhibition_id",
+          "address",
+          "outbound_link",
+          "featured_homepage",
+          "image_caption",
+          "institution",
+          "type",
+          "status",
+          "description_tail",
+          "endowed",
+          "zipcode",
+          "end_date",
+          "image_file_name",
+          "image_file_size",
+          "image_content_type",
+          "image_updated_at",
+          "floorplan",
+          "slug",
+          "room",
+          "summary",
+          "image_caption_link",
+          "show_image_rss",
+          "shopify_url",
+          "publication_date_control",
+          "publication_start_date",
+          "publication_end_date",
+          "image_alt",
+          "original_file",
+          "participation",
+          "image",
+          "status_title",
+          "start_time",
+          "event_link",
+          "image_styles",
+          "html_attributes",
+          "event_type",
+          "media"
+        ]
+      }
+    ],
+    "feeds": [],
+    "static_html": {
+      "page_title": "Calendar | Harvard Art Museums",
+      "event_containers": [],
+      "has_pagination": false,
+      "needs_js": false,
+      "date_patterns": [
+        "February 12"
+      ]
+    },
+    "fetch_error": null,
+    "json_ld": [],
+    "venue_name": "Harvard Art Museums"
+  }
+}

@@ -251,6 +251,17 @@ async def version_check():
     }
 
 
+@app.get("/health/scrapers")
+async def scraper_health():
+    """Run CI monitor agent and return source freshness report"""
+    try:
+        from src.agents.ci_monitor import CIMonitorAgent
+        agent = CIMonitorAgent()
+        return agent.run()
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
 @app.get("/events", response_model=List[Event])
 async def get_events(
     category: Optional[EventCategory] = None,
@@ -260,7 +271,8 @@ async def get_events(
     end_date: Optional[datetime] = None,
     upcoming_only: bool = Query(False, description="Show only upcoming events"),
     family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
-    sort_order: str = Query("asc", regex="^(asc|desc)$", description="Sort order: asc or desc"),
+    ranked: bool = Query(False, description="Sort by relevance score instead of date"),
+    sort_order: str = Query("asc", regex="^(asc|desc)$", description="Sort order: asc or desc (ignored when ranked=true)"),
     limit: int = Query(1000, ge=1, le=5000),
     offset: int = Query(0, ge=0)
 ):
@@ -275,7 +287,8 @@ async def get_events(
     - end_date: Filter events starting before this date
     - upcoming_only: If true, only show events from today forward
     - family_friendly: If true, only show family-friendly events
-    - sort_order: Sort by date (asc = oldest first, desc = newest first)
+    - ranked: If true, sort by relevance score (considers popularity, recency, temporal urgency)
+    - sort_order: Sort by date (asc = oldest first, desc = newest first), ignored when ranked=true
     - limit: Maximum number of events to return
     - offset: Number of events to skip
     """
@@ -322,15 +335,17 @@ async def get_events(
     if family_friendly is not None:
         events = [e for e in events if getattr(e, 'family_friendly', False) == family_friendly]
 
-    # Sort by start date (normalize timezone-aware vs naive datetimes for comparison)
-    def get_sort_key(event):
-        dt = event.start_datetime
-        # Convert to naive datetime for consistent sorting
-        if dt.tzinfo is not None:
-            return dt.replace(tzinfo=None)
-        return dt
-
-    events.sort(key=get_sort_key, reverse=(sort_order == "desc"))
+    # Sort
+    if ranked:
+        event_scores = score_events(events, use_interactions=True)
+        events.sort(key=lambda e: event_scores.get(e.id, 0), reverse=True)
+    else:
+        def get_sort_key(event):
+            dt = event.start_datetime
+            if dt.tzinfo is not None:
+                return dt.replace(tzinfo=None)
+            return dt
+        events.sort(key=get_sort_key, reverse=(sort_order == "desc"))
 
     # Apply pagination
     total = len(events)
@@ -350,15 +365,26 @@ def get_interaction_counts_from_db() -> dict:
         return {}
 
     try:
-        from sqlalchemy import func, text
+        from sqlalchemy import func, text, case
         db = SessionLocal()
         try:
-            # Query counts grouped by event_id and interaction_type
+            # Position bias correction: interactions from lower positions
+            # (further down the list) are weighted higher since the user
+            # scrolled past many other events — a stronger interest signal.
+            position_weight = case(
+                (WebsiteInteraction.position.is_(None), 1.0),
+                (WebsiteInteraction.position <= 5, 1.0),
+                (WebsiteInteraction.position <= 10, 1.5),
+                (WebsiteInteraction.position <= 20, 2.0),
+                else_=3.0
+            )
+
+            # Query position-weighted counts grouped by event_id and interaction_type
             thirty_days_ago = datetime.utcnow() - timedelta(days=30)
             results = db.query(
                 WebsiteInteraction.event_id,
                 WebsiteInteraction.interaction_type,
-                func.count(WebsiteInteraction.id).label('count')
+                func.sum(position_weight).label('count')
             ).filter(
                 WebsiteInteraction.created_at >= thirty_days_ago
             ).group_by(
@@ -366,12 +392,12 @@ def get_interaction_counts_from_db() -> dict:
                 WebsiteInteraction.interaction_type
             ).all()
 
-            # Build nested dict: event_id -> {type: count}
+            # Build nested dict: event_id -> {type: weighted_count}
             counts = {}
             for event_id, interaction_type, count in results:
                 if event_id not in counts:
                     counts[event_id] = {}
-                counts[event_id][interaction_type] = count
+                counts[event_id][interaction_type] = float(count)
 
             return counts
         finally:
@@ -379,6 +405,40 @@ def get_interaction_counts_from_db() -> dict:
     except Exception as e:
         print(f"Error fetching interaction counts: {e}")
         return {}
+
+
+def score_events(events: list, use_interactions: bool = True) -> dict:
+    """
+    Calculate scores for a list of events.
+
+    Args:
+        events: List of Event objects to score
+        use_interactions: If True, fetch interaction counts from DB.
+                         If False, use empty counts (for chat context, avoids DB latency).
+
+    Returns:
+        Dict mapping event_id -> score
+    """
+    interaction_counts = get_interaction_counts_from_db() if use_interactions else {}
+    now = datetime.utcnow()
+
+    scores = {}
+    for e in events:
+        cat_str = None
+        if e.category:
+            cat_str = e.category.value if hasattr(e.category, 'value') else str(e.category)
+
+        scores[e.id] = calculate_event_score(
+            source_name=e.source_name,
+            category=cat_str,
+            cost=e.cost,
+            start_datetime=e.start_datetime,
+            scraped_at=e.scraped_at,
+            interaction_counts=interaction_counts.get(e.id, {}),
+            now=now
+        )
+
+    return scores
 
 
 @app.get("/events/slim", response_model=List[EventSlim])
@@ -390,7 +450,7 @@ async def get_events_slim(
     free_only: Optional[bool] = Query(None, description="Filter for free events only"),
     upcoming_only: bool = Query(True, description="Show only upcoming events (default: true)"),
     family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
-    ranked: bool = Query(False, description="Sort by relevance score instead of date"),
+    ranked: bool = Query(True, description="Sort by relevance score instead of date (default: true)"),
     limit: int = Query(1000, ge=1, le=5000),
     offset: int = Query(0, ge=0)
 ):
@@ -449,26 +509,7 @@ async def get_events_slim(
     # Calculate scores and sort
     event_scores = {}
     if ranked:
-        # Fetch interaction counts from database
-        interaction_counts = get_interaction_counts_from_db()
-        now = datetime.utcnow()
-
-        # Calculate score for each event
-        for e in events:
-            # Get category as string
-            cat_str = None
-            if e.category:
-                cat_str = e.category.value if hasattr(e.category, 'value') else str(e.category)
-
-            event_scores[e.id] = calculate_event_score(
-                source_name=e.source_name,
-                category=cat_str,
-                cost=e.cost,
-                start_datetime=e.start_datetime,
-                scraped_at=e.scraped_at,
-                interaction_counts=interaction_counts.get(e.id, {}),
-                now=now
-            )
+        event_scores = score_events(events, use_interactions=True)
 
         # Sort by score descending
         events.sort(key=lambda e: event_scores.get(e.id, 0), reverse=True)
@@ -479,12 +520,8 @@ async def get_events_slim(
             total_scored = len(all_scores)
             top10_avg = sum(all_scores[:10]) / min(10, total_scored)
             median_score = all_scores[total_scored // 2] if total_scored else 0
-            interaction_pct = 0
-            if interaction_counts:
-                events_with_interactions = sum(1 for eid in event_scores if interaction_counts.get(eid))
-                interaction_pct = round(events_with_interactions / total_scored * 100, 1)
             print(f"[RANKING] total_scored={total_scored} top10_avg={top10_avg:.3f} "
-                  f"median={median_score:.3f} pct_with_interactions={interaction_pct}%")
+                  f"median={median_score:.3f}")
     else:
         # Sort by start date (original behavior)
         def get_sort_key(event):
@@ -556,8 +593,19 @@ async def search_events(
             query in event.description.lower()):
             results.append(event)
 
-    # Sort by relevance (title matches first)
-    results.sort(key=lambda x: 0 if query in x.title.lower() else 1)
+    # Score-weighted relevance: text match bonus + event quality score as tiebreaker
+    event_scores = score_events(results, use_interactions=True)
+
+    # Normalize scores to 0-2 range for use as tiebreaker
+    max_score = max(event_scores.values()) if event_scores else 1.0
+    max_score = max(max_score, 0.001)  # avoid division by zero
+
+    def search_sort_key(event):
+        text_bonus = 10 if query in event.title.lower() else 3
+        normalized_score = (event_scores.get(event.id, 0) / max_score) * 2
+        return text_bonus + normalized_score
+
+    results.sort(key=search_sort_key, reverse=True)
 
     return results[:limit]
 
@@ -1020,6 +1068,9 @@ def format_events_for_context(events: List[Event], limit: int = 500) -> str:
 
     upcoming.sort(key=get_sort_dt)
 
+    # Score all upcoming events (content + temporal only, skip DB for latency)
+    event_scores = score_events(upcoming, use_interactions=False)
+
     # Spread events across days AND times of day to ensure coverage
     from collections import defaultdict
     events_by_date = defaultdict(list)
@@ -1035,14 +1086,12 @@ def format_events_for_context(events: List[Event], limit: int = 500) -> str:
         afternoon = [e for e in day_events if 12 <= get_sort_dt(e).hour < 17]
         evening = [e for e in day_events if get_sort_dt(e).hour >= 17]
 
-        # Prioritize family-friendly events in each bucket
-        def prioritize_family(events):
-            family = [e for e in events if getattr(e, 'family_friendly', False)]
-            other = [e for e in events if not getattr(e, 'family_friendly', False)]
-            return family + other
+        # Sort each bucket by score descending (best events first)
+        def sort_by_score(bucket):
+            return sorted(bucket, key=lambda e: event_scores.get(e.id, 0), reverse=True)
 
-        # Take up to 7 from each time bucket, family-friendly first
-        day_sample = prioritize_family(morning)[:7] + prioritize_family(afternoon)[:7] + prioritize_family(evening)[:7]
+        # Take up to 7 from each time bucket, sorted by score
+        day_sample = sort_by_score(morning)[:7] + sort_by_score(afternoon)[:7] + sort_by_score(evening)[:7]
         selected.extend(day_sample)
         if len(selected) >= limit:
             break

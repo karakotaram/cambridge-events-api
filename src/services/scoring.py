@@ -43,6 +43,16 @@ INTERACTION_WEIGHTS = {
     'calendar_add': 5,
 }
 
+# Position bias correction weights
+# Interactions from lower positions (further down the list) indicate stronger
+# genuine interest since the user scrolled past many other events.
+POSITION_WEIGHTS = {
+    (1, 5): 1.0,      # Top of list — expected clicks, no boost
+    (6, 10): 1.5,     # Moderate scroll
+    (11, 20): 2.0,    # Significant scroll
+    (21, None): 3.0,  # Deep scroll — strong genuine interest signal
+}
+
 
 def calculate_content_score(
     source_name: Optional[str],

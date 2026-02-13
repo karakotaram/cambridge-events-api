@@ -1,0 +1,32 @@
+{
+  "status": "baseline",
+  "timestamp": "2026-02-13T01:28:03.238519",
+  "message": "First run - baseline recorded, no alerts",
+  "sources": {
+    "The Dance Complex": 14,
+    "BostonShows.org": 1129,
+    "City of Cambridge": 921,
+    "Lamplighter Brewing": 25,
+    "The Comedy Studio": 30,
+    "First Parish in Cambridge": 8,
+    "Harvard Art Museums": 63,
+    "Brattle Theatre": 58,
+    "Grolier Poetry Book Shop": 14,
+    "Multicultural Arts Center": 1,
+    "The Mad Monkfish": 10,
+    "Mount Auburn Cemetery": 10,
+    "The Lily Pad": 30,
+    "The Middle East": 19,
+    "Portico Brewing": 22,
+    "Porter Square Books": 23,
+    "Arts at the Armory": 7,
+    "Central Square Theater": 59,
+    "Sanders Theatre": 8,
+    "American Repertory Theater": 42,
+    "User Submitted": 43,
+    "Harvard Book Store": 69,
+    "Boston Swing Central": 3,
+    "Aeronaut Brewing": 9
+  },
+  "alerts": []
+}

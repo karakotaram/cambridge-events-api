@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
 
     steps:
       - name: Checkout repository
@@ -37,21 +38,24 @@ jobs:
 
       - name: Run scraper
         run: |
-          mkdir -p logs data
+          mkdir -p logs data data/agent_reports
           python3 scrape.py
           echo "Scraper completed successfully"
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check for changes
         id: git-check
         run: |
-          git diff --exit-code data/events.json || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --exit-code data/ || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push if changed
         if: steps.git-check.outputs.changed == 'true'
         run: |
           git config --global user.name 'GitHub Actions Bot'
           git config --global user.email 'actions@github.com'
-          git add data/events.json
+          git add data/events.json data/scraper_health.json data/agent_reports/
           git commit -m "Auto-update events - $(date +'%Y-%m-%d %H:%M UTC')"
           git push
 
