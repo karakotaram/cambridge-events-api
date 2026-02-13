@@ -122,11 +122,11 @@ async def preview_events(
     recommended = []
     curated = db.query(CuratedDigest).filter(
         CuratedDigest.archetype == primary.value
-    ).first()
+    ).order_by(CuratedDigest.created_at.desc()).first()
     if (not curated or not curated.events) and secondary:
         curated = db.query(CuratedDigest).filter(
             CuratedDigest.archetype == secondary.value
-        ).first()
+        ).order_by(CuratedDigest.created_at.desc()).first()
 
     if curated and curated.events:
         events_map = {e.id: e for e in events}
@@ -558,22 +558,13 @@ async def save_curated_events(
         )
 
     events_data = [{"event_id": e.event_id, "score": e.score} for e in body.events]
-
-    existing = db.query(CuratedDigest).filter(
-        CuratedDigest.archetype == body.archetype
-    ).first()
-
     now = datetime.utcnow()
-    if existing:
-        existing.events = events_data
-        existing.updated_at = now
-    else:
-        db.add(CuratedDigest(
-            archetype=body.archetype,
-            events=events_data,
-            updated_at=now,
-        ))
 
+    db.add(CuratedDigest(
+        archetype=body.archetype,
+        events=events_data,
+        created_at=now,
+    ))
     db.commit()
 
     return {
@@ -605,13 +596,13 @@ async def get_curated_events(
 
     curated = db.query(CuratedDigest).filter(
         CuratedDigest.archetype == archetype
-    ).first()
+    ).order_by(CuratedDigest.created_at.desc()).first()
 
     if curated and curated.events:
         return {
             "archetype": archetype,
             "events": curated.events,
-            "updated_at": curated.updated_at.isoformat() + "Z" if curated.updated_at else None,
+            "updated_at": curated.created_at.isoformat() + "Z" if curated.created_at else None,
         }
     else:
         return {
@@ -798,9 +789,15 @@ async def trigger_weekly_email(
     # Build events map for fast lookup (used by curated path)
     events_map = {e.id: e for e in events}
 
-    # Load all curated digests from DB
-    all_curations = db.query(CuratedDigest).all()
-    curations = {c.archetype: c.events for c in all_curations if c.events}
+    # Load most recent curated digest per archetype from DB
+    from sqlalchemy import distinct
+    all_curations = db.query(CuratedDigest).order_by(
+        CuratedDigest.archetype, CuratedDigest.created_at.desc()
+    ).all()
+    curations = {}
+    for c in all_curations:
+        if c.archetype not in curations and c.events:
+            curations[c.archetype] = c.events
 
     # Get users who need emails (haven't received in 6+ days)
     six_days_ago = datetime.utcnow() - timedelta(days=6)

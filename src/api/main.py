@@ -1257,6 +1257,15 @@ def _run_migrations():
     from sqlalchemy import inspect, text
     try:
         inspector = inspect(engine)
+
+        # Migrate curated_digests: old schema had archetype as PK, new has id + history
+        if "curated_digests" in inspector.get_table_names():
+            columns = {c["name"] for c in inspector.get_columns("curated_digests")}
+            if "id" not in columns:
+                with engine.begin() as conn:
+                    conn.execute(text("DROP TABLE curated_digests"))
+                    print("[MIGRATION] Dropped old curated_digests table (will be recreated)")
+
         if "website_interactions" in inspector.get_table_names():
             existing = {c["name"] for c in inspector.get_columns("website_interactions")}
             migrations = {

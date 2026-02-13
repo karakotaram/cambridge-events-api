@@ -106,12 +106,13 @@ class EventPopularity(Base):
 
 
 class CuratedDigest(Base):
-    """Saved curated event picks per archetype for weekly emails"""
+    """Saved curated event picks per archetype for weekly emails. Keeps full history."""
     __tablename__ = "curated_digests"
 
-    archetype = Column(String(64), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    archetype = Column(String(64), nullable=False, index=True)
     events = Column(JSON, nullable=False, default=list)  # [{"event_id": "...", "score": 0.85}, ...]
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 # Pydantic Models (API Request/Response)
