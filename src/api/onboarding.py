@@ -89,29 +89,16 @@ async def get_questions():
     return QuestionsResponse(questions=questions)
 
 
-@router.post("/preview-events")
-async def preview_events(
-    responses: QuestionnaireResponses,
-    db: Session = Depends(get_db),
-):
-    """
-    Preview top events for a user's archetype based on questionnaire responses.
-
-    Used on the signup page to show a sample of personalized events
-    before the user enters their email.
-    """
+def _get_archetype_events(primary: ArchetypeEnum, secondary: Optional[ArchetypeEnum], db: Session):
+    """Shared helper: load events for an archetype (curated first, then algorithmic)."""
     import json
     from pathlib import Path
 
-    # Calculate archetype from responses
-    primary, secondary = calculate_archetype(responses)
-
-    # Load events and get recommendations
     project_root = Path(__file__).parent.parent.parent
     events_file = project_root / "data" / "events.json"
 
     if not events_file.exists():
-        return {"archetype": primary.value, "events": []}
+        return {"archetype": primary.value, "archetype_name": get_archetype_name(primary), "events": []}
 
     from src.models.event import Event
     with open(events_file, "r") as f:
@@ -157,6 +144,39 @@ async def preview_events(
     }
 
 
+@router.post("/preview-events")
+async def preview_events(
+    responses: QuestionnaireResponses,
+    db: Session = Depends(get_db),
+):
+    """
+    Preview top events for a user's archetype based on questionnaire responses.
+
+    Used on the signup page to show a sample of personalized events
+    before the user enters their email.
+    """
+    primary, secondary = calculate_archetype(responses)
+    return _get_archetype_events(primary, secondary, db)
+
+
+@router.get("/archetype-events/{archetype}")
+async def get_archetype_events(
+    archetype: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Get sample events for any archetype. Public endpoint (no auth).
+
+    Used by the signup page to let users browse other archetypes.
+    """
+    try:
+        primary = ArchetypeEnum(archetype)
+    except ValueError:
+        valid = [e.value for e in ArchetypeEnum]
+        raise HTTPException(status_code=400, detail=f"Invalid archetype '{archetype}'. Valid: {valid}")
+    return _get_archetype_events(primary, None, db)
+
+
 @router.post("/submit", response_model=OnboardingResponse)
 async def submit_onboarding(
     data: OnboardingSubmit,
@@ -185,8 +205,15 @@ async def submit_onboarding(
             message="Welcome back! You're already signed up."
         )
 
-    # Calculate archetype
-    primary, secondary = calculate_archetype(data.responses)
+    # Calculate archetype (with optional override)
+    if data.archetype_override:
+        try:
+            primary = ArchetypeEnum(data.archetype_override)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid archetype_override '{data.archetype_override}'")
+        secondary = None
+    else:
+        primary, secondary = calculate_archetype(data.responses)
     result = get_archetype_result(primary, secondary)
 
     # Create user

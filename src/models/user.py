@@ -129,6 +129,7 @@ class OnboardingSubmit(BaseModel):
     """Request model for onboarding submission"""
     email: EmailStr
     responses: QuestionnaireResponses
+    archetype_override: Optional[str] = None  # If set, use this instead of calculating
 
 
 class OnboardingResponse(BaseModel):

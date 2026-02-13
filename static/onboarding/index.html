@@ -470,6 +470,45 @@
             font-style: italic;
         }
 
+        /* Archetype picker chips */
+        .archetype-picker {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0 12px;
+            margin-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .archetype-picker::-webkit-scrollbar {
+            display: none;
+        }
+
+        .archetype-chip {
+            flex-shrink: 0;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .archetype-chip:hover {
+            border-color: var(--primary);
+        }
+
+        .archetype-chip.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 15px;
@@ -512,6 +551,9 @@
             <!-- Email step -->
             <div class="email-step" id="email-step">
                 <h2>Almost done! Where should we send your recommendations?</h2>
+
+                <!-- Archetype picker -->
+                <div class="archetype-picker" id="archetype-picker"></div>
 
                 <!-- Sample events preview -->
                 <div class="sample-events" id="sample-events">
@@ -559,6 +601,20 @@
         let currentStep = 0;
         let questions = [];
         let responses = {};
+        let quizArchetype = null;      // archetype calculated from quiz
+        let selectedArchetype = null;  // archetype the user has currently picked
+
+        // All archetypes for the picker
+        const ARCHETYPE_OPTIONS = [
+            { value: 'culture_professional', name: 'Culture-Loving Professional' },
+            { value: 'family_explorer', name: 'Family Explorer' },
+            { value: 'nightlife_enthusiast', name: 'Nightlife Enthusiast' },
+            { value: 'academic_curious', name: 'Academic & Curious' },
+            { value: 'social_connector', name: 'Social Connector' },
+            { value: 'arts_aficionado', name: 'Arts Aficionado' },
+            { value: 'active_adventurer', name: 'Active Adventurer' },
+            { value: 'budget_explorer', name: 'Budget Explorer' },
+        ];
 
         // DOM elements
         const questionsContainer = document.getElementById('questions-container');
@@ -711,20 +767,25 @@
             loadingStep.classList.add('active');
 
             try {
+                const submitBody = {
+                    email: email,
+                    responses: {
+                        lifestyle: responses.lifestyle,
+                        interests: responses.interests || [],
+                        timing: responses.timing,
+                        budget: responses.budget
+                    }
+                };
+                // If the user picked a different archetype, send override
+                if (selectedArchetype && selectedArchetype !== quizArchetype) {
+                    submitBody.archetype_override = selectedArchetype;
+                }
                 const response = await fetch('/onboarding/submit', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        email: email,
-                        responses: {
-                            lifestyle: responses.lifestyle,
-                            interests: responses.interests || [],
-                            timing: responses.timing,
-                            budget: responses.budget
-                        }
-                    })
+                    body: JSON.stringify(submitBody)
                 });
 
                 const data = await response.json();
@@ -755,6 +816,64 @@
 
         let sampleEventsLoaded = false;
 
+        function renderArchetypePicker() {
+            const picker = document.getElementById('archetype-picker');
+            picker.innerHTML = ARCHETYPE_OPTIONS.map(a =>
+                `<button class="archetype-chip${a.value === selectedArchetype ? ' selected' : ''}"
+                         data-archetype="${a.value}"
+                         onclick="switchArchetype('${a.value}')">${a.name}</button>`
+            ).join('');
+        }
+
+        function renderEvents(data) {
+            if (!data.events || data.events.length === 0) return;
+
+            const labelEl = document.querySelector('.sample-events-label');
+            const archetypeName = data.archetype_name || data.archetype.replace(/_/g, ' ');
+            labelEl.innerHTML = `As a <strong>${archetypeName}</strong>, here's what we'd pick for you this week:`;
+
+            const listEl = document.getElementById('sample-events-list');
+            listEl.innerHTML = data.events.map(ev => {
+                const dt = new Date(ev.start_datetime);
+                const dateStr = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                const cat = ev.category ? ev.category.replace(/_/g, ' ') : '';
+                const imgHtml = ev.image_url
+                    ? `<img src="${ev.image_url}" class="sample-event-img" alt="">`
+                    : `<div class="sample-event-img"></div>`;
+
+                return `
+                    <div class="sample-event">
+                        ${imgHtml}
+                        <div class="sample-event-info">
+                            <div class="sample-event-title">${ev.title}</div>
+                            <div class="sample-event-detail">${dateStr} ${timeStr} &middot; ${ev.source_name || ''}</div>
+                        </div>
+                        ${cat ? `<span class="sample-event-cat">${cat}</span>` : ''}
+                    </div>`;
+            }).join('');
+
+            const moreEl = document.getElementById('sample-events-more');
+            moreEl.textContent = 'Enter your email to get events like these every week';
+
+            document.getElementById('sample-events').classList.add('visible');
+        }
+
+        async function switchArchetype(archetypeValue) {
+            if (archetypeValue === selectedArchetype) return;
+            selectedArchetype = archetypeValue;
+            renderArchetypePicker();
+
+            try {
+                const resp = await fetch(`/onboarding/archetype-events/${archetypeValue}`);
+                if (!resp.ok) return;
+                const data = await resp.json();
+                renderEvents(data);
+            } catch (e) {
+                // Silently fail
+            }
+        }
+
         async function loadSampleEvents() {
             if (sampleEventsLoaded) return;
             sampleEventsLoaded = true;
@@ -773,39 +892,16 @@
                 if (!resp.ok) return;
 
                 const data = await resp.json();
-                if (!data.events || data.events.length === 0) return;
 
-                const labelEl = document.querySelector('.sample-events-label');
-                const archetypeName = data.archetype_name || data.archetype.replace(/_/g, ' ');
-                labelEl.innerHTML = `As a <strong>${archetypeName}</strong>, here's what we'd pick for you this week:`;
+                // Store the quiz-calculated archetype and set as initial selection
+                quizArchetype = data.archetype;
+                selectedArchetype = data.archetype;
 
-                const listEl = document.getElementById('sample-events-list');
-                listEl.innerHTML = data.events.map(ev => {
-                    const dt = new Date(ev.start_datetime);
-                    const dateStr = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                    const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                    const cat = ev.category ? ev.category.replace(/_/g, ' ') : '';
-                    const imgHtml = ev.image_url
-                        ? `<img src="${ev.image_url}" class="sample-event-img" alt="">`
-                        : `<div class="sample-event-img"></div>`;
-
-                    return `
-                        <div class="sample-event">
-                            ${imgHtml}
-                            <div class="sample-event-info">
-                                <div class="sample-event-title">${ev.title}</div>
-                                <div class="sample-event-detail">${dateStr} ${timeStr} &middot; ${ev.source_name || ''}</div>
-                            </div>
-                            ${cat ? `<span class="sample-event-cat">${cat}</span>` : ''}
-                        </div>`;
-                }).join('');
-
-                const moreEl = document.getElementById('sample-events-more');
-                moreEl.textContent = 'Enter your email to get events like these every week';
-
-                document.getElementById('sample-events').classList.add('visible');
+                renderArchetypePicker();
+                renderEvents(data);
             } catch (e) {
                 // Silently fail - sample events are non-critical
+                renderArchetypePicker();
             }
         }
 
