@@ -14,6 +14,7 @@ from src.models.user import (
     User,
     EmailLog,
     ClickTracking,
+    CuratedDigest,
     OnboardingSubmit,
     OnboardingResponse,
     UnsubscribeRequest,
@@ -91,6 +92,7 @@ async def get_questions():
 @router.post("/preview-events")
 async def preview_events(
     responses: QuestionnaireResponses,
+    db: Session = Depends(get_db),
 ):
     """
     Preview top events for a user's archetype based on questionnaire responses.
@@ -117,24 +119,23 @@ async def preview_events(
         events = [Event(**e) for e in data]
 
     # Check for curated events (primary first, then secondary)
-    curated_file = project_root / "data" / "curated_digests.json"
-    curated_entry = None
-    if curated_file.exists():
-        with open(curated_file, "r") as f:
-            curations = json.load(f)
-        curated_entry = curations.get(primary.value)
-        if (not curated_entry or not curated_entry.get("events")) and secondary:
-            curated_entry = curations.get(secondary.value)
+    recommended = []
+    curated = db.query(CuratedDigest).filter(
+        CuratedDigest.archetype == primary.value
+    ).first()
+    if (not curated or not curated.events) and secondary:
+        curated = db.query(CuratedDigest).filter(
+            CuratedDigest.archetype == secondary.value
+        ).first()
 
-    if curated_entry and curated_entry.get("events"):
+    if curated and curated.events:
         events_map = {e.id: e for e in events}
-        recommended = []
-        for item in curated_entry["events"]:
+        for item in curated.events:
             event = events_map.get(item["event_id"])
             if event:
                 recommended.append((event, item["score"]))
 
-    if not curated_entry or not curated_entry.get("events") or not recommended:
+    if not recommended:
         from src.services.recommendation import get_weekly_digest_events
         recommended = get_weekly_digest_events(events, primary, secondary)
 
@@ -541,13 +542,11 @@ async def send_curated_email(
 async def save_curated_events(
     body: SaveCuratedRequest,
     verified: bool = Depends(verify_admin_key),
+    db: Session = Depends(get_db),
 ):
     """
     Save curated event picks for an archetype, used by weekly email job.
     """
-    import json
-    from pathlib import Path
-
     # Validate archetype
     try:
         ArchetypeEnum(body.archetype)
@@ -558,30 +557,30 @@ async def save_curated_events(
             detail=f"Invalid archetype '{body.archetype}'. Valid: {valid}"
         )
 
-    project_root = Path(__file__).parent.parent.parent
-    curated_file = project_root / "data" / "curated_digests.json"
+    events_data = [{"event_id": e.event_id, "score": e.score} for e in body.events]
 
-    # Load existing
-    if curated_file.exists():
-        with open(curated_file, "r") as f:
-            curations = json.load(f)
+    existing = db.query(CuratedDigest).filter(
+        CuratedDigest.archetype == body.archetype
+    ).first()
+
+    now = datetime.utcnow()
+    if existing:
+        existing.events = events_data
+        existing.updated_at = now
     else:
-        curations = {}
+        db.add(CuratedDigest(
+            archetype=body.archetype,
+            events=events_data,
+            updated_at=now,
+        ))
 
-    now = datetime.utcnow().isoformat() + "Z"
-    curations[body.archetype] = {
-        "events": [{"event_id": e.event_id, "score": e.score} for e in body.events],
-        "updated_at": now,
-    }
-
-    with open(curated_file, "w") as f:
-        json.dump(curations, f, indent=2)
+    db.commit()
 
     return {
         "success": True,
         "archetype": body.archetype,
         "events_saved": len(body.events),
-        "updated_at": now,
+        "updated_at": now.isoformat() + "Z",
     }
 
 
@@ -589,13 +588,11 @@ async def save_curated_events(
 async def get_curated_events(
     archetype: str = Query(..., description="Archetype enum value"),
     verified: bool = Depends(verify_admin_key),
+    db: Session = Depends(get_db),
 ):
     """
     Get saved curated event picks for an archetype.
     """
-    import json
-    from pathlib import Path
-
     # Validate archetype
     try:
         ArchetypeEnum(archetype)
@@ -606,21 +603,15 @@ async def get_curated_events(
             detail=f"Invalid archetype '{archetype}'. Valid: {valid}"
         )
 
-    project_root = Path(__file__).parent.parent.parent
-    curated_file = project_root / "data" / "curated_digests.json"
+    curated = db.query(CuratedDigest).filter(
+        CuratedDigest.archetype == archetype
+    ).first()
 
-    if curated_file.exists():
-        with open(curated_file, "r") as f:
-            curations = json.load(f)
-    else:
-        curations = {}
-
-    entry = curations.get(archetype)
-    if entry and entry.get("events"):
+    if curated and curated.events:
         return {
             "archetype": archetype,
-            "events": entry["events"],
-            "updated_at": entry.get("updated_at"),
+            "events": curated.events,
+            "updated_at": curated.updated_at.isoformat() + "Z" if curated.updated_at else None,
         }
     else:
         return {
@@ -807,13 +798,9 @@ async def trigger_weekly_email(
     # Build events map for fast lookup (used by curated path)
     events_map = {e.id: e for e in events}
 
-    # Load curated digests (if any)
-    curated_file = project_root / "data" / "curated_digests.json"
-    if curated_file.exists():
-        with open(curated_file, "r") as f:
-            curations = json.load(f)
-    else:
-        curations = {}
+    # Load all curated digests from DB
+    all_curations = db.query(CuratedDigest).all()
+    curations = {c.archetype: c.events for c in all_curations if c.events}
 
     # Get users who need emails (haven't received in 6+ days)
     six_days_ago = datetime.utcnow() - timedelta(days=6)
@@ -836,19 +823,16 @@ async def trigger_weekly_email(
     for user in users:
         # Check for curated events for this user's archetype
         archetype_key = user.primary_archetype.value
-        curated = curations.get(archetype_key)
+        curated_events_data = curations.get(archetype_key)
 
-        if curated and curated.get("events"):
-            # Resolve curated event IDs to (Event, score) tuples
-            recommended = []
-            for item in curated["events"]:
+        recommended = []
+        if curated_events_data:
+            for item in curated_events_data:
                 event = events_map.get(item["event_id"])
                 if event:
                     recommended.append((event, item["score"]))
             if recommended:
                 used_curated += 1
-        else:
-            recommended = []
 
         if not recommended:
             # Fall back to algorithmic recommendations

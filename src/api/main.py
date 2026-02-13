@@ -1278,6 +1278,11 @@ def _run_migrations():
 
 @app.on_event("startup")
 async def startup_migrations():
+    # Create any new tables (e.g. curated_digests)
+    from src.db.database import engine, Base
+    if engine is not None:
+        from src.models.user import CuratedDigest  # noqa: F401
+        Base.metadata.create_all(bind=engine)
     _run_migrations()
 
 
@@ -1294,7 +1299,7 @@ async def initialize_database(api_key: str = Query(None)):
 
     try:
         from src.db.database import engine, Base
-        from src.models.user import User, EmailLog, ClickTracking, EventPopularity
+        from src.models.user import User, EmailLog, ClickTracking, EventPopularity, CuratedDigest  # noqa: F401
         from src.models.interactions import WebsiteInteraction  # noqa: F401
 
         if engine is None:

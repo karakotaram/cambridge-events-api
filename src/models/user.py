@@ -105,6 +105,15 @@ class EventPopularity(Base):
     calculated_at = Column(DateTime, default=datetime.utcnow)
 
 
+class CuratedDigest(Base):
+    """Saved curated event picks per archetype for weekly emails"""
+    __tablename__ = "curated_digests"
+
+    archetype = Column(String(64), primary_key=True)
+    events = Column(JSON, nullable=False, default=list)  # [{"event_id": "...", "score": 0.85}, ...]
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 # Pydantic Models (API Request/Response)
 
 class QuestionnaireResponses(BaseModel):
