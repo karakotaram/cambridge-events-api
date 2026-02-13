@@ -454,6 +454,13 @@
             sessionStorage.setItem('admin_api_key', key);
             document.getElementById('auth-error').classList.remove('visible');
             document.getElementById('auth-error').textContent = '';
+
+            // Visual feedback
+            const btn = document.querySelector('#auth-card .btn');
+            const orig = btn.textContent;
+            btn.textContent = 'Saved!';
+            btn.style.background = '#27ae60';
+            setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 1500);
         }
 
         function getKey() {
