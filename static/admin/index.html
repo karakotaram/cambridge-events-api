@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archetype Audit | Admin</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --primary-dark: #153052;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --warning: #e67e22;
+            --text: #333;
+            --text-light: #666;
+            --bg: #f5f5f5;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --light-tint: #edf2f7;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0 20px;
+        }
+
+        header h1 {
+            color: var(--primary);
+            font-size: 26px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .card h2 {
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 14px;
+        }
+
+        /* Auth */
+        .auth-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .auth-row input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .auth-row input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--primary);
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: var(--primary-dark); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+
+        /* Selectors */
+        .selector-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .field label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .field select {
+            padding: 10px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            outline: none;
+        }
+
+        .field select:focus {
+            border-color: var(--primary);
+        }
+
+        /* Archetype info */
+        .archetype-info {
+            background: var(--light-tint);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .archetype-info.visible { display: block; }
+
+        .archetype-info h3 {
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .archetype-info p {
+            font-size: 14px;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .tag.outline {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        /* Summary */
+        .summary {
+            display: none;
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+
+        .summary.visible { display: block; }
+
+        .summary strong { color: var(--primary); }
+
+        /* Event cards */
+        .event-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .event-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            gap: 14px;
+        }
+
+        .event-thumb {
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: var(--light-tint);
+            flex-shrink: 0;
+        }
+
+        .event-body { flex: 1; min-width: 0; }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .event-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .score-badge {
+            font-size: 14px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .score-high { background: #c6f6d5; color: #276749; }
+        .score-mid { background: var(--light-tint); color: var(--primary); }
+        .score-low { background: #feebc8; color: #9c4221; }
+
+        .event-meta {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .event-meta span { margin-right: 12px; }
+
+        /* Score breakdown */
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 6px;
+        }
+
+        .score-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .score-item-label {
+            font-size: 11px;
+            color: var(--text-light);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .score-bar-container {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .score-bar {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .bar-high { background: var(--success); }
+        .bar-mid { background: var(--primary); }
+        .bar-low { background: var(--warning); }
+
+        .bool-indicator {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .bool-yes { color: var(--success); }
+        .bool-no { color: var(--warning); }
+
+        /* Loading & empty */
+        .loading-msg, .empty-msg {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-light);
+            font-size: 15px;
+            display: none;
+        }
+
+        .loading-msg.visible, .empty-msg.visible { display: block; }
+
+        .spinner-sm {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-banner {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+            margin-top: 10px;
+        }
+
+        .error-banner.visible { display: block; }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        footer a { color: var(--primary); text-decoration: none; }
+
+        @media (max-width: 600px) {
+            .container { padding: 12px; }
+            .event-card { flex-direction: column; }
+            .event-thumb { width: 100%; height: 120px; }
+            .selector-row { flex-direction: column; }
+            .score-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Archetype Audit</h1>
+            <p>Preview and debug archetype-to-event recommendations</p>
+        </header>
+
+        <!-- Auth -->
+        <div class="card" id="auth-card">
+            <h2>Authentication</h2>
+            <div class="auth-row">
+                <input type="password" id="api-key-input" placeholder="Enter admin API key">
+                <button class="btn btn-sm" onclick="saveKey()">Save</button>
+            </div>
+            <div class="error-banner" id="auth-error"></div>
+        </div>
+
+        <!-- Archetype selector -->
+        <div class="card">
+            <h2>Select Archetype</h2>
+            <div class="selector-row">
+                <div class="field">
+                    <label>Primary Archetype</label>
+                    <select id="primary-select" onchange="onArchetypeChange()">
+                        <option value="">-- Choose --</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Secondary (optional)</label>
+                    <select id="secondary-select" onchange="onArchetypeChange()">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                <button class="btn" id="fetch-btn" onclick="fetchPreview()" disabled>Preview</button>
+            </div>
+
+            <div class="archetype-info" id="archetype-info">
+                <h3 id="arch-name"></h3>
+                <p id="arch-desc"></p>
+                <div id="arch-tags"></div>
+            </div>
+
+            <div class="error-banner" id="fetch-error"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="summary" id="summary"></div>
+
+        <div class="loading-msg" id="loading">
+            <div class="spinner-sm"></div>
+            Loading recommendations...
+        </div>
+
+        <div class="empty-msg" id="empty-msg">No events matched for this archetype.</div>
+
+        <div class="event-list" id="event-list"></div>
+
+        <footer>
+            <a href="/">Home</a> | <a href="/signup">Signup</a> | <a href="/events">Events</a>
+        </footer>
+    </div>
+
+    <script>
+        // Archetype metadata (populated from API response)
+        const ARCHETYPES = {};
+
+        // Hard-coded archetype list for the dropdown (matches ArchetypeEnum values)
+        const ARCHETYPE_OPTIONS = [
+            { value: 'culture_professional', label: 'Culture-Loving Professional' },
+            { value: 'family_explorer', label: 'Family Explorer' },
+            { value: 'nightlife_enthusiast', label: 'Nightlife Enthusiast' },
+            { value: 'academic_curious', label: 'Academic & Curious' },
+            { value: 'social_connector', label: 'Social Connector' },
+            { value: 'arts_aficionado', label: 'Arts Aficionado' },
+            { value: 'active_adventurer', label: 'Active Adventurer' },
+            { value: 'budget_explorer', label: 'Budget Explorer' },
+        ];
+
+        function init() {
+            // Populate dropdowns
+            const primary = document.getElementById('primary-select');
+            const secondary = document.getElementById('secondary-select');
+            ARCHETYPE_OPTIONS.forEach(opt => {
+                primary.add(new Option(opt.label, opt.value));
+                secondary.add(new Option(opt.label, opt.value));
+            });
+
+            // Restore saved key
+            const key = sessionStorage.getItem('admin_api_key');
+            if (key) {
+                document.getElementById('api-key-input').value = key;
+            }
+        }
+
+        function saveKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            if (!key) return;
+            sessionStorage.setItem('admin_api_key', key);
+            document.getElementById('auth-error').classList.remove('visible');
+            document.getElementById('auth-error').textContent = '';
+        }
+
+        function getKey() {
+            return sessionStorage.getItem('admin_api_key') || document.getElementById('api-key-input').value.trim();
+        }
+
+        function onArchetypeChange() {
+            const val = document.getElementById('primary-select').value;
+            document.getElementById('fetch-btn').disabled = !val;
+
+            // Show archetype info if we have cached data
+            const info = ARCHETYPES[val];
+            const infoEl = document.getElementById('archetype-info');
+            if (info) {
+                showArchetypeInfo(info);
+            } else {
+                infoEl.classList.remove('visible');
+            }
+        }
+
+        function showArchetypeInfo(info) {
+            const el = document.getElementById('archetype-info');
+            document.getElementById('arch-name').textContent = info.name;
+            document.getElementById('arch-desc').textContent = info.description;
+
+            let tags = info.categories.map(c => `<span class="tag">${c}</span>`).join('');
+            tags += info.timing_preferences.map(t => `<span class="tag outline">${t}</span>`).join('');
+            if (info.special_rules) {
+                Object.keys(info.special_rules).forEach(r => {
+                    if (info.special_rules[r]) {
+                        tags += `<span class="tag outline">${r}</span>`;
+                    }
+                });
+            }
+            document.getElementById('arch-tags').innerHTML = tags;
+            el.classList.add('visible');
+        }
+
+        async function fetchPreview() {
+            const key = getKey();
+            if (!key) {
+                const err = document.getElementById('auth-error');
+                err.textContent = 'Please enter an API key first.';
+                err.classList.add('visible');
+                return;
+            }
+            saveKey();
+
+            const primary = document.getElementById('primary-select').value;
+            if (!primary) return;
+
+            const secondary = document.getElementById('secondary-select').value;
+
+            // UI state
+            document.getElementById('loading').classList.add('visible');
+            document.getElementById('empty-msg').classList.remove('visible');
+            document.getElementById('fetch-error').classList.remove('visible');
+            document.getElementById('summary').classList.remove('visible');
+            document.getElementById('event-list').innerHTML = '';
+
+            let url = `/onboarding/admin/preview-archetype?archetype=${primary}&api_key=${encodeURIComponent(key)}`;
+            if (secondary) url += `&secondary=${secondary}`;
+
+            try {
+                const resp = await fetch(url);
+                document.getElementById('loading').classList.remove('visible');
+
+                if (!resp.ok) {
+                    const data = await resp.json().catch(() => ({ detail: resp.statusText }));
+                    throw new Error(data.detail || `HTTP ${resp.status}`);
+                }
+
+                const data = await resp.json();
+
+                // Cache archetype info
+                ARCHETYPES[primary] = data.archetype;
+                showArchetypeInfo(data.archetype);
+
+                // Summary
+                const summaryEl = document.getElementById('summary');
+                summaryEl.innerHTML = `<strong>${data.events.length}</strong> events shown / <strong>${data.total_events_evaluated}</strong> evaluated`;
+                summaryEl.classList.add('visible');
+
+                if (data.events.length === 0) {
+                    document.getElementById('empty-msg').classList.add('visible');
+                    return;
+                }
+
+                renderEvents(data.events);
+
+            } catch (e) {
+                document.getElementById('loading').classList.remove('visible');
+                const err = document.getElementById('fetch-error');
+                err.textContent = e.message;
+                err.classList.add('visible');
+            }
+        }
+
+        function scoreClass(val) {
+            if (val >= 0.8) return 'high';
+            if (val >= 0.5) return 'mid';
+            return 'low';
+        }
+
+        function renderEvents(events) {
+            const list = document.getElementById('event-list');
+            list.innerHTML = events.map((ev, i) => {
+                const sc = scoreClass(ev.total_score);
+                const bd = ev.score_breakdown;
+                const dt = new Date(ev.start_datetime);
+                const dateStr = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+                const imgTag = ev.image_url
+                    ? `<img src="${ev.image_url}" class="event-thumb" alt="">`
+                    : `<div class="event-thumb"></div>`;
+
+                const numericScores = [
+                    ['Venue', bd.venue_score],
+                    ['Source', bd.source_score],
+                    ['Cost', bd.cost_score],
+                    ['Freshness', bd.freshness_score],
+                    ['Category', bd.category_score],
+                    ['Base Pop.', bd.base_popularity],
+                ];
+
+                const boolScores = [
+                    ['Cat Match', bd.category_match, bd.category_match ? `+${bd.category_boost}` : ''],
+                    ['Timing', bd.timing_match, `x${bd.timing_multiplier}`],
+                    ['Rules OK', bd.special_rules_passed, ''],
+                ];
+
+                const barsHtml = numericScores.map(([label, val]) => {
+                    const pct = Math.round(val * 100);
+                    const cls = scoreClass(val);
+                    return `
+                        <div class="score-item">
+                            <div class="score-item-label">${label}: ${val.toFixed(2)}</div>
+                            <div class="score-bar-container">
+                                <div class="score-bar bar-${cls}" style="width:${pct}%"></div>
+                            </div>
+                        </div>`;
+                }).join('');
+
+                const boolsHtml = boolScores.map(([label, val, extra]) => {
+                    const cls = val ? 'bool-yes' : 'bool-no';
+                    const icon = val ? '\u2713' : '\u2717';
+                    const suffix = extra ? ` (${extra})` : '';
+                    return `
+                        <div class="score-item">
+                            <div class="score-item-label">${label}</div>
+                            <div class="bool-indicator ${cls}">${icon}${suffix}</div>
+                        </div>`;
+                }).join('');
+
+                return `
+                    <div class="event-card">
+                        ${imgTag}
+                        <div class="event-body">
+                            <div class="event-header">
+                                <div class="event-title" title="${ev.title}">${ev.title}</div>
+                                <span class="score-badge score-${sc}">${ev.total_score.toFixed(3)}</span>
+                            </div>
+                            <div class="event-meta">
+                                <span>${dateStr} ${timeStr}</span>
+                                <span>${ev.source_name || ''}</span>
+                                ${ev.category ? `<span class="tag">${ev.category}</span>` : ''}
+                                ${ev.cost ? `<span>${ev.cost}</span>` : ''}
+                            </div>
+                            <div class="score-grid">
+                                ${barsHtml}
+                                ${boolsHtml}
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        init();
+    </script>
+</body>
+</html>

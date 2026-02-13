@@ -1237,6 +1237,17 @@ async def get_onboarding_page():
     raise HTTPException(status_code=404, detail="Onboarding page not found")
 
 
+@app.get("/admin", include_in_schema=False)
+async def get_admin_page():
+    """Serve the archetype audit admin page"""
+    from fastapi.responses import HTMLResponse
+    admin_file = STATIC_DIR / "admin" / "index.html"
+    if admin_file.exists():
+        with open(admin_file, 'r') as f:
+            return HTMLResponse(content=f.read())
+    raise HTTPException(status_code=404, detail="Admin page not found")
+
+
 def _run_migrations():
     """Add new columns to existing tables if they don't exist."""
     from src.db.database import engine
