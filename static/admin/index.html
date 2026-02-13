@@ -464,6 +464,45 @@
 
         .success-banner.visible { display: block; }
 
+        /* Curation status & buttons */
+        .curation-status {
+            display: none;
+            font-size: 13px;
+            padding: 8px 14px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .curation-status.visible { display: block; }
+        .curation-status.saved {
+            background: #f0fff4;
+            border: 1px solid #c6f6d5;
+            color: #276749;
+        }
+        .curation-status.unsaved {
+            background: var(--light-tint);
+            border: 1px solid var(--border);
+            color: var(--text-light);
+        }
+
+        .btn-save-curation {
+            background: var(--success) !important;
+            color: white !important;
+            border-color: var(--success) !important;
+        }
+        .btn-save-curation:hover {
+            background: #219a52 !important;
+        }
+
+        .btn-clear-curation {
+            background: transparent !important;
+            color: var(--warning) !important;
+            border-color: var(--warning) !important;
+        }
+        .btn-clear-curation:hover {
+            background: var(--warning) !important;
+            color: white !important;
+        }
+
         /* Send digest card */
         .send-card {
             display: none;
@@ -544,11 +583,16 @@
         <!-- Results -->
         <div class="summary" id="summary"></div>
 
+        <!-- Curation status -->
+        <div class="curation-status" id="curation-status"></div>
+
         <!-- Selection bar -->
         <div class="selection-bar" id="selection-bar">
             <button class="btn btn-sm" onclick="selectTop(7)">Select Top 7</button>
             <button class="btn btn-sm" onclick="selectAll()">Select All</button>
             <button class="btn btn-sm" onclick="deselectAll()">Deselect All</button>
+            <button class="btn btn-sm btn-save-curation" id="save-curation-btn" onclick="saveCuration()">Save for Weekly Email</button>
+            <button class="btn btn-sm btn-clear-curation" id="clear-curation-btn" onclick="clearCuration()" style="display:none">Clear Saved</button>
             <span class="selection-count" id="selection-count">0 selected</span>
         </div>
 
@@ -626,6 +670,7 @@
         let searchQuery = '';
         let sortBy = 'score_desc';
         const selectedEventIds = new Set();
+        let savedCuration = null; // { events: [...], updated_at: ... } or null
 
         function init() {
             // Populate dropdowns
@@ -716,6 +761,7 @@
             searchQuery = '';
             sortBy = 'score_desc';
             selectedEventIds.clear();
+            savedCuration = null;
             document.getElementById('search-input').value = '';
             document.getElementById('sort-select').value = 'score_desc';
 
@@ -728,6 +774,8 @@
             document.getElementById('toolbar').classList.remove('visible');
             document.getElementById('pagination').classList.remove('visible');
             document.getElementById('send-card').classList.remove('visible');
+            document.getElementById('curation-status').className = 'curation-status';
+            document.getElementById('clear-curation-btn').style.display = 'none';
             document.getElementById('event-list').innerHTML = '';
 
             let url = `/onboarding/admin/preview-archetype?archetype=${primary}&api_key=${encodeURIComponent(key)}&all=true`;
@@ -756,8 +804,22 @@
                     return;
                 }
 
-                // Auto-select top 7
-                selectTop(7);
+                // Try to load saved curation for this archetype
+                await loadSavedCuration(primary);
+
+                if (savedCuration && savedCuration.events && savedCuration.events.length > 0) {
+                    // Pre-select saved event IDs
+                    const savedIds = new Set(savedCuration.events.map(e => e.event_id));
+                    selectedEventIds.clear();
+                    allEvents.forEach(ev => {
+                        if (savedIds.has(ev.id)) selectedEventIds.add(ev.id);
+                    });
+                } else {
+                    // Auto-select top 7
+                    selectTop(7);
+                }
+
+                updateCurationStatus();
 
                 // Show UI
                 document.getElementById('selection-bar').classList.add('visible');
@@ -1080,6 +1142,130 @@
             } finally {
                 sendBtn.disabled = false;
                 updateSelectionCount();
+            }
+        }
+
+        // --- Curation Save/Load/Clear ---
+
+        async function loadSavedCuration(archetype) {
+            const key = getKey();
+            try {
+                const resp = await fetch(`/onboarding/admin/curated-events?archetype=${archetype}&api_key=${encodeURIComponent(key)}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.events && data.events.length > 0) {
+                        savedCuration = { events: data.events, updated_at: data.updated_at };
+                    } else {
+                        savedCuration = null;
+                    }
+                } else {
+                    savedCuration = null;
+                }
+            } catch (e) {
+                savedCuration = null;
+            }
+        }
+
+        function updateCurationStatus() {
+            const statusEl = document.getElementById('curation-status');
+            const clearBtn = document.getElementById('clear-curation-btn');
+
+            if (savedCuration && savedCuration.events && savedCuration.events.length > 0) {
+                const date = savedCuration.updated_at ? new Date(savedCuration.updated_at) : null;
+                const dateStr = date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                const timeStr = date ? date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
+                statusEl.textContent = `Using saved curation (${savedCuration.events.length} events, saved ${dateStr} ${timeStr})`;
+                statusEl.className = 'curation-status visible saved';
+                clearBtn.style.display = '';
+            } else {
+                statusEl.textContent = 'No saved curation \u2014 weekly email will use algorithm';
+                statusEl.className = 'curation-status visible unsaved';
+                clearBtn.style.display = 'none';
+            }
+        }
+
+        async function saveCuration() {
+            const key = getKey();
+            const primary = document.getElementById('primary-select').value;
+            if (!key || !primary) return;
+
+            if (selectedEventIds.size === 0) {
+                alert('No events selected to save.');
+                return;
+            }
+
+            // Build event list with scores
+            const scoreMap = {};
+            allEvents.forEach(ev => { scoreMap[ev.id] = ev.total_score; });
+
+            const eventPayload = Array.from(selectedEventIds).map(id => ({
+                event_id: id,
+                score: scoreMap[id] || 0,
+            }));
+
+            const saveBtn = document.getElementById('save-curation-btn');
+            const origText = saveBtn.textContent;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const resp = await fetch(`/onboarding/admin/save-curated-events?api_key=${encodeURIComponent(key)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ archetype: primary, events: eventPayload }),
+                });
+
+                if (!resp.ok) {
+                    const data = await resp.json().catch(() => ({ detail: resp.statusText }));
+                    throw new Error(data.detail || `HTTP ${resp.status}`);
+                }
+
+                const data = await resp.json();
+                savedCuration = { events: eventPayload, updated_at: data.updated_at };
+                updateCurationStatus();
+
+                saveBtn.textContent = 'Saved!';
+                saveBtn.style.background = '#219a52';
+                setTimeout(() => {
+                    saveBtn.textContent = origText;
+                    saveBtn.style.background = '';
+                    saveBtn.disabled = false;
+                }, 1500);
+
+            } catch (e) {
+                alert('Failed to save: ' + e.message);
+                saveBtn.textContent = origText;
+                saveBtn.disabled = false;
+            }
+        }
+
+        async function clearCuration() {
+            const key = getKey();
+            const primary = document.getElementById('primary-select').value;
+            if (!key || !primary) return;
+
+            if (!confirm('Clear saved curation for this archetype? Weekly email will revert to algorithm.')) return;
+
+            try {
+                const resp = await fetch(`/onboarding/admin/save-curated-events?api_key=${encodeURIComponent(key)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ archetype: primary, events: [] }),
+                });
+
+                if (!resp.ok) {
+                    const data = await resp.json().catch(() => ({ detail: resp.statusText }));
+                    throw new Error(data.detail || `HTTP ${resp.status}`);
+                }
+
+                savedCuration = null;
+                updateCurationStatus();
+
+                // Revert to top 7 auto-select
+                selectTop(7);
+
+            } catch (e) {
+                alert('Failed to clear: ' + e.message);
             }
         }
 

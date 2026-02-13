@@ -21,13 +21,14 @@ from src.models.user import (
     AdminStats,
     ArchetypeEnum,
     EmailStatus,
+    QuestionnaireResponses,
 )
 from src.services.onboarding import (
     get_questionnaire,
     calculate_archetype,
     get_archetype_result,
 )
-from src.services.archetypes import get_archetype_description
+from src.services.archetypes import get_archetype_description, get_archetype_name
 
 
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])
@@ -71,6 +72,11 @@ class CuratedDigestRequest(BaseModel):
     events: List[CuratedEventItem]
 
 
+class SaveCuratedRequest(BaseModel):
+    archetype: str
+    events: List[CuratedEventItem]
+
+
 @router.get("/questions", response_model=QuestionsResponse)
 async def get_questions():
     """
@@ -80,6 +86,55 @@ async def get_questions():
     """
     questions = get_questionnaire()
     return QuestionsResponse(questions=questions)
+
+
+@router.post("/preview-events")
+async def preview_events(
+    responses: QuestionnaireResponses,
+):
+    """
+    Preview top events for a user's archetype based on questionnaire responses.
+
+    Used on the signup page to show a sample of personalized events
+    before the user enters their email.
+    """
+    import json
+    from pathlib import Path
+
+    # Calculate archetype from responses
+    primary, secondary = calculate_archetype(responses)
+
+    # Load events and get recommendations
+    project_root = Path(__file__).parent.parent.parent
+    events_file = project_root / "data" / "events.json"
+
+    if not events_file.exists():
+        return {"archetype": primary.value, "events": []}
+
+    from src.models.event import Event
+    with open(events_file, "r") as f:
+        data = json.load(f)
+        events = [Event(**e) for e in data]
+
+    from src.services.recommendation import get_weekly_digest_events
+    recommended = get_weekly_digest_events(events, primary, secondary)
+
+    # Return top 5 with minimal fields
+    sample = []
+    for event, score in recommended[:5]:
+        sample.append({
+            "title": event.title,
+            "start_datetime": event.start_datetime.isoformat(),
+            "source_name": event.source_name,
+            "category": event.category.value if hasattr(event.category, "value") else event.category,
+            "image_url": event.image_url,
+        })
+
+    return {
+        "archetype": primary.value,
+        "archetype_name": get_archetype_name(primary),
+        "events": sample,
+    }
 
 
 @router.post("/submit", response_model=OnboardingResponse)
@@ -463,6 +518,99 @@ async def send_curated_email(
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}\n\n{error_details}")
 
 
+@router.post("/admin/save-curated-events")
+async def save_curated_events(
+    body: SaveCuratedRequest,
+    verified: bool = Depends(verify_admin_key),
+):
+    """
+    Save curated event picks for an archetype, used by weekly email job.
+    """
+    import json
+    from pathlib import Path
+
+    # Validate archetype
+    try:
+        ArchetypeEnum(body.archetype)
+    except ValueError:
+        valid = [e.value for e in ArchetypeEnum]
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid archetype '{body.archetype}'. Valid: {valid}"
+        )
+
+    project_root = Path(__file__).parent.parent.parent
+    curated_file = project_root / "data" / "curated_digests.json"
+
+    # Load existing
+    if curated_file.exists():
+        with open(curated_file, "r") as f:
+            curations = json.load(f)
+    else:
+        curations = {}
+
+    now = datetime.utcnow().isoformat() + "Z"
+    curations[body.archetype] = {
+        "events": [{"event_id": e.event_id, "score": e.score} for e in body.events],
+        "updated_at": now,
+    }
+
+    with open(curated_file, "w") as f:
+        json.dump(curations, f, indent=2)
+
+    return {
+        "success": True,
+        "archetype": body.archetype,
+        "events_saved": len(body.events),
+        "updated_at": now,
+    }
+
+
+@router.get("/admin/curated-events")
+async def get_curated_events(
+    archetype: str = Query(..., description="Archetype enum value"),
+    verified: bool = Depends(verify_admin_key),
+):
+    """
+    Get saved curated event picks for an archetype.
+    """
+    import json
+    from pathlib import Path
+
+    # Validate archetype
+    try:
+        ArchetypeEnum(archetype)
+    except ValueError:
+        valid = [e.value for e in ArchetypeEnum]
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid archetype '{archetype}'. Valid: {valid}"
+        )
+
+    project_root = Path(__file__).parent.parent.parent
+    curated_file = project_root / "data" / "curated_digests.json"
+
+    if curated_file.exists():
+        with open(curated_file, "r") as f:
+            curations = json.load(f)
+    else:
+        curations = {}
+
+    entry = curations.get(archetype)
+    if entry and entry.get("events"):
+        return {
+            "archetype": archetype,
+            "events": entry["events"],
+            "updated_at": entry.get("updated_at"),
+        }
+    else:
+        return {
+            "archetype": archetype,
+            "events": [],
+            "updated_at": None,
+        }
+
+
 @router.get("/admin/preview-archetype")
 async def preview_archetype(
     archetype: str = Query(..., description="Archetype enum value (e.g. culture_professional)"),
@@ -637,6 +785,17 @@ async def trigger_weekly_email(
         data = json.load(f)
         events = [Event(**event) for event in data]
 
+    # Build events map for fast lookup (used by curated path)
+    events_map = {e.id: e for e in events}
+
+    # Load curated digests (if any)
+    curated_file = project_root / "data" / "curated_digests.json"
+    if curated_file.exists():
+        with open(curated_file, "r") as f:
+            curations = json.load(f)
+    else:
+        curations = {}
+
     # Get users who need emails (haven't received in 6+ days)
     six_days_ago = datetime.utcnow() - timedelta(days=6)
     users = db.query(User).filter(
@@ -653,13 +812,32 @@ async def trigger_weekly_email(
 
     sent = 0
     failed = 0
+    used_curated = 0
 
     for user in users:
-        recommended = get_weekly_digest_events(
-            events,
-            user.primary_archetype,
-            user.secondary_archetype
-        )
+        # Check for curated events for this user's archetype
+        archetype_key = user.primary_archetype.value
+        curated = curations.get(archetype_key)
+
+        if curated and curated.get("events"):
+            # Resolve curated event IDs to (Event, score) tuples
+            recommended = []
+            for item in curated["events"]:
+                event = events_map.get(item["event_id"])
+                if event:
+                    recommended.append((event, item["score"]))
+            if recommended:
+                used_curated += 1
+        else:
+            recommended = []
+
+        if not recommended:
+            # Fall back to algorithmic recommendations
+            recommended = get_weekly_digest_events(
+                events,
+                user.primary_archetype,
+                user.secondary_archetype
+            )
 
         if not recommended:
             continue
@@ -675,5 +853,6 @@ async def trigger_weekly_email(
         "message": f"Weekly email job complete",
         "users_processed": len(users),
         "sent": sent,
-        "failed": failed
+        "failed": failed,
+        "used_curated": used_curated,
     }

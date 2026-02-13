@@ -392,6 +392,84 @@
             text-decoration: none;
         }
 
+        /* Sample events on email step */
+        .sample-events {
+            margin: 20px 0 24px;
+            display: none;
+        }
+
+        .sample-events.visible {
+            display: block;
+        }
+
+        .sample-events-label {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .sample-events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sample-event {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #edf2f7;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+
+        .sample-event-img {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .sample-event-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sample-event-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sample-event-detail {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .sample-event-cat {
+            font-size: 11px;
+            background: var(--primary);
+            color: white;
+            padding: 1px 7px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .sample-events-more {
+            font-size: 13px;
+            color: var(--secondary);
+            margin-top: 8px;
+            text-align: center;
+            font-style: italic;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 15px;
@@ -434,6 +512,14 @@
             <!-- Email step -->
             <div class="email-step" id="email-step">
                 <h2>Almost done! Where should we send your recommendations?</h2>
+
+                <!-- Sample events preview -->
+                <div class="sample-events" id="sample-events">
+                    <p class="sample-events-label">Here's a taste of what's coming up this week:</p>
+                    <div class="sample-events-list" id="sample-events-list"></div>
+                    <p class="sample-events-more" id="sample-events-more"></p>
+                </div>
+
                 <input type="email" class="email-input" id="email-input" placeholder="your@email.com" required>
                 <div class="error-message" id="email-error"></div>
                 <p class="privacy-note">We'll send you a weekly digest. Unsubscribe anytime.</p>
@@ -573,6 +659,7 @@
                 // Show email step
                 emailStep.classList.add('active');
                 document.getElementById('email-input').focus();
+                loadSampleEvents();
             }
         }
 
@@ -580,6 +667,7 @@
             if (currentStep === questions.length) {
                 // Coming from email step
                 emailStep.classList.remove('active');
+                sampleEventsLoaded = false; // Reset so events refresh if answers change
             } else {
                 document.getElementById(`question-${currentStep}`).classList.remove('active');
             }
@@ -662,6 +750,61 @@
                 emailStep.classList.add('active');
                 errorEl.textContent = error.message || 'Something went wrong. Please try again.';
                 errorEl.classList.add('visible');
+            }
+        }
+
+        let sampleEventsLoaded = false;
+
+        async function loadSampleEvents() {
+            if (sampleEventsLoaded) return;
+            sampleEventsLoaded = true;
+
+            try {
+                const resp = await fetch('/onboarding/preview-events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lifestyle: responses.lifestyle,
+                        interests: responses.interests || [],
+                        timing: responses.timing,
+                        budget: responses.budget,
+                    }),
+                });
+                if (!resp.ok) return;
+
+                const data = await resp.json();
+                if (!data.events || data.events.length === 0) return;
+
+                const labelEl = document.querySelector('.sample-events-label');
+                labelEl.textContent = `Here's what we'd recommend for you this week:`;
+
+                const listEl = document.getElementById('sample-events-list');
+                listEl.innerHTML = data.events.map(ev => {
+                    const dt = new Date(ev.start_datetime);
+                    const dateStr = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    const cat = ev.category ? ev.category.replace(/_/g, ' ') : '';
+                    const imgHtml = ev.image_url
+                        ? `<img src="${ev.image_url}" class="sample-event-img" alt="">`
+                        : `<div class="sample-event-img"></div>`;
+
+                    return `
+                        <div class="sample-event">
+                            ${imgHtml}
+                            <div class="sample-event-info">
+                                <div class="sample-event-title">${ev.title}</div>
+                                <div class="sample-event-detail">${dateStr} ${timeStr} &middot; ${ev.source_name || ''}</div>
+                            </div>
+                            ${cat ? `<span class="sample-event-cat">${cat}</span>` : ''}
+                        </div>`;
+                }).join('');
+
+                const moreEl = document.getElementById('sample-events-more');
+                moreEl.textContent = 'Enter your email to get events like these every week';
+
+                document.getElementById('sample-events').classList.add('visible');
+            } catch (e) {
+                // Silently fail - sample events are non-critical
             }
         }
 
