@@ -776,7 +776,8 @@
                 if (!data.events || data.events.length === 0) return;
 
                 const labelEl = document.querySelector('.sample-events-label');
-                labelEl.textContent = `Here's what we'd recommend for you this week:`;
+                const archetypeName = data.archetype_name || data.archetype.replace(/_/g, ' ');
+                labelEl.innerHTML = `As a <strong>${archetypeName}</strong>, here's what we'd pick for you this week:`;
 
                 const listEl = document.getElementById('sample-events-list');
                 listEl.innerHTML = data.events.map(ev => {
