@@ -233,6 +233,44 @@
             margin-left: auto;
         }
 
+        /* Search & sort toolbar */
+        .toolbar {
+            display: none;
+            gap: 10px;
+            align-items: end;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .toolbar.visible { display: flex; }
+
+        .toolbar input[type="search"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .toolbar input[type="search"]:focus {
+            border-color: var(--primary);
+        }
+
+        .toolbar select {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            outline: none;
+        }
+
+        .toolbar select:focus {
+            border-color: var(--primary);
+        }
+
         /* Pagination */
         .pagination {
             display: none;
@@ -514,6 +552,19 @@
             <span class="selection-count" id="selection-count">0 selected</span>
         </div>
 
+        <!-- Search & Sort -->
+        <div class="toolbar" id="toolbar">
+            <input type="search" id="search-input" placeholder="Search by title, source, or category..." oninput="onSearchChange()">
+            <select id="sort-select" onchange="onSortChange()">
+                <option value="score_desc">Score (high to low)</option>
+                <option value="score_asc">Score (low to high)</option>
+                <option value="date_asc">Date (soonest first)</option>
+                <option value="date_desc">Date (latest first)</option>
+                <option value="title_asc">Title (A-Z)</option>
+                <option value="title_desc">Title (Z-A)</option>
+            </select>
+        </div>
+
         <div class="loading-msg" id="loading">
             <div class="spinner-sm"></div>
             Loading all scored events...
@@ -567,10 +618,13 @@
             { value: 'budget_explorer', label: 'Budget Explorer' },
         ];
 
-        // Pagination & selection state
+        // Pagination, search, sort & selection state
         const PAGE_SIZE = 25;
         let allEvents = [];
+        let filteredEvents = [];
         let currentPage = 0;
+        let searchQuery = '';
+        let sortBy = 'score_desc';
         const selectedEventIds = new Set();
 
         function init() {
@@ -657,8 +711,13 @@
 
             // Reset state
             allEvents = [];
+            filteredEvents = [];
             currentPage = 0;
+            searchQuery = '';
+            sortBy = 'score_desc';
             selectedEventIds.clear();
+            document.getElementById('search-input').value = '';
+            document.getElementById('sort-select').value = 'score_desc';
 
             // UI state
             document.getElementById('loading').classList.add('visible');
@@ -666,6 +725,7 @@
             document.getElementById('fetch-error').classList.remove('visible');
             document.getElementById('summary').classList.remove('visible');
             document.getElementById('selection-bar').classList.remove('visible');
+            document.getElementById('toolbar').classList.remove('visible');
             document.getElementById('pagination').classList.remove('visible');
             document.getElementById('send-card').classList.remove('visible');
             document.getElementById('event-list').innerHTML = '';
@@ -689,6 +749,7 @@
                 showArchetypeInfo(data.archetype);
 
                 allEvents = data.events;
+                filteredEvents = getFilteredEvents();
 
                 if (allEvents.length === 0) {
                     document.getElementById('empty-msg').classList.add('visible');
@@ -700,6 +761,7 @@
 
                 // Show UI
                 document.getElementById('selection-bar').classList.add('visible');
+                document.getElementById('toolbar').classList.add('visible');
                 document.getElementById('send-card').classList.add('visible');
                 renderCurrentPage();
 
@@ -711,20 +773,76 @@
             }
         }
 
+        // --- Search & Sort ---
+
+        function getFilteredEvents() {
+            let events = allEvents;
+
+            // Search filter
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                events = events.filter(ev =>
+                    ev.title.toLowerCase().includes(q) ||
+                    (ev.source_name || '').toLowerCase().includes(q) ||
+                    (ev.category || '').toLowerCase().includes(q)
+                );
+            }
+
+            // Sort
+            const sorted = [...events];
+            switch (sortBy) {
+                case 'score_desc':
+                    sorted.sort((a, b) => b.total_score - a.total_score);
+                    break;
+                case 'score_asc':
+                    sorted.sort((a, b) => a.total_score - b.total_score);
+                    break;
+                case 'date_asc':
+                    sorted.sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime));
+                    break;
+                case 'date_desc':
+                    sorted.sort((a, b) => new Date(b.start_datetime) - new Date(a.start_datetime));
+                    break;
+                case 'title_asc':
+                    sorted.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'title_desc':
+                    sorted.sort((a, b) => b.title.localeCompare(a.title));
+                    break;
+            }
+
+            return sorted;
+        }
+
+        function onSearchChange() {
+            searchQuery = document.getElementById('search-input').value.trim();
+            currentPage = 0;
+            filteredEvents = getFilteredEvents();
+            renderCurrentPage();
+        }
+
+        function onSortChange() {
+            sortBy = document.getElementById('sort-select').value;
+            currentPage = 0;
+            filteredEvents = getFilteredEvents();
+            renderCurrentPage();
+        }
+
         // --- Pagination ---
 
         function totalPages() {
-            return Math.ceil(allEvents.length / PAGE_SIZE);
+            return Math.ceil(filteredEvents.length / PAGE_SIZE);
         }
 
         function renderCurrentPage() {
             const start = currentPage * PAGE_SIZE;
-            const end = Math.min(start + PAGE_SIZE, allEvents.length);
-            const pageEvents = allEvents.slice(start, end);
+            const end = Math.min(start + PAGE_SIZE, filteredEvents.length);
+            const pageEvents = filteredEvents.slice(start, end);
 
             // Summary
             const summaryEl = document.getElementById('summary');
-            summaryEl.innerHTML = `Showing <strong>${start + 1}-${end}</strong> of <strong>${allEvents.length}</strong> events | <strong>${selectedEventIds.size}</strong> selected`;
+            const filterNote = filteredEvents.length < allEvents.length ? ` (${allEvents.length} total)` : '';
+            summaryEl.innerHTML = `Showing <strong>${filteredEvents.length === 0 ? 0 : start + 1}-${end}</strong> of <strong>${filteredEvents.length}</strong> events${filterNote} | <strong>${selectedEventIds.size}</strong> selected`;
             summaryEl.classList.add('visible');
 
             // Render events
@@ -780,15 +898,17 @@
 
         function selectTop(n) {
             selectedEventIds.clear();
-            for (let i = 0; i < Math.min(n, allEvents.length); i++) {
-                selectedEventIds.add(allEvents[i].id);
+            // Select top N from filtered list (respects current sort)
+            const source = filteredEvents.length > 0 ? filteredEvents : allEvents;
+            for (let i = 0; i < Math.min(n, source.length); i++) {
+                selectedEventIds.add(source[i].id);
             }
             // Re-render if events are visible
             if (allEvents.length > 0) renderCurrentPage();
         }
 
         function selectAll() {
-            allEvents.forEach(ev => selectedEventIds.add(ev.id));
+            filteredEvents.forEach(ev => selectedEventIds.add(ev.id));
             renderCurrentPage();
         }
 
@@ -807,8 +927,9 @@
             const summaryEl = document.getElementById('summary');
             if (summaryEl.classList.contains('visible')) {
                 const start = currentPage * PAGE_SIZE;
-                const end = Math.min(start + PAGE_SIZE, allEvents.length);
-                summaryEl.innerHTML = `Showing <strong>${start + 1}-${end}</strong> of <strong>${allEvents.length}</strong> events | <strong>${n}</strong> selected`;
+                const end = Math.min(start + PAGE_SIZE, filteredEvents.length);
+                const filterNote = filteredEvents.length < allEvents.length ? ` (${allEvents.length} total)` : '';
+                summaryEl.innerHTML = `Showing <strong>${filteredEvents.length === 0 ? 0 : start + 1}-${end}</strong> of <strong>${filteredEvents.length}</strong> events${filterNote} | <strong>${n}</strong> selected`;
             }
         }
 

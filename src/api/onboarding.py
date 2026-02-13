@@ -482,11 +482,13 @@ async def preview_archetype(
     from src.services.archetypes import ARCHETYPES, get_archetype
     from src.services.recommendation import (
         get_recommended_events,
+        score_event_for_archetype,
         matches_category,
         matches_timing,
         passes_special_rules,
     )
     from src.services.popularity import get_event_scores
+    from src.models.event import EASTERN_TZ
 
     # Parse archetype
     try:
@@ -521,15 +523,6 @@ async def preview_archetype(
             data = json.load(f)
             all_events = [Event(**event) for event in data]
 
-        # Get recommendations with scores
-        effective_limit = 5000 if return_all else limit
-        recommended = get_recommended_events(
-            all_events,
-            primary_archetype,
-            secondary_archetype,
-            limit=effective_limit,
-        )
-
         # Build archetype info
         arch_def = get_archetype(primary_archetype)
         archetype_info = {
@@ -541,7 +534,38 @@ async def preview_archetype(
             "special_rules": arch_def.special_rules,
         }
 
-        # Build score breakdowns for each recommended event
+        if return_all:
+            # Return ALL events in the next week, scored but not filtered
+            now = datetime.now(EASTERN_TZ)
+            week_end = now + timedelta(days=8)
+
+            scored_events = []
+            for event in all_events:
+                event_dt = event.start_datetime
+                if event_dt.tzinfo is None:
+                    import pytz
+                    event_dt = EASTERN_TZ.localize(event_dt)
+                # Only include events in the next week
+                if event_dt < now or event_dt > week_end:
+                    continue
+
+                total_score = score_event_for_archetype(
+                    event, primary_archetype, secondary_archetype
+                )
+                scored_events.append((event, total_score))
+
+            # Sort by score descending
+            scored_events.sort(key=lambda x: x[1], reverse=True)
+            recommended = scored_events
+        else:
+            recommended = get_recommended_events(
+                all_events,
+                primary_archetype,
+                secondary_archetype,
+                limit=limit,
+            )
+
+        # Build score breakdowns for each event
         events_out = []
         for event, total_score in recommended:
             scores = get_event_scores(event)
