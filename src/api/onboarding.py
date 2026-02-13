@@ -116,8 +116,24 @@ async def preview_events(
         data = json.load(f)
         events = [Event(**e) for e in data]
 
-    from src.services.recommendation import get_weekly_digest_events
-    recommended = get_weekly_digest_events(events, primary, secondary)
+    # Check for curated events first
+    curated_file = project_root / "data" / "curated_digests.json"
+    curated_entry = None
+    if curated_file.exists():
+        with open(curated_file, "r") as f:
+            curations = json.load(f)
+        curated_entry = curations.get(primary.value)
+
+    if curated_entry and curated_entry.get("events"):
+        events_map = {e.id: e for e in events}
+        recommended = []
+        for item in curated_entry["events"]:
+            event = events_map.get(item["event_id"])
+            if event:
+                recommended.append((event, item["score"]))
+    else:
+        from src.services.recommendation import get_weekly_digest_events
+        recommended = get_weekly_digest_events(events, primary, secondary)
 
     # Return top 5 with minimal fields
     sample = []
