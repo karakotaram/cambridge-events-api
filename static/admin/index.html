@@ -464,43 +464,61 @@
 
         .success-banner.visible { display: block; }
 
-        /* Curation status & buttons */
-        .curation-status {
+        /* Curation bar */
+        .curation-bar {
             display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 14px 16px;
+            background: var(--white);
+            border: 2px solid var(--success);
+            border-radius: 8px;
+        }
+        .curation-bar.visible { display: flex; }
+
+        .curation-status {
             font-size: 13px;
-            padding: 8px 14px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-        }
-        .curation-status.visible { display: block; }
-        .curation-status.saved {
-            background: #f0fff4;
-            border: 1px solid #c6f6d5;
-            color: #276749;
-        }
-        .curation-status.unsaved {
-            background: var(--light-tint);
-            border: 1px solid var(--border);
             color: var(--text-light);
+        }
+        .curation-status.saved {
+            color: #276749;
+            font-weight: 600;
+        }
+
+        .curation-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
         .btn-save-curation {
-            background: var(--success) !important;
-            color: white !important;
-            border-color: var(--success) !important;
+            background: var(--success);
+            color: white;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
         }
         .btn-save-curation:hover {
-            background: #219a52 !important;
+            background: #219a52;
         }
 
         .btn-clear-curation {
-            background: transparent !important;
-            color: var(--warning) !important;
-            border-color: var(--warning) !important;
+            background: transparent;
+            color: var(--warning);
+            border: 1px solid var(--warning);
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
         }
         .btn-clear-curation:hover {
-            background: var(--warning) !important;
-            color: white !important;
+            background: var(--warning);
+            color: white;
         }
 
         /* Send digest card */
@@ -583,17 +601,21 @@
         <!-- Results -->
         <div class="summary" id="summary"></div>
 
-        <!-- Curation status -->
-        <div class="curation-status" id="curation-status"></div>
-
         <!-- Selection bar -->
         <div class="selection-bar" id="selection-bar">
             <button class="btn btn-sm" onclick="selectTop(7)">Select Top 7</button>
             <button class="btn btn-sm" onclick="selectAll()">Select All</button>
             <button class="btn btn-sm" onclick="deselectAll()">Deselect All</button>
-            <button class="btn btn-sm btn-save-curation" id="save-curation-btn" onclick="saveCuration()">Save for Weekly Email</button>
-            <button class="btn btn-sm btn-clear-curation" id="clear-curation-btn" onclick="clearCuration()" style="display:none">Clear Saved</button>
             <span class="selection-count" id="selection-count">0 selected</span>
+        </div>
+
+        <!-- Curation bar -->
+        <div class="curation-bar" id="curation-bar">
+            <div class="curation-status" id="curation-status"></div>
+            <div class="curation-actions">
+                <button class="btn btn-save-curation" id="save-curation-btn" onclick="saveCuration()">Save for Weekly Email</button>
+                <button class="btn btn-sm btn-clear-curation" id="clear-curation-btn" onclick="clearCuration()" style="display:none">Clear Saved</button>
+            </div>
         </div>
 
         <!-- Search & Sort -->
@@ -771,10 +793,10 @@
             document.getElementById('fetch-error').classList.remove('visible');
             document.getElementById('summary').classList.remove('visible');
             document.getElementById('selection-bar').classList.remove('visible');
+            document.getElementById('curation-bar').classList.remove('visible');
             document.getElementById('toolbar').classList.remove('visible');
             document.getElementById('pagination').classList.remove('visible');
             document.getElementById('send-card').classList.remove('visible');
-            document.getElementById('curation-status').className = 'curation-status';
             document.getElementById('clear-curation-btn').style.display = 'none';
             document.getElementById('event-list').innerHTML = '';
 
@@ -823,6 +845,7 @@
 
                 // Show UI
                 document.getElementById('selection-bar').classList.add('visible');
+                document.getElementById('curation-bar').classList.add('visible');
                 document.getElementById('toolbar').classList.add('visible');
                 document.getElementById('send-card').classList.add('visible');
                 renderCurrentPage();
@@ -1174,12 +1197,12 @@
                 const date = savedCuration.updated_at ? new Date(savedCuration.updated_at) : null;
                 const dateStr = date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
                 const timeStr = date ? date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
-                statusEl.textContent = `Using saved curation (${savedCuration.events.length} events, saved ${dateStr} ${timeStr})`;
-                statusEl.className = 'curation-status visible saved';
+                statusEl.textContent = `Saved curation: ${savedCuration.events.length} events (${dateStr} ${timeStr})`;
+                statusEl.className = 'curation-status saved';
                 clearBtn.style.display = '';
             } else {
-                statusEl.textContent = 'No saved curation \u2014 weekly email will use algorithm';
-                statusEl.className = 'curation-status visible unsaved';
+                statusEl.textContent = 'No saved curation — weekly email & signup preview will use algorithm';
+                statusEl.className = 'curation-status';
                 clearBtn.style.display = 'none';
             }
         }
