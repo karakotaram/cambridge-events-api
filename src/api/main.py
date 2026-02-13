@@ -1263,7 +1263,7 @@ def _run_migrations():
             columns = {c["name"] for c in inspector.get_columns("curated_digests")}
             if "id" not in columns:
                 with engine.begin() as conn:
-                    conn.execute(text("DROP TABLE curated_digests"))
+                    conn.execute(text("DROP TABLE curated_digests CASCADE"))
                     print("[MIGRATION] Dropped old curated_digests table (will be recreated)")
 
         if "website_interactions" in inspector.get_table_names():
@@ -1290,10 +1290,14 @@ async def startup_migrations():
     from src.db.database import engine, Base
     if engine is not None:
         from src.models.user import CuratedDigest  # noqa: F401
-        # Run migrations first (may drop old tables with wrong schema)
-        _run_migrations()
-        # Then create all tables (including any that were just dropped)
-        Base.metadata.create_all(bind=engine)
+        try:
+            # Run migrations first (may drop old tables with wrong schema)
+            _run_migrations()
+            # Then create all tables (including any that were just dropped)
+            Base.metadata.create_all(bind=engine)
+            print("[STARTUP] Database tables ready")
+        except Exception as e:
+            print(f"[STARTUP] Database setup error: {e}")
 
 
 @app.get("/init-db")

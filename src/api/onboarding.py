@@ -790,7 +790,6 @@ async def trigger_weekly_email(
     events_map = {e.id: e for e in events}
 
     # Load most recent curated digest per archetype from DB
-    from sqlalchemy import distinct
     all_curations = db.query(CuratedDigest).order_by(
         CuratedDigest.archetype, CuratedDigest.created_at.desc()
     ).all()
