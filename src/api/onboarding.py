@@ -391,6 +391,7 @@ async def preview_archetype(
     Useful for auditing and debugging recommendation quality.
     """
     import json
+    import traceback
     from pathlib import Path
     from src.services.archetypes import ARCHETYPES, get_archetype
     from src.services.recommendation import (
@@ -422,73 +423,80 @@ async def preview_archetype(
                 detail=f"Invalid secondary archetype '{secondary}'. Valid: {valid}"
             )
 
-    # Load events
-    project_root = Path(__file__).parent.parent.parent
-    events_file = project_root / "data" / "events.json"
-    if not events_file.exists():
-        raise HTTPException(status_code=500, detail="Events file not found")
+    try:
+        # Load events
+        project_root = Path(__file__).parent.parent.parent
+        events_file = project_root / "data" / "events.json"
+        if not events_file.exists():
+            raise HTTPException(status_code=500, detail="Events file not found")
 
-    from src.models.event import Event
-    with open(events_file, 'r') as f:
-        data = json.load(f)
-        all_events = [Event(**event) for event in data]
+        from src.models.event import Event
+        with open(events_file, 'r') as f:
+            data = json.load(f)
+            all_events = [Event(**event) for event in data]
 
-    # Get recommendations with scores
-    recommended = get_recommended_events(
-        all_events,
-        primary_archetype,
-        secondary_archetype,
-        limit=limit,
-    )
+        # Get recommendations with scores
+        recommended = get_recommended_events(
+            all_events,
+            primary_archetype,
+            secondary_archetype,
+            limit=limit,
+        )
 
-    # Build archetype info
-    arch_def = get_archetype(primary_archetype)
-    archetype_info = {
-        "id": arch_def.id.value,
-        "name": arch_def.name,
-        "description": arch_def.description,
-        "categories": arch_def.categories,
-        "timing_preferences": arch_def.timing_preferences,
-        "special_rules": arch_def.special_rules,
-    }
+        # Build archetype info
+        arch_def = get_archetype(primary_archetype)
+        archetype_info = {
+            "id": arch_def.id.value,
+            "name": arch_def.name,
+            "description": arch_def.description,
+            "categories": arch_def.categories,
+            "timing_preferences": arch_def.timing_preferences,
+            "special_rules": arch_def.special_rules,
+        }
 
-    # Build score breakdowns for each recommended event
-    events_out = []
-    for event, total_score in recommended:
-        scores = get_event_scores(event)
-        cat_match, cat_boost = matches_category(event, arch_def.categories)
-        timing_match = matches_timing(event, arch_def.timing_preferences)
-        rules_pass = passes_special_rules(event, arch_def.special_rules)
+        # Build score breakdowns for each recommended event
+        events_out = []
+        for event, total_score in recommended:
+            scores = get_event_scores(event)
+            cat_match, cat_boost = matches_category(event, arch_def.categories)
+            timing_match = matches_timing(event, arch_def.timing_preferences)
+            rules_pass = passes_special_rules(event, arch_def.special_rules)
 
-        events_out.append({
-            "id": event.id,
-            "title": event.title,
-            "start_datetime": event.start_datetime.isoformat(),
-            "category": event.category.value if event.category else None,
-            "cost": event.cost,
-            "source_name": event.source_name,
-            "image_url": event.image_url,
-            "total_score": round(total_score, 4),
-            "score_breakdown": {
-                "base_popularity": scores["popularity_score"],
-                "venue_score": scores["venue_score"],
-                "source_score": scores["source_score"],
-                "cost_score": scores["cost_score"],
-                "freshness_score": scores["freshness_score"],
-                "category_score": scores["category_score"],
-                "category_match": cat_match,
-                "category_boost": round(cat_boost, 2),
-                "timing_match": timing_match,
-                "timing_multiplier": 1.2 if timing_match else 0.8,
-                "special_rules_passed": rules_pass,
-            },
-        })
+            events_out.append({
+                "id": event.id,
+                "title": event.title,
+                "start_datetime": event.start_datetime.isoformat(),
+                "category": event.category.value if event.category else None,
+                "cost": event.cost,
+                "source_name": event.source_name,
+                "image_url": event.image_url,
+                "total_score": round(total_score, 4),
+                "score_breakdown": {
+                    "base_popularity": scores["popularity_score"],
+                    "venue_score": scores["venue_score"],
+                    "source_score": scores["source_score"],
+                    "cost_score": scores["cost_score"],
+                    "freshness_score": scores["freshness_score"],
+                    "category_score": scores["category_score"],
+                    "category_match": cat_match,
+                    "category_boost": round(cat_boost, 2),
+                    "timing_match": timing_match,
+                    "timing_multiplier": 1.2 if timing_match else 0.8,
+                    "special_rules_passed": rules_pass,
+                },
+            })
 
-    return {
-        "archetype": archetype_info,
-        "total_events_evaluated": len(all_events),
-        "events": events_out,
-    }
+        return {
+            "archetype": archetype_info,
+            "total_events_evaluated": len(all_events),
+            "events": events_out,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_details = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}\n\n{error_details}")
 
 
 @router.post("/admin/trigger-weekly-email")
