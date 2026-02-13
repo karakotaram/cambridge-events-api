@@ -16,7 +16,7 @@ except ImportError:
     RESEND_AVAILABLE = False
 
 from src.models.event import Event
-from src.models.user import User, EmailLog, ClickTracking, ArchetypeEnum
+from src.models.user import User, EmailLog, ArchetypeEnum
 
 
 # Template directory
@@ -46,22 +46,9 @@ def get_api_base_url() -> str:
     return url.strip()  # Remove any accidental whitespace
 
 
-def create_tracked_event_link(
-    event: Event,
-    click_id: str,
-    base_url: str
-) -> str:
-    """Create a tracked link for an event"""
-    import urllib.parse
-    encoded_url = urllib.parse.quote(event.source_url, safe='')
-    return f"{base_url}/onboarding/track/click/{click_id}?redirect={encoded_url}"
-
-
 def render_weekly_digest(
     user: User,
     events: List[Tuple[Event, float]],
-    email_log_id: str,
-    click_tracking_ids: List[str]
 ) -> Tuple[str, str]:
     """
     Render the weekly digest email.
@@ -69,19 +56,15 @@ def render_weekly_digest(
     Args:
         user: The user receiving the email
         events: List of (event, score) tuples
-        email_log_id: ID for open tracking
-        click_tracking_ids: List of click tracking IDs for each event
 
     Returns:
         Tuple of (subject, html_body)
     """
     base_url = get_api_base_url()
 
-    # Prepare events with tracked links
+    # Prepare events with direct links (Resend handles open/click tracking)
     events_data = []
-    for i, ((event, score), click_id) in enumerate(zip(events, click_tracking_ids)):
-        tracked_link = create_tracked_event_link(event, click_id, base_url)
-
+    for event, score in events:
         # Format date nicely
         event_dt = event.start_datetime
         date_str = event_dt.strftime("%A, %B %d")
@@ -102,7 +85,7 @@ def render_weekly_digest(
             "cost": event.cost or "See website",
             "category": category,
             "image_url": event.image_url,
-            "tracked_link": tracked_link,
+            "link": event.source_url,
             "family_friendly": event.family_friendly,
         })
 
@@ -113,9 +96,6 @@ def render_weekly_digest(
     # Unsubscribe link
     unsubscribe_url = f"{base_url}/onboarding/unsubscribe/{user.unsubscribe_token}"
 
-    # Open tracking pixel
-    tracking_pixel_url = f"{base_url}/onboarding/track/open/{email_log_id}"
-
     # Render template
     template = jinja_env.get_template("weekly_digest.html")
     html_body = template.render(
@@ -123,7 +103,6 @@ def render_weekly_digest(
         archetype_name=archetype_name,
         events=events_data,
         unsubscribe_url=unsubscribe_url,
-        tracking_pixel_url=tracking_pixel_url,
         current_year=datetime.now().year,
     )
 
@@ -231,26 +210,8 @@ def send_weekly_digest(
     db_session.add(email_log)
     db_session.flush()  # Get the ID
 
-    # Create click tracking entries for each event
-    click_ids = []
-    for i, (event, _) in enumerate(events):
-        click = ClickTracking(
-            user_id=user.id,
-            email_log_id=email_log.id,
-            event_id=event.id,
-            event_position=i + 1,
-        )
-        db_session.add(click)
-        db_session.flush()
-        click_ids.append(str(click.id))
-
-    # Render email
-    subject, html_body = render_weekly_digest(
-        user,
-        events,
-        str(email_log.id),
-        click_ids
-    )
+    # Render email (Resend handles open/click tracking natively)
+    subject, html_body = render_weekly_digest(user, events)
 
     # Update email log with subject
     email_log.subject = subject

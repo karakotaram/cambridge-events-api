@@ -49,7 +49,7 @@
         }
         .event-image {
             width: 100%;
-            height: 150px;
+            height: 100px;
             object-fit: cover;
             background-color: #f0f0f0;
         }
@@ -158,7 +158,7 @@
             {% endif %}
             <div class="event-content">
                 <h2 class="event-title">
-                    <a href="{{ event.tracked_link }}">{{ event.title }}</a>
+                    <a href="{{ event.link }}">{{ event.title }}</a>
                 </h2>
                 <div class="event-meta">
                     <span>{{ event.date }} at {{ event.time }}</span>
@@ -172,7 +172,7 @@
                     {% endif %}
                 </div>
                 <p class="event-description">{{ event.description }}</p>
-                <a href="{{ event.tracked_link }}" class="cta-button">Learn More</a>
+                <a href="{{ event.link }}" class="cta-button">Learn More</a>
             </div>
         </div>
         {% endfor %}
@@ -186,7 +186,5 @@
         </div>
     </div>
 
-    <!-- Open tracking pixel -->
-    <img src="{{ tracking_pixel_url }}" width="1" height="1" alt="" style="display:none;">
 </body>
 </html>
