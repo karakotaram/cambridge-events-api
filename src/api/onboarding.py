@@ -2,8 +2,9 @@
 import os
 import secrets
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from pydantic import BaseModel
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -58,6 +59,16 @@ def verify_admin_key(api_key: str = Query(...)) -> bool:
     if not expected_key or api_key != expected_key:
         raise HTTPException(status_code=401, detail="Invalid API key")
     return True
+
+
+class CuratedEventItem(BaseModel):
+    event_id: str
+    score: float
+
+
+class CuratedDigestRequest(BaseModel):
+    email: str
+    events: List[CuratedEventItem]
 
 
 @router.get("/questions", response_model=QuestionsResponse)
@@ -378,11 +389,86 @@ async def send_test_email(
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}\n\n{error_details}")
 
 
+@router.post("/admin/send-curated-email")
+async def send_curated_email(
+    body: CuratedDigestRequest,
+    verified: bool = Depends(verify_admin_key),
+    db: Session = Depends(get_db),
+):
+    """
+    Send a curated digest email with hand-picked events.
+
+    Requires API key authentication.
+    """
+    import json
+    import traceback
+    from pathlib import Path
+
+    try:
+        if not os.environ.get("RESEND_API_KEY"):
+            raise HTTPException(status_code=500, detail="RESEND_API_KEY not configured")
+
+        # Find user
+        user = db.query(User).filter(User.email == body.email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail=f"User not found: {body.email}")
+
+        # Load events
+        project_root = Path(__file__).parent.parent.parent
+        events_file = project_root / "data" / "events.json"
+        if not events_file.exists():
+            raise HTTPException(status_code=500, detail="Events file not found")
+
+        from src.models.event import Event
+        with open(events_file, 'r') as f:
+            data = json.load(f)
+            events_map = {e["id"]: Event(**e) for e in data}
+
+        # Resolve event IDs to (Event, score) tuples
+        curated_events = []
+        missing_ids = []
+        for item in body.events:
+            event = events_map.get(item.event_id)
+            if event:
+                curated_events.append((event, item.score))
+            else:
+                missing_ids.append(item.event_id)
+
+        if missing_ids:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Event IDs not found: {missing_ids[:10]}"
+            )
+
+        if not curated_events:
+            raise HTTPException(status_code=400, detail="No events provided")
+
+        # Send email
+        from src.services.email_service import send_weekly_digest
+        email_log_id = send_weekly_digest(user, curated_events, db)
+
+        if email_log_id:
+            return {
+                "success": True,
+                "email_log_id": email_log_id,
+                "events_sent": len(curated_events),
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to send email")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_details = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}\n\n{error_details}")
+
+
 @router.get("/admin/preview-archetype")
 async def preview_archetype(
     archetype: str = Query(..., description="Archetype enum value (e.g. culture_professional)"),
     secondary: Optional[str] = Query(None, description="Secondary archetype"),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=5000),
+    return_all: bool = Query(False, alias="all"),
     verified: bool = Depends(verify_admin_key),
 ):
     """
@@ -436,11 +522,12 @@ async def preview_archetype(
             all_events = [Event(**event) for event in data]
 
         # Get recommendations with scores
+        effective_limit = 5000 if return_all else limit
         recommended = get_recommended_events(
             all_events,
             primary_archetype,
             secondary_archetype,
-            limit=limit,
+            limit=effective_limit,
         )
 
         # Build archetype info

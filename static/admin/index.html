@@ -105,6 +105,11 @@
             font-size: 13px;
         }
 
+        .btn-success {
+            background: var(--success);
+        }
+        .btn-success:hover { background: #219a52; }
+
         /* Selectors */
         .selector-row {
             display: flex;
@@ -127,7 +132,7 @@
             color: var(--text-light);
         }
 
-        .field select {
+        .field select, .field input[type="email"] {
             padding: 10px 12px;
             border: 2px solid var(--border);
             border-radius: 6px;
@@ -136,7 +141,7 @@
             outline: none;
         }
 
-        .field select:focus {
+        .field select:focus, .field input[type="email"]:focus {
             border-color: var(--primary);
         }
 
@@ -193,6 +198,58 @@
 
         .summary strong { color: var(--primary); }
 
+        /* Selection bar */
+        .selection-bar {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding: 12px 16px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .selection-bar.visible { display: flex; }
+
+        .selection-bar .btn-sm {
+            background: var(--light-tint);
+            color: var(--primary);
+            border: 1px solid var(--border);
+        }
+        .selection-bar .btn-sm:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .selection-count {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            background: var(--light-tint);
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-left: auto;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 12px;
+        }
+
+        .pagination.visible { display: flex; }
+
+        .pagination .page-info {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
         /* Event cards */
         .event-list { display: flex; flex-direction: column; gap: 12px; }
 
@@ -203,6 +260,26 @@
             padding: 16px;
             display: flex;
             gap: 14px;
+            transition: border-color 0.15s;
+        }
+
+        .event-card.selected {
+            border-color: var(--primary);
+            background: #f7fafd;
+        }
+
+        .event-checkbox {
+            display: flex;
+            align-items: flex-start;
+            padding-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .event-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
         }
 
         .event-thumb {
@@ -336,6 +413,32 @@
 
         .error-banner.visible { display: block; }
 
+        .success-banner {
+            background: #f0fff4;
+            border: 1px solid #c6f6d5;
+            color: #276749;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+            margin-top: 10px;
+        }
+
+        .success-banner.visible { display: block; }
+
+        /* Send digest card */
+        .send-card {
+            display: none;
+        }
+        .send-card.visible { display: block; }
+
+        .send-row {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
         footer {
             text-align: center;
             padding: 20px;
@@ -351,6 +454,7 @@
             .event-thumb { width: 100%; height: 120px; }
             .selector-row { flex-direction: column; }
             .score-grid { grid-template-columns: repeat(2, 1fr); }
+            .send-row { flex-direction: column; }
         }
     </style>
 </head>
@@ -402,14 +506,45 @@
         <!-- Results -->
         <div class="summary" id="summary"></div>
 
+        <!-- Selection bar -->
+        <div class="selection-bar" id="selection-bar">
+            <button class="btn btn-sm" onclick="selectTop(7)">Select Top 7</button>
+            <button class="btn btn-sm" onclick="selectAll()">Select All</button>
+            <button class="btn btn-sm" onclick="deselectAll()">Deselect All</button>
+            <span class="selection-count" id="selection-count">0 selected</span>
+        </div>
+
         <div class="loading-msg" id="loading">
             <div class="spinner-sm"></div>
-            Loading recommendations...
+            Loading all scored events...
         </div>
 
         <div class="empty-msg" id="empty-msg">No events matched for this archetype.</div>
 
         <div class="event-list" id="event-list"></div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+            <button class="btn btn-sm" id="prev-btn" onclick="prevPage()" disabled>Prev</button>
+            <span class="page-info" id="page-info"></span>
+            <button class="btn btn-sm" id="next-btn" onclick="nextPage()">Next</button>
+        </div>
+
+        <!-- Send Curated Digest -->
+        <div class="card send-card" id="send-card">
+            <h2>Send Curated Digest</h2>
+            <div class="send-row">
+                <div class="field" style="flex:2">
+                    <label>Recipient Email</label>
+                    <input type="email" id="send-email" placeholder="user@example.com">
+                </div>
+                <button class="btn btn-success" id="send-btn" onclick="sendCuratedDigest()">
+                    Send Digest (0 events)
+                </button>
+            </div>
+            <div class="error-banner" id="send-error"></div>
+            <div class="success-banner" id="send-success"></div>
+        </div>
 
         <footer>
             <a href="/">Home</a> | <a href="/signup">Signup</a> | <a href="/events">Events</a>
@@ -431,6 +566,12 @@
             { value: 'active_adventurer', label: 'Active Adventurer' },
             { value: 'budget_explorer', label: 'Budget Explorer' },
         ];
+
+        // Pagination & selection state
+        const PAGE_SIZE = 25;
+        let allEvents = [];
+        let currentPage = 0;
+        const selectedEventIds = new Set();
 
         function init() {
             // Populate dropdowns
@@ -514,14 +655,22 @@
 
             const secondary = document.getElementById('secondary-select').value;
 
+            // Reset state
+            allEvents = [];
+            currentPage = 0;
+            selectedEventIds.clear();
+
             // UI state
             document.getElementById('loading').classList.add('visible');
             document.getElementById('empty-msg').classList.remove('visible');
             document.getElementById('fetch-error').classList.remove('visible');
             document.getElementById('summary').classList.remove('visible');
+            document.getElementById('selection-bar').classList.remove('visible');
+            document.getElementById('pagination').classList.remove('visible');
+            document.getElementById('send-card').classList.remove('visible');
             document.getElementById('event-list').innerHTML = '';
 
-            let url = `/onboarding/admin/preview-archetype?archetype=${primary}&api_key=${encodeURIComponent(key)}`;
+            let url = `/onboarding/admin/preview-archetype?archetype=${primary}&api_key=${encodeURIComponent(key)}&all=true`;
             if (secondary) url += `&secondary=${secondary}`;
 
             try {
@@ -539,17 +688,20 @@
                 ARCHETYPES[primary] = data.archetype;
                 showArchetypeInfo(data.archetype);
 
-                // Summary
-                const summaryEl = document.getElementById('summary');
-                summaryEl.innerHTML = `<strong>${data.events.length}</strong> events shown / <strong>${data.total_events_evaluated}</strong> evaluated`;
-                summaryEl.classList.add('visible');
+                allEvents = data.events;
 
-                if (data.events.length === 0) {
+                if (allEvents.length === 0) {
                     document.getElementById('empty-msg').classList.add('visible');
                     return;
                 }
 
-                renderEvents(data.events);
+                // Auto-select top 7
+                selectTop(7);
+
+                // Show UI
+                document.getElementById('selection-bar').classList.add('visible');
+                document.getElementById('send-card').classList.add('visible');
+                renderCurrentPage();
 
             } catch (e) {
                 document.getElementById('loading').classList.remove('visible');
@@ -558,6 +710,109 @@
                 err.classList.add('visible');
             }
         }
+
+        // --- Pagination ---
+
+        function totalPages() {
+            return Math.ceil(allEvents.length / PAGE_SIZE);
+        }
+
+        function renderCurrentPage() {
+            const start = currentPage * PAGE_SIZE;
+            const end = Math.min(start + PAGE_SIZE, allEvents.length);
+            const pageEvents = allEvents.slice(start, end);
+
+            // Summary
+            const summaryEl = document.getElementById('summary');
+            summaryEl.innerHTML = `Showing <strong>${start + 1}-${end}</strong> of <strong>${allEvents.length}</strong> events | <strong>${selectedEventIds.size}</strong> selected`;
+            summaryEl.classList.add('visible');
+
+            // Render events
+            renderEvents(pageEvents);
+
+            // Pagination controls
+            const pages = totalPages();
+            if (pages > 1) {
+                document.getElementById('pagination').classList.add('visible');
+                document.getElementById('page-info').textContent = `Page ${currentPage + 1} of ${pages}`;
+                document.getElementById('prev-btn').disabled = currentPage === 0;
+                document.getElementById('next-btn').disabled = currentPage >= pages - 1;
+            } else {
+                document.getElementById('pagination').classList.remove('visible');
+            }
+
+            updateSelectionCount();
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                renderCurrentPage();
+                window.scrollTo({ top: document.getElementById('selection-bar').offsetTop - 20, behavior: 'smooth' });
+            }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages() - 1) {
+                currentPage++;
+                renderCurrentPage();
+                window.scrollTo({ top: document.getElementById('selection-bar').offsetTop - 20, behavior: 'smooth' });
+            }
+        }
+
+        // --- Selection ---
+
+        function toggleEvent(id) {
+            if (selectedEventIds.has(id)) {
+                selectedEventIds.delete(id);
+            } else {
+                selectedEventIds.add(id);
+            }
+            // Update checkbox and card styling without re-rendering
+            const card = document.querySelector(`[data-event-id="${id}"]`);
+            if (card) {
+                const cb = card.querySelector('input[type="checkbox"]');
+                cb.checked = selectedEventIds.has(id);
+                card.classList.toggle('selected', selectedEventIds.has(id));
+            }
+            updateSelectionCount();
+        }
+
+        function selectTop(n) {
+            selectedEventIds.clear();
+            for (let i = 0; i < Math.min(n, allEvents.length); i++) {
+                selectedEventIds.add(allEvents[i].id);
+            }
+            // Re-render if events are visible
+            if (allEvents.length > 0) renderCurrentPage();
+        }
+
+        function selectAll() {
+            allEvents.forEach(ev => selectedEventIds.add(ev.id));
+            renderCurrentPage();
+        }
+
+        function deselectAll() {
+            selectedEventIds.clear();
+            renderCurrentPage();
+        }
+
+        function updateSelectionCount() {
+            const n = selectedEventIds.size;
+            document.getElementById('selection-count').textContent = `${n} selected`;
+            document.getElementById('send-btn').textContent = `Send Digest (${n} events)`;
+            document.getElementById('send-btn').disabled = n === 0;
+
+            // Update summary line
+            const summaryEl = document.getElementById('summary');
+            if (summaryEl.classList.contains('visible')) {
+                const start = currentPage * PAGE_SIZE;
+                const end = Math.min(start + PAGE_SIZE, allEvents.length);
+                summaryEl.innerHTML = `Showing <strong>${start + 1}-${end}</strong> of <strong>${allEvents.length}</strong> events | <strong>${n}</strong> selected`;
+            }
+        }
+
+        // --- Rendering ---
 
         function scoreClass(val) {
             if (val >= 0.8) return 'high';
@@ -573,6 +828,7 @@
                 const dt = new Date(ev.start_datetime);
                 const dateStr = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                 const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                const checked = selectedEventIds.has(ev.id);
 
                 const imgTag = ev.image_url
                     ? `<img src="${ev.image_url}" class="event-thumb" alt="">`
@@ -617,7 +873,10 @@
                 }).join('');
 
                 return `
-                    <div class="event-card">
+                    <div class="event-card${checked ? ' selected' : ''}" data-event-id="${ev.id}">
+                        <div class="event-checkbox">
+                            <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleEvent('${ev.id}')">
+                        </div>
                         ${imgTag}
                         <div class="event-body">
                             <div class="event-header">
@@ -637,6 +896,70 @@
                         </div>
                     </div>`;
             }).join('');
+        }
+
+        // --- Send Curated Digest ---
+
+        async function sendCuratedDigest() {
+            const key = getKey();
+            if (!key) {
+                document.getElementById('send-error').textContent = 'API key required.';
+                document.getElementById('send-error').classList.add('visible');
+                return;
+            }
+
+            const email = document.getElementById('send-email').value.trim();
+            if (!email) {
+                document.getElementById('send-error').textContent = 'Please enter a recipient email.';
+                document.getElementById('send-error').classList.add('visible');
+                return;
+            }
+
+            if (selectedEventIds.size === 0) {
+                document.getElementById('send-error').textContent = 'No events selected.';
+                document.getElementById('send-error').classList.add('visible');
+                return;
+            }
+
+            // Build event list with scores from allEvents
+            const scoreMap = {};
+            allEvents.forEach(ev => { scoreMap[ev.id] = ev.total_score; });
+
+            const eventPayload = Array.from(selectedEventIds).map(id => ({
+                event_id: id,
+                score: scoreMap[id] || 0,
+            }));
+
+            // UI
+            const sendBtn = document.getElementById('send-btn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+            document.getElementById('send-error').classList.remove('visible');
+            document.getElementById('send-success').classList.remove('visible');
+
+            try {
+                const resp = await fetch(`/onboarding/admin/send-curated-email?api_key=${encodeURIComponent(key)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, events: eventPayload }),
+                });
+
+                if (!resp.ok) {
+                    const data = await resp.json().catch(() => ({ detail: resp.statusText }));
+                    throw new Error(data.detail || `HTTP ${resp.status}`);
+                }
+
+                const data = await resp.json();
+                document.getElementById('send-success').textContent = `Sent! ${data.events_sent} events emailed to ${email}. Log ID: ${data.email_log_id}`;
+                document.getElementById('send-success').classList.add('visible');
+
+            } catch (e) {
+                document.getElementById('send-error').textContent = e.message;
+                document.getElementById('send-error').classList.add('visible');
+            } finally {
+                sendBtn.disabled = false;
+                updateSelectionCount();
+            }
         }
 
         init();
