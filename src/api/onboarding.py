@@ -466,7 +466,7 @@ async def preview_archetype(
                 "id": event.id,
                 "title": event.title,
                 "start_datetime": event.start_datetime.isoformat(),
-                "category": event.category.value if event.category else None,
+                "category": event.category.value if hasattr(event.category, 'value') else event.category,
                 "cost": event.cost,
                 "source_name": event.source_name,
                 "image_url": event.image_url,
