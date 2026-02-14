@@ -1,9 +1,9 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-13T07:40:49.205817",
-  "total_events": 2662,
+  "timestamp": "2026-02-14T07:29:36.578048",
+  "total_events": 2697,
   "total_sources": 25,
-  "history_runs": 2,
+  "history_runs": 3,
   "alerts": [],
   "diagnosis": null,
   "summary": {

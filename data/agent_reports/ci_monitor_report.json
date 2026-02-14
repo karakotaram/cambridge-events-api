@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-13T07:40:49.363406",
-  "total_events": 2662,
+  "timestamp": "2026-02-14T07:29:36.731699",
+  "total_events": 2697,
   "total_sources_registered": 38,
   "total_sources_with_events": 25,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 24,
+      "event_count": 21,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 69,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "The Comedy Studio",
@@ -27,12 +27,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 9,
+      "event_count": 24,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1168,
+      "event_count": 1152,
       "days_since_scrape": 0
     },
     {
@@ -42,12 +42,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 65,
+      "event_count": 78,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 56,
+      "event_count": 53,
       "days_since_scrape": 0
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 4,
+      "event_count": 1,
       "days_since_scrape": 0
     },
     {
@@ -72,12 +72,12 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 9,
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 922,
+      "event_count": 957,
       "days_since_scrape": 0
     },
     {
@@ -87,12 +87,12 @@
     },
     {
       "source": "The Middle East",
-      "event_count": 19,
+      "event_count": 20,
       "days_since_scrape": 0
     },
     {
       "source": "Portico Brewing",
-      "event_count": 22,
+      "event_count": 21,
       "days_since_scrape": 0
     },
     {
@@ -117,18 +117,18 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 42,
+      "event_count": 41,
       "days_since_scrape": 0
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "User Submitted",
       "event_count": 43,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [],
