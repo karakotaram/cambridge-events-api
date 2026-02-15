@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-14T07:29:36.731699",
-  "total_events": 2697,
+  "timestamp": "2026-02-15T07:29:32.628270",
+  "total_events": 2573,
   "total_sources_registered": 38,
   "total_sources_with_events": 25,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 21,
+      "event_count": 17,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 69,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "The Comedy Studio",
@@ -27,12 +27,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 24,
+      "event_count": 14,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1152,
+      "event_count": 1138,
       "days_since_scrape": 0
     },
     {
@@ -42,12 +42,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 78,
+      "event_count": 75,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 53,
+      "event_count": 50,
       "days_since_scrape": 0
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 1,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
@@ -72,12 +72,12 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 7,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 957,
+      "event_count": 866,
       "days_since_scrape": 0
     },
     {
@@ -92,7 +92,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 21,
+      "event_count": 20,
       "days_since_scrape": 0
     },
     {
@@ -117,18 +117,18 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 41,
+      "event_count": 39,
       "days_since_scrape": 0
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "User Submitted",
       "event_count": 43,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     }
   ],
   "stale": [],
