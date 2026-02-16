@@ -1,14 +1,29 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-15T07:29:32.508843",
-  "total_events": 2573,
-  "total_sources": 25,
-  "history_runs": 4,
-  "alerts": [],
-  "diagnosis": null,
+  "timestamp": "2026-02-16T07:48:04.637315",
+  "total_events": 2520,
+  "total_sources": 23,
+  "history_runs": 5,
+  "alerts": [
+    {
+      "source": "Arts at the Armory",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 6.2,
+      "message": "0 events (avg: 6) - scraper may be broken"
+    },
+    {
+      "source": "Multicultural Arts Center",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 3.0,
+      "message": "Source disappeared from data (avg: 3)"
+    }
+  ],
+  "diagnosis": "Here are the most likely reasons:\n* Website structure change: Updated HTML or CSS affecting scraper's parsing logic.\n* New anti-scraping measures: Implemented bot detection or blocking techniques.\n* Event data source change: Switched to a new API or data provider, altering scraper's target.\n* Temporary website issues: Outage, maintenance, or technical difficulties causing data unavailability.",
   "summary": {
-    "critical": 0,
+    "critical": 1,
     "warning": 0,
-    "missing": 0
+    "missing": 1
   }
 }

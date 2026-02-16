@@ -118,6 +118,34 @@
         "Boston Swing Central": 3,
         "Aeronaut Brewing": 9
       }
+    },
+    {
+      "timestamp": "2026-02-16T07:48:04.637315",
+      "counts": {
+        "City of Cambridge": 866,
+        "Lamplighter Brewing": 15,
+        "The Comedy Studio": 30,
+        "The Dance Complex": 11,
+        "BostonShows.org": 1112,
+        "First Parish in Cambridge": 7,
+        "Harvard Art Museums": 73,
+        "Brattle Theatre": 47,
+        "Grolier Poetry Book Shop": 14,
+        "The Mad Monkfish": 10,
+        "Mount Auburn Cemetery": 10,
+        "Harvard Athletics": 4,
+        "The Lily Pad": 30,
+        "The Middle East": 20,
+        "Portico Brewing": 20,
+        "Porter Square Books": 23,
+        "Central Square Theater": 59,
+        "Sanders Theatre": 8,
+        "American Repertory Theater": 37,
+        "User Submitted": 43,
+        "Harvard Book Store": 69,
+        "Boston Swing Central": 3,
+        "Aeronaut Brewing": 9
+      }
     }
   ]
 }
