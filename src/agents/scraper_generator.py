@@ -2,6 +2,7 @@
 import argparse
 import ast
 import importlib.util
+import io
 import json
 import logging
 import os
@@ -95,6 +96,7 @@ class ScraperGeneratorAgent(BaseAgent):
         investigation["venue_name"] = venue
 
         if dry_run:
+            investigation.pop("_raw_html", None)
             report = {
                 "status": "dry_run",
                 "investigation": investigation,
@@ -105,25 +107,20 @@ class ScraperGeneratorAgent(BaseAgent):
 
         # Step 2: Generate scraper code with Anthropic
         if not self.anthropic_client:
+            investigation.pop("_raw_html", None)
             return {
                 "status": "error",
                 "error": "ANTHROPIC_API_KEY not set. Use --dry-run for investigation only.",
                 "investigation": investigation,
             }
 
-        code = self._generate_scraper(investigation)
+        # Step 3: Generate + validate with progressive retries
+        code, validation = self._generate_with_retries(investigation, url, venue)
+
+        investigation.pop("_raw_html", None)
+
         if not code:
             return {"status": "error", "error": "Failed to generate scraper code", "investigation": investigation}
-
-        # Step 3: Validate by actually running the scraper
-        validation = self._validate_scraper(code, url, venue)
-
-        # Step 3b: Retry once if validation failed
-        if not validation["valid"] and validation.get("error"):
-            self.logger.info("First attempt failed, retrying with error feedback...")
-            code = self._generate_scraper(investigation, retry_error=validation["error"])
-            if code:
-                validation = self._validate_scraper(code, url, venue)
 
         report = {
             "status": "ok",
@@ -173,6 +170,7 @@ class ScraperGeneratorAgent(BaseAgent):
         investigation["venue_name"] = name
 
         if not self.anthropic_client:
+            investigation.pop("_raw_html", None)
             return {
                 "status": "skipped",
                 "reason": "ANTHROPIC_API_KEY not set",
@@ -181,7 +179,10 @@ class ScraperGeneratorAgent(BaseAgent):
                 "url": url,
             }
 
-        code = self._generate_scraper(investigation)
+        code, validation = self._generate_with_retries(investigation, url, name)
+
+        investigation.pop("_raw_html", None)
+
         if not code:
             return {
                 "status": "error",
@@ -190,15 +191,6 @@ class ScraperGeneratorAgent(BaseAgent):
                 "venue": name,
                 "url": url,
             }
-
-        validation = self._validate_scraper(code, url, name)
-
-        # Retry once on failure
-        if not validation["valid"] and validation.get("error"):
-            self.logger.info(f"Retrying generation for {name}...")
-            code = self._generate_scraper(investigation, retry_error=validation["error"])
-            if code:
-                validation = self._validate_scraper(code, url, name)
 
         return {
             "status": "ok" if validation["valid"] else "error",
@@ -230,6 +222,7 @@ class ScraperGeneratorAgent(BaseAgent):
             result["fetch_error"] = headers  # headers holds the error string
             return result
 
+        result["_raw_html"] = html
         base_url = f"{urlparse(url).scheme}://{urlparse(url).netloc}"
 
         # Run all investigation steps
@@ -254,6 +247,7 @@ class ScraperGeneratorAgent(BaseAgent):
             pw_html, pw_err = self._fetch_page_playwright(url)
             if pw_html:
                 result["used_playwright"] = True
+                result["_raw_html"] = pw_html
                 result["apis"] = self._discover_apis(pw_html, base_url)
                 result["embedded_json"] = self._extract_embedded_json(pw_html)
                 result["feeds"] = self._detect_feeds(pw_html, base_url)
@@ -647,7 +641,10 @@ class ScraperGeneratorAgent(BaseAgent):
     # Code generation (Anthropic)
     # ------------------------------------------------------------------
 
-    def _generate_scraper(self, investigation: dict, retry_error: str = None) -> Optional[str]:
+    def _generate_scraper(
+        self, investigation: dict, retry_error: str = None,
+        previous_code: str = None, html_sample: str = None,
+    ) -> Optional[str]:
         """Generate scraper code using Anthropic Claude with actual data samples."""
         # Load reference files
         scrapers_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scrapers")
@@ -706,11 +703,25 @@ class ScraperGeneratorAgent(BaseAgent):
             "8. The scraper should work immediately when called — use the exact API URL, JSON path, or HTML selectors discovered above\n",
         ]
 
+        if previous_code:
+            prompt_parts.append(
+                f"\n## PREVIOUS CODE (your last attempt)\n"
+                f"```python\n{previous_code}\n```\n"
+                "Identify the specific bug and fix it. Keep the overall structure.\n"
+            )
+
         if retry_error:
             prompt_parts.append(
                 f"\n## PREVIOUS ATTEMPT FAILED\n"
-                f"The previous code failed with this error:\n```\n{retry_error[:2000]}\n```\n"
+                f"Error details:\n```\n{retry_error[:3000]}\n```\n"
                 "Fix the issue and generate working code.\n"
+            )
+
+        if html_sample:
+            prompt_parts.append(
+                f"\n## Raw HTML Sample (actual event containers from the page)\n"
+                f"```html\n{html_sample}\n```\n"
+                "Use this HTML to verify your CSS selectors / tag names match the actual page structure.\n"
             )
 
         prompt = "\n".join(prompt_parts)
@@ -825,6 +836,12 @@ class ScraperGeneratorAgent(BaseAgent):
 
         # Step 3: Actually import and run the scraper
         tmp = None
+        log_capture = io.StringIO()
+        log_handler = logging.StreamHandler(log_capture)
+        log_handler.setLevel(logging.DEBUG)
+        log_handler.setFormatter(logging.Formatter("%(name)s %(levelname)s: %(message)s"))
+        root_logger = logging.getLogger()
+        root_logger.addHandler(log_handler)
         try:
             tmp = tempfile.NamedTemporaryFile(
                 mode="w", suffix=".py", delete=False, dir=tempfile.gettempdir()
@@ -873,10 +890,184 @@ class ScraperGeneratorAgent(BaseAgent):
             result["error"] = error_msg
             self.logger.warning(f"Validation failed for {venue}: {error_msg}")
         finally:
+            root_logger.removeHandler(log_handler)
+            result["scraper_logs"] = log_capture.getvalue()
+            log_capture.close()
             if tmp and os.path.exists(tmp.name):
                 os.unlink(tmp.name)
 
+        # On failure, add URL diagnostics
+        if not result["valid"]:
+            result["diagnostics"] = self._diagnose_url(url, code)
+
         return result
+
+    # ------------------------------------------------------------------
+    # Generation with retries
+    # ------------------------------------------------------------------
+
+    def _generate_with_retries(
+        self, investigation: dict, url: str, venue: str, max_attempts: int = 3,
+    ) -> Tuple[Optional[str], dict]:
+        """Generate and validate a scraper with progressive debugging context.
+
+        Returns (code, validation) — code may be None if all attempts fail.
+        """
+        best_source_type = (investigation.get("best_source") or {}).get("type", "static_html")
+        code = None
+        validation = {"valid": False, "error": "No attempts made"}
+
+        for attempt in range(1, max_attempts + 1):
+            self.logger.info(f"Generation attempt {attempt}/{max_attempts} for {venue}")
+
+            if attempt == 1:
+                # First attempt: normal generation, include HTML sample for static sources
+                html_sample = None
+                if best_source_type == "static_html":
+                    html_sample = self._extract_html_sample(investigation)
+                code = self._generate_scraper(investigation, html_sample=html_sample)
+            elif attempt == 2:
+                # Second attempt: include previous code + rich error context
+                error_context = self._build_error_context(validation)
+                code = self._generate_scraper(
+                    investigation,
+                    retry_error=error_context,
+                    previous_code=code,
+                )
+            else:
+                # Third attempt: previous code + error + always include HTML sample
+                error_context = self._build_error_context(validation)
+                html_sample = self._extract_html_sample(investigation)
+                if not html_sample:
+                    html_sample = self._fetch_html_sample(url)
+                code = self._generate_scraper(
+                    investigation,
+                    retry_error=error_context,
+                    previous_code=code,
+                    html_sample=html_sample,
+                )
+
+            if not code:
+                self.logger.warning(f"Code generation returned None on attempt {attempt}")
+                continue
+
+            validation = self._validate_scraper(code, url, venue)
+            if validation["valid"]:
+                return code, validation
+
+            self.logger.info(
+                f"Attempt {attempt} failed: {validation.get('error', 'unknown')}"
+            )
+
+        return code, validation
+
+    # ------------------------------------------------------------------
+    # HTML sampling
+    # ------------------------------------------------------------------
+
+    def _extract_html_sample(self, investigation: dict, max_chars: int = 2000) -> Optional[str]:
+        """Extract raw HTML snippets of event containers from stored _raw_html."""
+        raw_html = investigation.get("_raw_html")
+        if not raw_html:
+            return None
+
+        soup = BeautifulSoup(raw_html, "html.parser")
+
+        # Try to find event containers using classes from investigation
+        containers = investigation.get("static_html", {}).get("event_containers", [])
+        snippets = []
+        for container_info in containers[:3]:
+            cls = container_info.get("class", "")
+            tag = container_info.get("tag", "div")
+            if cls:
+                # Search by first class name
+                first_class = cls.split()[0]
+                found = soup.find_all(tag, class_=re.compile(re.escape(first_class)), limit=2)
+                for el in found:
+                    snippet = str(el)[:max_chars // 2]
+                    snippets.append(snippet)
+            if snippets:
+                break
+
+        # Fallback: grab elements with common event-related classes
+        if not snippets:
+            event_re = re.compile(r"event|listing|calendar|show|performance", re.I)
+            for el in soup.find_all(["div", "article", "section", "li"], class_=event_re, limit=2):
+                snippets.append(str(el)[:max_chars // 2])
+
+        if not snippets:
+            return None
+
+        result = "\n\n<!-- next event -->\n\n".join(snippets)
+        return result[:max_chars]
+
+    def _fetch_html_sample(self, url: str, max_chars: int = 2000) -> Optional[str]:
+        """Quick fetch fallback for HTML sample when _raw_html wasn't stored."""
+        try:
+            resp = requests.get(
+                url, timeout=10,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                                  "AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+                },
+            )
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "html.parser")
+                event_re = re.compile(r"event|listing|calendar|show|performance", re.I)
+                snippets = []
+                for el in soup.find_all(["div", "article", "section", "li"], class_=event_re, limit=2):
+                    snippets.append(str(el)[:max_chars // 2])
+                if snippets:
+                    return "\n\n<!-- next event -->\n\n".join(snippets)[:max_chars]
+        except requests.RequestException:
+            pass
+        return None
+
+    # ------------------------------------------------------------------
+    # Diagnostics
+    # ------------------------------------------------------------------
+
+    def _diagnose_url(self, url: str, code: str) -> str:
+        """Independently fetch the URL and report HTTP-level diagnostics."""
+        lines = []
+        try:
+            resp = requests.get(
+                url, timeout=10,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                                  "AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+                },
+            )
+            lines.append(f"HTTP {resp.status_code}")
+            lines.append(f"Content-Type: {resp.headers.get('Content-Type', 'unknown')}")
+            lines.append(f"Body length: {len(resp.text)} chars")
+            snippet = resp.text[:500].replace("\n", " ")
+            lines.append(f"Body start: {snippet}")
+        except requests.RequestException as e:
+            lines.append(f"Fetch failed: {e}")
+
+        # Check if the generated code references Playwright
+        uses_pw = "playwright" in code.lower() or "BasePlaywrightScraper" in code
+        if uses_pw:
+            try:
+                import playwright  # noqa: F401
+                lines.append("Playwright: importable")
+            except ImportError:
+                lines.append("Playwright: NOT importable (missing dependency)")
+        return "\n".join(lines)
+
+    def _build_error_context(self, validation: dict) -> str:
+        """Assemble a rich error string from the validation dict."""
+        parts = []
+        if validation.get("error"):
+            parts.append(f"Error: {validation['error']}")
+        if validation.get("scraper_logs"):
+            log_text = validation["scraper_logs"].strip()
+            if log_text:
+                parts.append(f"Scraper logs:\n{log_text[:2000]}")
+        if validation.get("diagnostics"):
+            parts.append(f"URL diagnostics:\n{validation['diagnostics']}")
+        return "\n\n".join(parts) if parts else "Unknown error"
 
     # ------------------------------------------------------------------
     # Helpers
