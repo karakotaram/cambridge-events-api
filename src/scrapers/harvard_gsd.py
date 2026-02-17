@@ -15,6 +15,12 @@ logger = logging.getLogger(__name__)
 
 API_URL = "https://www.gsd.harvard.edu/wp-json/gsd/v1/events"
 
+# Alumni/off-site events not relevant to Cambridge
+EXCLUDED_SLUGS = {
+    "apa-detroit-gsd-alumni-reception-2026",
+    "gsd-comeback-alumni-friends-celebration-2026",
+}
+
 
 class HarvardGSDScraper(BaseScraper):
     """Scrape public events from Harvard GSD via their WordPress REST API"""
@@ -83,6 +89,9 @@ class HarvardGSDScraper(BaseScraper):
         return ""
 
     def _parse_event(self, item: dict):
+        if item.get("slug", "") in EXCLUDED_SLUGS:
+            return None
+
         # Extract title, stripping HTML tags and decoding entities
         raw_title = item.get("title", {}).get("rendered", "")
         title = unescape(re.sub(r"<[^>]+>", "", raw_title)).strip()
