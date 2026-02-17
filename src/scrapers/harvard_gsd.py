@@ -29,6 +29,7 @@ class HarvardGSDScraper(BaseScraper):
     def scrape_events(self) -> List[EventCreate]:
         response = requests.get(
             API_URL,
+            params={"per_page": "100"},
             headers=self.get_browser_headers(),
             timeout=15,
         )
