@@ -5,6 +5,7 @@ from html import unescape
 from typing import List
 
 import requests
+from bs4 import BeautifulSoup
 from dateutil import parser as dateparse
 
 from src.scrapers.base_scraper import BaseScraper
@@ -45,6 +46,40 @@ class HarvardGSDScraper(BaseScraper):
 
         logger.info(f"Found {len(events)} Harvard GSD events")
         return events
+
+    def _extract_about(self, desc_html: str) -> str:
+        """Extract the 'About this Event' text, or fall back to body paragraphs."""
+        if not desc_html:
+            return ""
+        soup = BeautifulSoup(desc_html, "html.parser")
+
+        # Try to find "About this Event" heading
+        heading = soup.find(
+            lambda tag: tag.name in ("h2", "h3")
+            and "about this event" in tag.get_text().lower()
+        )
+        if heading:
+            parts = []
+            for sib in heading.find_next_siblings():
+                if sib.name and sib.name.startswith("h"):
+                    break
+                text = sib.get_text(strip=True)
+                if text:
+                    parts.append(text)
+            if parts:
+                return " ".join(parts)[:2000]
+
+        # Fallback: collect <p> text after removing the hero banner
+        for div in soup.find_all("div", class_=re.compile(r"hero-banner")):
+            div.decompose()
+        paragraphs = []
+        for p in soup.find_all("p"):
+            text = p.get_text(strip=True)
+            if len(text) > 20:
+                paragraphs.append(text)
+        if paragraphs:
+            return " ".join(paragraphs)[:2000]
+        return ""
 
     def _parse_event(self, item: dict):
         # Extract title, stripping HTML tags and decoding entities
@@ -87,24 +122,10 @@ class HarvardGSDScraper(BaseScraper):
         location = (occ.get("location") or "").strip()
         venue = f"Harvard GSD - {location}" if location else "Harvard GSD"
 
-        # Build description
-        desc_parts = []
-        event_type = occ.get("type", "")
-        if event_type:
-            desc_parts.append(event_type)
-        if location:
-            desc_parts.append(f"Location: {location}")
-        reg_url = item.get("registration_url", "")
-        if reg_url:
-            desc_parts.append(f"Register: {reg_url}")
-        # Extract text from the HTML description for a brief summary
-        raw_desc = item.get("description", {}).get("rendered", "")
-        if raw_desc:
-            text = unescape(re.sub(r"<[^>]+>", " ", raw_desc))
-            text = re.sub(r"\s+", " ", text).strip()
-            if text:
-                desc_parts.append(text[:500])
-        description = " | ".join(desc_parts) if desc_parts else title
+        # Build description from "About this Event" section
+        description = self._extract_about(item.get("description", {}).get("rendered", ""))
+        if not description:
+            description = title
 
         # Event URL
         event_url = item.get("link", self.source_url)
@@ -118,6 +139,7 @@ class HarvardGSDScraper(BaseScraper):
                 image_url = img_match.group(1)
 
         # Categorize based on event type
+        event_type = occ.get("type", "")
         category = EventCategory.LECTURES
         type_lower = event_type.lower()
         if any(w in type_lower for w in ("exhibition", "gallery", "art")):
