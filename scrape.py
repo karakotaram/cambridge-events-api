@@ -51,6 +51,9 @@ from src.scrapers.cambridge_library import CambridgeLibraryScraper
 from src.scrapers.openspace_mit import OpenSpaceMITScraper
 from src.scrapers.skip_small_talk import SkipSmallTalkScraper
 from src.scrapers.harvard_athletics import HarvardAthleticsScraper
+from src.scrapers.museum_of_science import MuseumOfScienceScraper
+from src.scrapers.the_sinclair import TheSinclairScraper
+from src.scrapers.regent_theatre import RegentTheatreScraper
 from src.models.event import EventCreate, Event
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
@@ -248,6 +251,7 @@ def main():
     orchestrator.register_scraper(MadMonkfishScraper())
     orchestrator.register_scraper(MountAuburnScraper())
     orchestrator.register_scraper(HarvardAthleticsScraper())
+    orchestrator.register_scraper(TheSinclairScraper())
 
     # Selenium/Playwright scrapers (run after non-Selenium to reduce browser restarts)
     orchestrator.register_scraper(CambridgeGovScraper())
@@ -265,6 +269,8 @@ def main():
         orchestrator.register_scraper(SomervilleTheatreScraper())
 
     # Playwright scrapers
+    orchestrator.register_scraper(MuseumOfScienceScraper())
+    orchestrator.register_scraper(RegentTheatreScraper())
     orchestrator.register_scraper(LongyScraper())
     orchestrator.register_scraper(MITCalendarScraper())
     orchestrator.register_scraper(MITMusicTheaterScraper())
