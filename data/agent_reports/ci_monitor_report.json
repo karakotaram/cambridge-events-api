@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-16T07:48:07.109767",
-  "total_events": 2520,
+  "timestamp": "2026-02-17T07:40:47.640984",
+  "total_events": 2531,
   "total_sources_registered": 38,
-  "total_sources_with_events": 23,
+  "total_sources_with_events": 25,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 15,
+      "event_count": 16,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 69,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "The Comedy Studio",
@@ -27,7 +27,7 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 11,
+      "event_count": 12,
       "days_since_scrape": 0
     },
     {
@@ -47,12 +47,17 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 47,
+      "event_count": 43,
       "days_since_scrape": 0
     },
     {
       "source": "Grolier Poetry Book Shop",
       "event_count": 14,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "Multicultural Arts Center",
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
@@ -82,7 +87,7 @@
     },
     {
       "source": "The Middle East",
-      "event_count": 20,
+      "event_count": 19,
       "days_since_scrape": 0
     },
     {
@@ -96,13 +101,18 @@
       "days_since_scrape": 0
     },
     {
+      "source": "Arts at the Armory",
+      "event_count": 6,
+      "days_since_scrape": 0
+    },
+    {
       "source": "Central Square Theater",
       "event_count": 59,
       "days_since_scrape": 0
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 8,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -113,15 +123,20 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 3
-    },
-    {
-      "source": "User Submitted",
-      "event_count": 43,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     }
   ],
-  "stale": [],
+  "stale": [
+    {
+      "source": "User Submitted",
+      "ci": true,
+      "event_count": 43,
+      "days_stale": 4,
+      "latest_scraped": "2026-02-12T08:56:40.884862",
+      "threshold_days": 3,
+      "issue": "Last scraped 4 days ago (threshold: 3)"
+    }
+  ],
   "missing": [
     {
       "source": "Theatre at First",
@@ -129,17 +144,7 @@
       "issue": "No events in data"
     },
     {
-      "source": "Multicultural Arts Center",
-      "ci": true,
-      "issue": "No events in data"
-    },
-    {
       "source": "The Rockwell",
-      "ci": true,
-      "issue": "No events in data"
-    },
-    {
-      "source": "Arts at the Armory",
       "ci": true,
       "issue": "No events in data"
     },
@@ -201,9 +206,9 @@
   ],
   "unregistered": [],
   "summary": {
-    "healthy": 23,
-    "stale": 0,
-    "missing": 15,
+    "healthy": 24,
+    "stale": 1,
+    "missing": 13,
     "unregistered": 0
   }
 }
