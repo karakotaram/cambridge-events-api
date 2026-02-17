@@ -135,21 +135,30 @@ class ScraperGeneratorAgent(BaseAgent):
 
         # Step 4: Optionally write to file
         if write and validation["valid"]:
-            filename = self._venue_to_filename(venue)
-            filepath = os.path.join(
-                os.path.dirname(os.path.dirname(__file__)),
-                "scrapers", filename
-            )
-            with open(filepath, "w") as f:
-                f.write(code)
+            filepath = self.write_scraper(venue, code)
             report["written_to"] = filepath
-            self.logger.info(f"Scraper written to {filepath}")
         elif write and not validation["valid"]:
             report["write_skipped"] = "Validation failed"
 
         report["code"] = code
         self.save_report(report, "scraper_generator_report.json")
         return report
+
+    # ------------------------------------------------------------------
+    # Public helpers
+    # ------------------------------------------------------------------
+
+    def write_scraper(self, venue: str, code: str) -> str:
+        """Write scraper code to src/scrapers/{venue}.py. Returns filepath."""
+        filename = self._venue_to_filename(venue)
+        filepath = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "scrapers", filename
+        )
+        with open(filepath, "w") as f:
+            f.write(code)
+        self.logger.info(f"Scraper written to {filepath}")
+        return filepath
 
     # ------------------------------------------------------------------
     # Public pipeline method for source_discovery integration
@@ -232,6 +241,28 @@ class ScraperGeneratorAgent(BaseAgent):
         result["static_html"] = self._assess_static_html(soup)
         result["json_ld"] = self._extract_json_ld(soup)
 
+        # If page needs JS and we found nothing useful, retry with Playwright
+        needs_js = result["static_html"].get("needs_js", False)
+        has_data = (
+            result["apis"]
+            or result["embedded_json"]
+            or result.get("json_ld")
+            or result["feeds"]
+        )
+        if needs_js and not has_data:
+            self.logger.info("Page needs JS rendering — retrying with Playwright...")
+            pw_html, pw_err = self._fetch_page_playwright(url)
+            if pw_html:
+                result["used_playwright"] = True
+                result["apis"] = self._discover_apis(pw_html, base_url)
+                result["embedded_json"] = self._extract_embedded_json(pw_html)
+                result["feeds"] = self._detect_feeds(pw_html, base_url)
+                soup = BeautifulSoup(pw_html, "html.parser")
+                result["static_html"] = self._assess_static_html(soup)
+                result["json_ld"] = self._extract_json_ld(soup)
+            elif pw_err:
+                self.logger.warning(f"Playwright fallback failed: {pw_err}")
+
         # Pick best source by priority
         if result["apis"]:
             best = result["apis"][0]
@@ -285,6 +316,56 @@ class ScraperGeneratorAgent(BaseAgent):
             return response.text, None
         except requests.RequestException as e:
             return None, str(e)
+
+    def _fetch_page_playwright(self, url: str) -> Tuple[Optional[str], Optional[str]]:
+        """Fetch page with Playwright for JS-rendered sites."""
+        try:
+            from playwright.sync_api import sync_playwright
+
+            pw = sync_playwright().start()
+            try:
+                browser = pw.chromium.launch(
+                    headless=True,
+                    args=[
+                        "--no-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--disable-extensions",
+                        "--disable-software-rasterizer",
+                    ],
+                )
+                context = browser.new_context(
+                    viewport={"width": 1920, "height": 1080},
+                    user_agent=(
+                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/120.0.0.0 Safari/537.36"
+                    ),
+                    java_script_enabled=True,
+                    bypass_csp=True,
+                    extra_http_headers={
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                        "Accept-Language": "en-US,en;q=0.9",
+                        "DNT": "1",
+                    },
+                )
+                context.route(
+                    "**/*.{png,jpg,jpeg,gif,svg,ico,woff,woff2}",
+                    lambda route: route.abort(),
+                )
+                page = context.new_page()
+                page.goto(url, wait_until="networkidle", timeout=30000)
+                page.wait_for_timeout(2000)
+                html = page.content()
+                page.close()
+                context.close()
+                browser.close()
+            finally:
+                pw.stop()
+
+            return html, None
+        except Exception as e:
+            return None, f"Playwright error: {e}"
 
     def _discover_apis(self, html: str, base_url: str) -> list:
         """Search HTML/JS for API endpoints, test each for JSON with event data."""
@@ -572,27 +653,50 @@ class ScraperGeneratorAgent(BaseAgent):
         scrapers_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scrapers")
         models_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
 
+        used_playwright = investigation.get("used_playwright", False)
+
         base_scraper_code = self._read_file(os.path.join(scrapers_dir, "base_scraper.py"))
         model_code = self._read_file(os.path.join(models_dir, "event.py"))
+
+        # If Playwright is needed, also load the Playwright base class
+        if used_playwright:
+            pw_base_code = self._read_file(os.path.join(scrapers_dir, "base_playwright_scraper.py"))
 
         # Pick reference scraper based on data source type
         best = investigation.get("best_source") or {}
         source_type = best.get("type", "static_html")
-        ref_scraper_name = self._select_reference_scraper(source_type)
+        ref_scraper_name = self._select_reference_scraper(source_type, used_playwright)
         ref_code = self._read_file(os.path.join(scrapers_dir, f"{ref_scraper_name}.py"))
 
         # Build the data source description
         source_desc = self._build_source_description(investigation)
 
+        if used_playwright:
+            base_class_name = "BasePlaywrightScraper"
+            base_class_section = (
+                f"## BasePlaywrightScraper class to extend\n```python\n{pw_base_code}\n```\n"
+            )
+            extend_instruction = (
+                f"1. Extend BasePlaywrightScraper (this site requires JS rendering via Playwright)\n"
+            )
+        else:
+            base_class_name = "BaseScraper"
+            base_class_section = (
+                f"## BaseScraper class to extend\n```python\n{base_scraper_code}\n```\n"
+            )
+            extend_instruction = (
+                f"1. Extend BaseScraper (use_selenium=False unless the data source requires JS)\n"
+            )
+
         prompt_parts = [
             f"Generate a Python scraper for the venue '{investigation['venue_name']}' "
             f"at URL: {investigation['url']}\n",
             f"## Discovered Data Source\n{source_desc}\n",
-            f"## BaseScraper class to extend\n```python\n{base_scraper_code}\n```\n",
+            base_class_section,
             f"## EventCreate model\n```python\n{model_code}\n```\n",
             f"## Reference scraper ({ref_scraper_name}.py) — follow this pattern\n```python\n{ref_code}\n```\n",
             "## Requirements\n"
-            f"1. Extend BaseScraper (use_selenium=False unless the data source requires JS)\n"
+            f"{extend_instruction}"
             f"2. Implement scrape_events() -> List[EventCreate]\n"
             f"3. Set source_name='{investigation['venue_name']}'\n"
             "4. Parse dates properly using dateutil.parser\n"
@@ -630,8 +734,10 @@ class ScraperGeneratorAgent(BaseAgent):
 
         return code
 
-    def _select_reference_scraper(self, source_type: str) -> str:
+    def _select_reference_scraper(self, source_type: str, used_playwright: bool = False) -> str:
         """Pick the best reference scraper based on data source type."""
+        if used_playwright:
+            return "mit_calendar"
         mapping = {
             "api": "harvard_athletics",
             "embedded_json": "harvard_art_museums",
@@ -707,8 +813,8 @@ class ScraperGeneratorAgent(BaseAgent):
             return result
 
         # Step 2: Basic structure checks
-        if "BaseScraper" not in code:
-            result["errors"].append("Does not extend BaseScraper")
+        if "BaseScraper" not in code and "BasePlaywrightScraper" not in code:
+            result["errors"].append("Does not extend BaseScraper or BasePlaywrightScraper")
         if "def scrape_events" not in code:
             result["errors"].append("Missing scrape_events() method")
         if "EventCreate" not in code:
@@ -828,6 +934,8 @@ class ScraperGeneratorAgent(BaseAgent):
         static = investigation.get("static_html", {})
         print(f"Static HTML containers: {len(static.get('event_containers', []))}")
         print(f"Needs JS: {static.get('needs_js', False)}")
+        if investigation.get("used_playwright"):
+            print(f"Used Playwright: True")
         print()
 
 
