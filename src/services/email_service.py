@@ -16,7 +16,7 @@ except ImportError:
     RESEND_AVAILABLE = False
 
 from src.models.event import Event
-from src.models.user import User, EmailLog, ArchetypeEnum
+from src.models.user import User, EmailLog
 
 
 # Template directory
@@ -89,10 +89,6 @@ def render_weekly_digest(
             "family_friendly": event.family_friendly,
         })
 
-    # Get archetype name
-    from src.services.archetypes import get_archetype_name
-    archetype_name = get_archetype_name(user.primary_archetype)
-
     # Unsubscribe link
     unsubscribe_url = f"{base_url}/onboarding/unsubscribe/{user.unsubscribe_token}"
 
@@ -100,19 +96,18 @@ def render_weekly_digest(
     template = jinja_env.get_template("weekly_digest.html")
     html_body = template.render(
         user_email=user.email,
-        archetype_name=archetype_name,
         events=events_data,
         unsubscribe_url=unsubscribe_url,
         current_year=datetime.now().year,
     )
 
     # Subject line
-    subject = f"Your Week in Cambridge: {len(events)} Events for {archetype_name}s"
+    subject = f"Your Week in Cambridge: {len(events)} Events Picked for You"
 
     return subject, html_body
 
 
-def render_welcome_email(user: User) -> Tuple[str, str]:
+def render_welcome_email(user: User, liked_count: int = 0) -> Tuple[str, str]:
     """
     Render the welcome email for new subscribers.
 
@@ -121,27 +116,17 @@ def render_welcome_email(user: User) -> Tuple[str, str]:
     """
     base_url = get_api_base_url()
 
-    from src.services.archetypes import get_archetype_name, get_archetype_description
-    archetype_name = get_archetype_name(user.primary_archetype)
-    archetype_desc = get_archetype_description(user.primary_archetype)
-
-    secondary_name = None
-    if user.secondary_archetype:
-        secondary_name = get_archetype_name(user.secondary_archetype)
-
     unsubscribe_url = f"{base_url}/onboarding/unsubscribe/{user.unsubscribe_token}"
 
     template = jinja_env.get_template("welcome.html")
     html_body = template.render(
         user_email=user.email,
-        archetype_name=archetype_name,
-        archetype_description=archetype_desc,
-        secondary_archetype_name=secondary_name,
+        liked_count=liked_count,
         unsubscribe_url=unsubscribe_url,
         current_year=datetime.now().year,
     )
 
-    subject = f"Welcome, {archetype_name}! Your Cambridge Events Await"
+    subject = "Welcome! Your Cambridge Events Await"
 
     return subject, html_body
 
@@ -225,14 +210,14 @@ def send_weekly_digest(
     return str(email_log.id)
 
 
-def send_welcome_email_to_user(user: User, db_session) -> Optional[str]:
+def send_welcome_email_to_user(user: User, db_session, liked_count: int = 0) -> Optional[str]:
     """
     Send welcome email to a new user.
 
     Returns:
         EmailLog ID if successful, None if failed
     """
-    subject, html_body = render_welcome_email(user)
+    subject, html_body = render_welcome_email(user, liked_count)
 
     # Create email log
     email_log = EmailLog(

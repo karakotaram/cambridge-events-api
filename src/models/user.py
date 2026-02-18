@@ -12,18 +12,6 @@ from pydantic import BaseModel, EmailStr, Field
 from src.db.database import Base
 
 
-class ArchetypeEnum(str, Enum):
-    """User archetype types"""
-    CULTURE_PROFESSIONAL = "culture_professional"
-    FAMILY_EXPLORER = "family_explorer"
-    NIGHTLIFE_ENTHUSIAST = "nightlife_enthusiast"
-    ACADEMIC_CURIOUS = "academic_curious"
-    SOCIAL_CONNECTOR = "social_connector"
-    ARTS_AFICIONADO = "arts_aficionado"
-    ACTIVE_ADVENTURER = "active_adventurer"
-    BUDGET_EXPLORER = "budget_explorer"
-
-
 class EmailStatus(str, Enum):
     """Email delivery status"""
     SENT = "sent"
@@ -40,18 +28,65 @@ class User(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
-    primary_archetype = Column(SQLEnum(ArchetypeEnum), nullable=False)
-    secondary_archetype = Column(SQLEnum(ArchetypeEnum), nullable=True)
-    questionnaire_responses = Column(JSON, nullable=False)
     email_opt_in = Column(Boolean, default=True)
     unsubscribe_token = Column(String(64), unique=True, nullable=False, default=lambda: secrets.token_urlsafe(32))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_email_sent = Column(DateTime, nullable=True)
 
+    # Legacy archetype columns (nullable for migration, will be dropped later)
+    primary_archetype = Column(String(64), nullable=True)
+    secondary_archetype = Column(String(64), nullable=True)
+    questionnaire_responses = Column(JSON, nullable=True)
+
     # Relationships
     email_logs = relationship("EmailLog", back_populates="user", cascade="all, delete-orphan")
     click_tracking = relationship("ClickTracking", back_populates="user", cascade="all, delete-orphan")
+    preferences = relationship("UserPreferences", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    onboarding_likes = relationship("OnboardingLike", back_populates="user", cascade="all, delete-orphan")
+    digest_override = relationship("DigestOverride", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
+
+class UserPreferences(Base):
+    """Learned preference weights per user"""
+    __tablename__ = "user_preferences"
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    category_weights = Column(JSON, default=dict)  # {"music": 0.8, "lectures": 0.4, ...}
+    timing_weights = Column(JSON, default=dict)  # {"weekday_evening": 1.0, ...}
+    venue_weights = Column(JSON, default=dict)  # {"Harvard Art Museums": 0.5, ...}
+    price_sensitivity = Column(Float, default=0.5)  # 0.0 = prefers free, 1.0 = any price
+    prefers_family_friendly = Column(Boolean, default=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    user = relationship("User", back_populates="preferences")
+
+
+class OnboardingLike(Base):
+    """Raw record of which events each user liked during onboarding"""
+    __tablename__ = "onboarding_likes"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    event_id = Column(String(64), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    user = relationship("User", back_populates="onboarding_likes")
+
+
+class DigestOverride(Base):
+    """Per-user override for next weekly email. Consumed and cleared after sending."""
+    __tablename__ = "digest_overrides"
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    event_ids = Column(JSON, nullable=False, default=list)  # Array of event IDs
+    created_at = Column(DateTime, default=datetime.utcnow)
+    created_by = Column(String(64), default="admin")
+
+    # Relationships
+    user = relationship("User", back_populates="digest_override")
 
 
 class EmailLog(Base):
@@ -105,41 +140,20 @@ class EventPopularity(Base):
     calculated_at = Column(DateTime, default=datetime.utcnow)
 
 
-class CuratedDigest(Base):
-    """Saved curated event picks per archetype for weekly emails. Keeps full history."""
-    __tablename__ = "curated_digests"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    archetype = Column(String(64), nullable=False, index=True)
-    events = Column(JSON, nullable=False, default=list)  # [{"event_id": "...", "score": 0.85}, ...]
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-
 # Pydantic Models (API Request/Response)
 
-class QuestionnaireResponses(BaseModel):
-    """User's answers to the 4 onboarding questions"""
-    lifestyle: str = Field(..., description="Lifestyle type: professional, parent, student, retired, active")
-    interests: List[str] = Field(..., max_length=2, description="Top 2 interests")
-    timing: str = Field(..., description="Preferred timing: weekday_evening, weekend_daytime, weekend_evening, flexible")
-    budget: str = Field(..., description="Budget preference: free_only, under_20, moderate, any")
-
-
 class OnboardingSubmit(BaseModel):
-    """Request model for onboarding submission"""
+    """Request model for new onboarding submission"""
     email: EmailStr
-    responses: QuestionnaireResponses
-    archetype_override: Optional[str] = None  # If set, use this instead of calculating
+    liked_event_ids: List[str] = Field(default_factory=list, description="IDs of events the user liked")
 
 
 class OnboardingResponse(BaseModel):
     """Response model for onboarding submission"""
     success: bool
     user_id: str
-    primary_archetype: str
-    secondary_archetype: Optional[str]
-    archetype_description: str
     message: str
+    liked_count: int
 
 
 class UnsubscribeRequest(BaseModel):
@@ -147,31 +161,9 @@ class UnsubscribeRequest(BaseModel):
     token: str
 
 
-class QuestionOption(BaseModel):
-    """Single option for a question"""
-    value: str
-    label: str
-    description: Optional[str] = None
-
-
-class Question(BaseModel):
-    """Single question in the questionnaire"""
-    id: str
-    question: str
-    type: str  # "single" or "multi"
-    max_selections: Optional[int] = None
-    options: List[QuestionOption]
-
-
-class QuestionsResponse(BaseModel):
-    """Response model for questionnaire questions"""
-    questions: List[Question]
-
-
 class AdminStats(BaseModel):
     """Admin statistics response"""
     total_users: int
-    users_by_archetype: dict
     emails_sent_last_7_days: int
     total_opens: int
     total_clicks: int

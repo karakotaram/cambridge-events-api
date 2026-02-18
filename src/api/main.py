@@ -172,8 +172,8 @@ async def root():
             "/events/{event_id}/calendar.ics": "Download ICS calendar file for event",
             "/events/search": "Search events",
             "/signup": "Sign up for personalized weekly event emails",
-            "/onboarding/questions": "Get onboarding questionnaire",
-            "/onboarding/submit": "Submit questionnaire and subscribe",
+            "/onboarding/sample-events": "Get diverse events for onboarding picker",
+            "/onboarding/submit": "Submit liked events and subscribe",
             "/health": "Health check"
         }
     }
@@ -1258,13 +1258,11 @@ def _run_migrations():
     try:
         inspector = inspect(engine)
 
-        # Migrate curated_digests: old schema had archetype as PK, new has id + history
+        # Migrate curated_digests: drop old table (replaced by digest_overrides)
         if "curated_digests" in inspector.get_table_names():
-            columns = {c["name"] for c in inspector.get_columns("curated_digests")}
-            if "id" not in columns:
-                with engine.begin() as conn:
-                    conn.execute(text("DROP TABLE curated_digests CASCADE"))
-                    print("[MIGRATION] Dropped old curated_digests table (will be recreated)")
+            with engine.begin() as conn:
+                conn.execute(text("DROP TABLE curated_digests CASCADE"))
+                print("[MIGRATION] Dropped old curated_digests table (replaced by digest_overrides)")
 
         if "website_interactions" in inspector.get_table_names():
             existing = {c["name"] for c in inspector.get_columns("website_interactions")}
@@ -1281,6 +1279,58 @@ def _run_migrations():
                             f"ALTER TABLE website_interactions ADD COLUMN {col_name} {col_type}"
                         ))
                         print(f"[MIGRATION] Added column website_interactions.{col_name}")
+
+        # Migrate users table: make archetype columns nullable (String instead of Enum)
+        if "users" in inspector.get_table_names():
+            existing = {c["name"] for c in inspector.get_columns("users")}
+            # Add new columns if they don't exist
+            # (The ORM will create new tables like user_preferences, onboarding_likes, digest_overrides)
+
+        # Migrate existing archetype users to UserPreferences
+        if "users" in inspector.get_table_names() and "user_preferences" in inspector.get_table_names():
+            from src.models.user import User, UserPreferences
+            from src.services.preferences import get_default_preferences_for_archetype
+            from src.db.database import SessionLocal
+            if SessionLocal:
+                db = SessionLocal()
+                try:
+                    # Find users with archetypes but no preferences row
+                    users_needing_migration = db.query(User).filter(
+                        User.primary_archetype.isnot(None),
+                    ).all()
+
+                    migrated = 0
+                    for user in users_needing_migration:
+                        existing_prefs = db.query(UserPreferences).filter(
+                            UserPreferences.user_id == user.id
+                        ).first()
+                        if existing_prefs:
+                            continue
+
+                        archetype_val = user.primary_archetype
+                        if hasattr(archetype_val, 'value'):
+                            archetype_val = archetype_val.value
+                        defaults = get_default_preferences_for_archetype(str(archetype_val))
+                        prefs = UserPreferences(
+                            user_id=user.id,
+                            category_weights=defaults["category_weights"],
+                            timing_weights=defaults["timing_weights"],
+                            venue_weights=defaults["venue_weights"],
+                            price_sensitivity=defaults["price_sensitivity"],
+                            prefers_family_friendly=defaults["prefers_family_friendly"],
+                        )
+                        db.add(prefs)
+                        migrated += 1
+
+                    if migrated > 0:
+                        db.commit()
+                        print(f"[MIGRATION] Created UserPreferences for {migrated} existing users from archetypes")
+                except Exception as e:
+                    db.rollback()
+                    print(f"[MIGRATION] User preferences migration error: {e}")
+                finally:
+                    db.close()
+
     except Exception as e:
         print(f"[MIGRATION] Error: {e}")
 
@@ -1289,12 +1339,12 @@ def _run_migrations():
 async def startup_migrations():
     from src.db.database import engine, Base
     if engine is not None:
-        from src.models.user import CuratedDigest  # noqa: F401
+        from src.models.user import UserPreferences, OnboardingLike, DigestOverride  # noqa: F401
         try:
-            # Run migrations first (may drop old tables with wrong schema)
-            _run_migrations()
-            # Then create all tables (including any that were just dropped)
+            # Create all tables first (including new ones)
             Base.metadata.create_all(bind=engine)
+            # Then run migrations (may need new tables to exist)
+            _run_migrations()
             print("[STARTUP] Database tables ready")
         except Exception as e:
             print(f"[STARTUP] Database setup error: {e}")
@@ -1313,7 +1363,7 @@ async def initialize_database(api_key: str = Query(None)):
 
     try:
         from src.db.database import engine, Base
-        from src.models.user import User, EmailLog, ClickTracking, EventPopularity, CuratedDigest  # noqa: F401
+        from src.models.user import User, EmailLog, ClickTracking, EventPopularity, UserPreferences, OnboardingLike, DigestOverride  # noqa: F401
         from src.models.interactions import WebsiteInteraction  # noqa: F401
 
         if engine is None:

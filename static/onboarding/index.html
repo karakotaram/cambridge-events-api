@@ -17,11 +17,7 @@
             --border: #e2e8f0;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -32,7 +28,7 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 640px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -55,12 +51,13 @@
 
         .card {
             background: var(--white);
-            border-radius: 8px;
+            border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             padding: 30px;
             margin-bottom: 20px;
         }
 
+        /* Progress bar */
         .progress-bar {
             display: flex;
             justify-content: center;
@@ -69,140 +66,156 @@
         }
 
         .progress-step {
-            width: 40px;
+            width: 80px;
             height: 6px;
             background: var(--border);
             border-radius: 3px;
             transition: background 0.3s;
         }
 
-        .progress-step.active {
-            background: var(--primary);
-        }
+        .progress-step.active { background: var(--primary); }
+        .progress-step.completed { background: var(--success); }
 
-        .progress-step.completed {
-            background: var(--success);
-        }
+        /* Step containers */
+        .step { display: none; }
+        .step.active { display: block; }
 
-        .question {
-            display: none;
-        }
-
-        .question.active {
-            display: block;
-        }
-
-        .question h2 {
+        .step h2 {
             font-size: 22px;
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             color: var(--text);
         }
 
-        .options {
+        .step-subtitle {
+            font-size: 15px;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        /* Event cards grid */
+        .event-grid {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
 
-        .option {
+        .event-card {
+            display: flex;
+            gap: 14px;
+            padding: 14px;
             border: 2px solid var(--border);
             border-radius: 10px;
-            padding: 15px 20px;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .option:hover {
-            border-color: var(--primary);
-            background: #edf2f7;
-        }
-
-        .option.selected {
-            border-color: var(--primary);
-            background: #edf2f7;
-        }
-
-        .option-radio {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border);
-            border-radius: 50%;
-            flex-shrink: 0;
-            margin-top: 2px;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
         }
 
-        .option.selected .option-radio {
+        .event-card:hover {
             border-color: var(--primary);
-            background: var(--primary);
+            background: #f7fafd;
         }
 
-        .option.selected .option-radio::after {
-            content: '';
-            width: 8px;
-            height: 8px;
-            background: white;
-            border-radius: 50%;
+        .event-card.liked {
+            border-color: var(--success);
+            background: #f0fff4;
         }
 
-        .option-checkbox {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border);
-            border-radius: 4px;
+        .event-card-img {
+            width: 64px;
+            height: 64px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--border);
             flex-shrink: 0;
-            margin-top: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
         }
 
-        .option.selected .option-checkbox {
-            border-color: var(--primary);
-            background: var(--primary);
-        }
-
-        .option.selected .option-checkbox::after {
-            content: '\2713';
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .option-content {
+        .event-card-body {
             flex: 1;
+            min-width: 0;
         }
 
-        .option-label {
+        .event-card-title {
             font-weight: 600;
-            font-size: 16px;
+            font-size: 15px;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .event-card-meta {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        .event-card-desc {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .event-card-badges {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-cat {
+            background: var(--primary);
+            color: white;
+            text-transform: capitalize;
+        }
+
+        .badge-cost {
+            background: var(--border);
             color: var(--text);
         }
 
-        .option-description {
-            font-size: 14px;
-            color: var(--text-light);
-            margin-top: 4px;
+        .badge-ff {
+            background: #c6f6d5;
+            color: #276749;
         }
 
-        .multi-hint {
-            font-size: 14px;
-            color: var(--secondary);
-            margin-bottom: 15px;
-            font-style: italic;
+        .thumb-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
         }
 
+        .event-card.liked .thumb-btn {
+            border-color: var(--success);
+            background: var(--success);
+            color: white;
+        }
+
+        /* Navigation */
         .nav-buttons {
             display: flex;
             justify-content: space-between;
-            margin-top: 30px;
+            margin-top: 24px;
             gap: 15px;
         }
 
@@ -216,40 +229,15 @@
             border: none;
         }
 
-        .btn-back {
-            background: var(--white);
-            color: var(--text);
-            border: 2px solid var(--border);
-        }
-
-        .btn-back:hover {
-            border-color: var(--text-light);
-        }
-
         .btn-next {
             background: var(--primary);
             color: white;
             flex: 1;
         }
 
-        .btn-next:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-next:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
+        .btn-next:hover { background: var(--primary-dark); }
 
         /* Email step */
-        .email-step {
-            display: none;
-        }
-
-        .email-step.active {
-            display: block;
-        }
-
         .email-input {
             width: 100%;
             padding: 14px;
@@ -261,8 +249,15 @@
             transition: border-color 0.2s;
         }
 
-        .email-input:focus {
-            border-color: var(--primary);
+        .email-input:focus { border-color: var(--primary); }
+
+        .liked-summary {
+            background: #edf2f7;
+            border-left: 4px solid var(--primary);
+            padding: 14px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 20px;
+            font-size: 15px;
         }
 
         .privacy-note {
@@ -272,39 +267,19 @@
             text-align: center;
         }
 
-        /* Result step */
-        .result-step {
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
             display: none;
-            text-align: center;
         }
 
-        .result-step.active {
-            display: block;
-        }
+        .error-message.visible { display: block; }
 
-        .archetype-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 24px;
-            font-weight: 700;
-            margin: 20px 0;
-        }
-
-        .archetype-description {
-            font-size: 16px;
-            line-height: 1.7;
-            color: var(--text);
-            margin: 20px 0;
-            text-align: left;
-            background: #edf2f7;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid var(--primary);
-        }
-
+        /* Result step */
         .success-icon {
             width: 80px;
             height: 80px;
@@ -322,6 +297,7 @@
             margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid var(--border);
+            text-align: center;
         }
 
         .browse-button {
@@ -335,20 +311,11 @@
             transition: background 0.2s;
         }
 
-        .browse-button:hover {
-            background: var(--primary-dark);
-        }
+        .browse-button:hover { background: var(--primary-dark); }
 
-        /* Loading state */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .loading.active {
-            display: block;
-        }
+        /* Loading */
+        .loading { display: none; text-align: center; padding: 40px; }
+        .loading.active { display: block; }
 
         .spinner {
             width: 40px;
@@ -360,26 +327,8 @@
             margin: 0 auto 20px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Error state */
-        .error-message {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c00;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .error-message.visible {
-            display: block;
-        }
-
-        /* Footer */
         footer {
             text-align: center;
             padding: 30px;
@@ -392,132 +341,11 @@
             text-decoration: none;
         }
 
-        /* Sample events on email step */
-        .sample-events {
-            margin: 20px 0 24px;
-            display: none;
-        }
-
-        .sample-events.visible {
-            display: block;
-        }
-
-        .sample-events-label {
-            font-size: 14px;
-            color: var(--text-light);
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .sample-events-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .sample-event {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            background: #edf2f7;
-            border-radius: 8px;
-            transition: background 0.15s;
-        }
-
-        .sample-event-img {
-            width: 44px;
-            height: 44px;
-            border-radius: 6px;
-            object-fit: cover;
-            background: var(--border);
-            flex-shrink: 0;
-        }
-
-        .sample-event-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .sample-event-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .sample-event-detail {
-            font-size: 12px;
-            color: var(--text-light);
-        }
-
-        .sample-event-cat {
-            font-size: 11px;
-            background: var(--primary);
-            color: white;
-            padding: 1px 7px;
-            border-radius: 8px;
-            flex-shrink: 0;
-        }
-
-        .sample-events-more {
-            font-size: 13px;
-            color: var(--secondary);
-            margin-top: 8px;
-            text-align: center;
-            font-style: italic;
-        }
-
-        /* Archetype picker chips */
-        .archetype-picker {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 4px 0 12px;
-            margin-bottom: 8px;
-        }
-
-        .archetype-chip {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            border: 2px solid var(--border);
-            background: var(--white);
-            color: var(--text);
-            transition: all 0.2s;
-        }
-
-        .archetype-chip:hover {
-            border-color: var(--primary);
-        }
-
-        .archetype-chip.selected {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-
         @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-            }
-
-            header h1 {
-                font-size: 24px;
-            }
-
-            .card {
-                padding: 20px;
-            }
-
-            .archetype-badge {
-                font-size: 18px;
-                padding: 12px 20px;
-            }
+            .container { padding: 15px; }
+            header h1 { font-size: 24px; }
+            .card { padding: 20px; }
+            .event-card-img { width: 52px; height: 52px; }
         }
     </style>
 </head>
@@ -532,49 +360,42 @@
             <div class="progress-bar">
                 <div class="progress-step" id="step-1"></div>
                 <div class="progress-step" id="step-2"></div>
-                <div class="progress-step" id="step-3"></div>
-                <div class="progress-step" id="step-4"></div>
-                <div class="progress-step" id="step-5"></div>
             </div>
 
-            <!-- Questions will be dynamically inserted here -->
-            <div id="questions-container"></div>
-
-            <!-- Email step -->
-            <div class="email-step" id="email-step">
-                <h2>Almost done! Where should we send your recommendations?</h2>
-
-                <!-- Sample events preview -->
-                <div class="sample-events" id="sample-events">
-                    <p class="sample-events-label">Here's a taste of what's coming up this week:</p>
-                    <div class="sample-events-list" id="sample-events-list"></div>
-                    <p class="sample-events-more" id="sample-events-more"></p>
+            <!-- Step 1: Event picker -->
+            <div class="step" id="step-events">
+                <h2>Like the events that interest you</h2>
+                <p class="step-subtitle">Tap the thumbs-up on any events you'd want to attend. We'll use your picks to personalize your weekly digest.</p>
+                <div class="event-grid" id="event-grid"></div>
+                <div class="nav-buttons">
+                    <button class="btn-next" onclick="goToEmail()">Next</button>
                 </div>
+            </div>
 
-                <!-- Archetype picker -->
-                <div class="archetype-picker" id="archetype-picker"></div>
-
+            <!-- Step 2: Email -->
+            <div class="step" id="step-email">
+                <div class="liked-summary" id="liked-summary"></div>
+                <h2>Where should we send your recommendations?</h2>
                 <input type="email" class="email-input" id="email-input" placeholder="your@email.com" required>
                 <div class="error-message" id="email-error"></div>
                 <p class="privacy-note">We'll send you a weekly digest. Unsubscribe anytime.</p>
                 <div class="nav-buttons">
-                    <button class="btn-back" onclick="goBack()">Back</button>
+                    <button style="background:white;color:var(--text);border:2px solid var(--border);" onclick="goBackToEvents()">Back</button>
                     <button class="btn-next" onclick="submitForm()">Get My Events</button>
                 </div>
             </div>
 
-            <!-- Loading state -->
+            <!-- Loading -->
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p>Finding your perfect events...</p>
+                <p>Setting up your personalized recommendations...</p>
             </div>
 
-            <!-- Result step -->
-            <div class="result-step" id="result-step">
+            <!-- Result -->
+            <div class="step" id="step-result" style="text-align:center;">
                 <div class="success-icon">&#10003;</div>
                 <h2>You're all set!</h2>
-                <div class="archetype-badge" id="archetype-name"></div>
-                <div class="archetype-description" id="archetype-description"></div>
+                <p style="color:var(--text-light);margin-top:10px;" id="result-message"></p>
                 <div class="result-cta">
                     <p>Your first weekly digest is on its way!</p>
                     <a href="/events" class="browse-button">Browse All Events Now</a>
@@ -590,162 +411,103 @@
 
     <script>
         // State
-        let currentStep = 0;
-        let questions = [];
-        let responses = {};
-        let quizArchetype = null;      // archetype calculated from quiz
-        let selectedArchetype = null;  // archetype the user has currently picked
+        let sampleEvents = [];
+        const likedIds = new Set();
+        let currentStep = 1; // 1 = events, 2 = email
 
-        // All archetypes for the picker
-        const ARCHETYPE_OPTIONS = [
-            { value: 'culture_professional', name: 'Culture-Loving Professional' },
-            { value: 'family_explorer', name: 'Family Explorer' },
-            { value: 'nightlife_enthusiast', name: 'Nightlife Enthusiast' },
-            { value: 'academic_curious', name: 'Academic & Curious' },
-            { value: 'social_connector', name: 'Social Connector' },
-            { value: 'arts_aficionado', name: 'Arts Aficionado' },
-            { value: 'active_adventurer', name: 'Active Adventurer' },
-            { value: 'budget_explorer', name: 'Budget Explorer' },
-        ];
+        // DOM
+        const eventGrid = document.getElementById('event-grid');
 
-        // DOM elements
-        const questionsContainer = document.getElementById('questions-container');
-        const emailStep = document.getElementById('email-step');
-        const loadingStep = document.getElementById('loading');
-        const resultStep = document.getElementById('result-step');
+        // Load sample events on page load
+        async function init() {
+            updateProgress();
+            document.getElementById('step-events').classList.add('active');
 
-        // Fetch questions on load
-        async function fetchQuestions() {
             try {
-                const response = await fetch('/onboarding/questions');
-                const data = await response.json();
-                questions = data.questions;
-                renderQuestions();
-                updateProgress();
-            } catch (error) {
-                console.error('Failed to load questions:', error);
-                questionsContainer.innerHTML = '<p>Failed to load questionnaire. Please refresh the page.</p>';
+                const resp = await fetch('/onboarding/sample-events');
+                const data = await resp.json();
+                sampleEvents = data.events || [];
+                renderEvents();
+            } catch (e) {
+                eventGrid.innerHTML = '<p style="text-align:center;color:var(--text-light);">Failed to load events. Please refresh.</p>';
             }
         }
 
-        function renderQuestions() {
-            questionsContainer.innerHTML = questions.map((q, index) => `
-                <div class="question" id="question-${index}">
-                    <h2>${q.question}</h2>
-                    ${q.type === 'multi' ? `<p class="multi-hint">Select up to ${q.max_selections} options</p>` : ''}
-                    <div class="options">
-                        ${q.options.map(opt => `
-                            <div class="option" data-question="${q.id}" data-value="${opt.value}" onclick="selectOption(this, '${q.id}', '${opt.value}', ${q.type === 'multi'}, ${q.max_selections || 2})">
-                                <div class="${q.type === 'multi' ? 'option-checkbox' : 'option-radio'}"></div>
-                                <div class="option-content">
-                                    <div class="option-label">${opt.label}</div>
-                                    ${opt.description ? `<div class="option-description">${opt.description}</div>` : ''}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="nav-buttons">
-                        ${index > 0 ? '<button class="btn-back" onclick="goBack()">Back</button>' : '<div></div>'}
-                        <button class="btn-next" id="next-${index}" onclick="goNext()" disabled>Next</button>
-                    </div>
-                </div>
-            `).join('');
+        function renderEvents() {
+            eventGrid.innerHTML = sampleEvents.map(ev => {
+                const dt = new Date(ev.start_datetime);
+                const dateStr = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                const liked = likedIds.has(ev.id);
+                const imgHtml = ev.image_url
+                    ? `<img src="${ev.image_url}" class="event-card-img" alt="">`
+                    : `<div class="event-card-img"></div>`;
 
-            // Show first question
-            document.getElementById('question-0').classList.add('active');
+                let badges = `<span class="badge badge-cat">${(ev.category || '').replace(/_/g, ' ')}</span>`;
+                if (ev.cost) badges += `<span class="badge badge-cost">${ev.cost}</span>`;
+                if (ev.family_friendly) badges += `<span class="badge badge-ff">Family Friendly</span>`;
+
+                return `
+                    <div class="event-card${liked ? ' liked' : ''}" onclick="toggleLike('${ev.id}')">
+                        ${imgHtml}
+                        <div class="event-card-body">
+                            <div class="event-card-title">${ev.title}</div>
+                            <div class="event-card-meta">${dateStr} ${timeStr} &middot; ${ev.venue_name || ''}</div>
+                            <div class="event-card-desc">${ev.description || ''}</div>
+                            <div class="event-card-badges">${badges}</div>
+                        </div>
+                        <div class="thumb-btn">${liked ? '&#10003;' : '&#128077;'}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function selectOption(element, questionId, value, isMulti, maxSelections) {
-            if (isMulti) {
-                // Multi-select logic
-                if (!responses[questionId]) {
-                    responses[questionId] = [];
-                }
-
-                if (element.classList.contains('selected')) {
-                    // Deselect
-                    element.classList.remove('selected');
-                    responses[questionId] = responses[questionId].filter(v => v !== value);
-                } else {
-                    // Select (if under max)
-                    if (responses[questionId].length < maxSelections) {
-                        element.classList.add('selected');
-                        responses[questionId].push(value);
-                    }
-                }
+        function toggleLike(id) {
+            if (likedIds.has(id)) {
+                likedIds.delete(id);
             } else {
-                // Single-select logic
-                const options = element.parentElement.querySelectorAll('.option');
-                options.forEach(opt => opt.classList.remove('selected'));
-                element.classList.add('selected');
-                responses[questionId] = value;
+                likedIds.add(id);
             }
-
-            // Enable/disable next button
-            const nextBtn = document.getElementById(`next-${currentStep}`);
-            if (nextBtn) {
-                const hasSelection = isMulti
-                    ? responses[questionId] && responses[questionId].length > 0
-                    : responses[questionId];
-                nextBtn.disabled = !hasSelection;
-            }
+            renderEvents();
         }
 
-        function goNext() {
-            // Hide current step
-            if (currentStep < questions.length) {
-                document.getElementById(`question-${currentStep}`).classList.remove('active');
-            }
-
-            currentStep++;
+        function goToEmail() {
+            document.getElementById('step-events').classList.remove('active');
+            document.getElementById('step-email').classList.add('active');
+            currentStep = 2;
             updateProgress();
 
-            // Show next step
-            if (currentStep < questions.length) {
-                document.getElementById(`question-${currentStep}`).classList.add('active');
+            // Update liked summary
+            const summary = document.getElementById('liked-summary');
+            if (likedIds.size > 0) {
+                summary.innerHTML = `You liked <strong>${likedIds.size}</strong> event${likedIds.size > 1 ? 's' : ''} &mdash; we'll find you more like these!`;
             } else {
-                // Show email step
-                emailStep.classList.add('active');
-                document.getElementById('email-input').focus();
-                loadSampleEvents();
+                summary.innerHTML = `You didn't like any events yet &mdash; no worries, we'll still send you great picks!`;
             }
+
+            document.getElementById('email-input').focus();
         }
 
-        function goBack() {
-            if (currentStep === questions.length) {
-                // Coming from email step
-                emailStep.classList.remove('active');
-                sampleEventsLoaded = false; // Reset so events refresh if answers change
-            } else {
-                document.getElementById(`question-${currentStep}`).classList.remove('active');
-            }
-
-            currentStep--;
+        function goBackToEvents() {
+            document.getElementById('step-email').classList.remove('active');
+            document.getElementById('step-events').classList.add('active');
+            currentStep = 1;
             updateProgress();
-
-            if (currentStep >= 0 && currentStep < questions.length) {
-                document.getElementById(`question-${currentStep}`).classList.add('active');
-            }
         }
 
         function updateProgress() {
-            for (let i = 0; i <= 4; i++) {
-                const step = document.getElementById(`step-${i + 1}`);
-                step.classList.remove('active', 'completed');
-
-                if (i < currentStep) {
-                    step.classList.add('completed');
-                } else if (i === currentStep) {
-                    step.classList.add('active');
-                }
+            for (let i = 1; i <= 2; i++) {
+                const el = document.getElementById(`step-${i}`);
+                el.classList.remove('active', 'completed');
+                if (i < currentStep) el.classList.add('completed');
+                else if (i === currentStep) el.classList.add('active');
             }
         }
 
         async function submitForm() {
-            const email = document.getElementById('email-input').value;
+            const email = document.getElementById('email-input').value.trim();
             const errorEl = document.getElementById('email-error');
 
-            // Validate email
             if (!email || !email.includes('@')) {
                 errorEl.textContent = 'Please enter a valid email address';
                 errorEl.classList.add('visible');
@@ -753,152 +515,41 @@
             }
 
             errorEl.classList.remove('visible');
-
-            // Show loading
-            emailStep.classList.remove('active');
-            loadingStep.classList.add('active');
+            document.getElementById('step-email').classList.remove('active');
+            document.getElementById('loading').classList.add('active');
 
             try {
-                const submitBody = {
-                    email: email,
-                    responses: {
-                        lifestyle: responses.lifestyle,
-                        interests: responses.interests || [],
-                        timing: responses.timing,
-                        budget: responses.budget
-                    }
-                };
-                // If the user picked a different archetype, send override
-                if (selectedArchetype && selectedArchetype !== quizArchetype) {
-                    submitBody.archetype_override = selectedArchetype;
-                }
-                const response = await fetch('/onboarding/submit', {
+                const resp = await fetch('/onboarding/submit', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(submitBody)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        liked_event_ids: Array.from(likedIds),
+                    }),
                 });
 
-                const data = await response.json();
+                const data = await resp.json();
 
-                if (response.ok && data.success) {
-                    // Show result
-                    loadingStep.classList.remove('active');
-                    resultStep.classList.add('active');
+                if (resp.ok && data.success) {
+                    document.getElementById('loading').classList.remove('active');
+                    document.getElementById('step-result').classList.add('active');
+                    document.getElementById('result-message').textContent = data.message;
 
-                    document.getElementById('archetype-name').textContent = data.primary_archetype.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    document.getElementById('archetype-description').textContent = data.archetype_description;
-
-                    // Update progress to complete
-                    for (let i = 0; i <= 4; i++) {
-                        document.getElementById(`step-${i + 1}`).classList.add('completed');
-                    }
+                    // Complete progress
+                    document.getElementById('step-1').classList.add('completed');
+                    document.getElementById('step-2').classList.add('completed');
                 } else {
                     throw new Error(data.detail || 'Failed to submit');
                 }
             } catch (error) {
-                console.error('Submit error:', error);
-                loadingStep.classList.remove('active');
-                emailStep.classList.add('active');
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('step-email').classList.add('active');
                 errorEl.textContent = error.message || 'Something went wrong. Please try again.';
                 errorEl.classList.add('visible');
             }
         }
 
-        let sampleEventsLoaded = false;
-
-        function renderArchetypePicker() {
-            const picker = document.getElementById('archetype-picker');
-            picker.innerHTML = ARCHETYPE_OPTIONS.map(a =>
-                `<button class="archetype-chip${a.value === selectedArchetype ? ' selected' : ''}"
-                         data-archetype="${a.value}"
-                         onclick="switchArchetype('${a.value}')">${a.name}</button>`
-            ).join('');
-        }
-
-        function renderEvents(data) {
-            if (!data.events || data.events.length === 0) return;
-
-            const labelEl = document.querySelector('.sample-events-label');
-            const archetypeName = data.archetype_name || data.archetype.replace(/_/g, ' ');
-            labelEl.innerHTML = `As a <strong>${archetypeName}</strong>, here's what we'd pick for you this week:`;
-
-            const listEl = document.getElementById('sample-events-list');
-            listEl.innerHTML = data.events.map(ev => {
-                const dt = new Date(ev.start_datetime);
-                const dateStr = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                const cat = ev.category ? ev.category.replace(/_/g, ' ') : '';
-                const imgHtml = ev.image_url
-                    ? `<img src="${ev.image_url}" class="sample-event-img" alt="">`
-                    : `<div class="sample-event-img"></div>`;
-
-                return `
-                    <div class="sample-event">
-                        ${imgHtml}
-                        <div class="sample-event-info">
-                            <div class="sample-event-title">${ev.title}</div>
-                            <div class="sample-event-detail">${dateStr} ${timeStr} &middot; ${ev.source_name || ''}</div>
-                        </div>
-                        ${cat ? `<span class="sample-event-cat">${cat}</span>` : ''}
-                    </div>`;
-            }).join('');
-
-            const moreEl = document.getElementById('sample-events-more');
-            moreEl.textContent = 'Enter your email to get events like these every week';
-
-            document.getElementById('sample-events').classList.add('visible');
-        }
-
-        async function switchArchetype(archetypeValue) {
-            if (archetypeValue === selectedArchetype) return;
-            selectedArchetype = archetypeValue;
-            renderArchetypePicker();
-
-            try {
-                const resp = await fetch(`/onboarding/archetype-events/${archetypeValue}`);
-                if (!resp.ok) return;
-                const data = await resp.json();
-                renderEvents(data);
-            } catch (e) {
-                // Silently fail
-            }
-        }
-
-        async function loadSampleEvents() {
-            if (sampleEventsLoaded) return;
-            sampleEventsLoaded = true;
-
-            try {
-                const resp = await fetch('/onboarding/preview-events', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        lifestyle: responses.lifestyle,
-                        interests: responses.interests || [],
-                        timing: responses.timing,
-                        budget: responses.budget,
-                    }),
-                });
-                if (!resp.ok) return;
-
-                const data = await resp.json();
-
-                // Store the quiz-calculated archetype and set as initial selection
-                quizArchetype = data.archetype;
-                selectedArchetype = data.archetype;
-
-                renderArchetypePicker();
-                renderEvents(data);
-            } catch (e) {
-                // Silently fail - sample events are non-critical
-                renderArchetypePicker();
-            }
-        }
-
-        // Initialize
-        fetchQuestions();
+        init();
     </script>
 </body>
 </html>

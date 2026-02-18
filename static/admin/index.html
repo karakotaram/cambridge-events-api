@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archetype Audit | Admin</title>
+    <title>Admin Dashboard | Cambridge-Somerville Events</title>
     <style>
         :root {
             --primary: #1a365d;
@@ -11,6 +11,7 @@
             --secondary: #3498db;
             --success: #27ae60;
             --warning: #e67e22;
+            --danger: #e74c3c;
             --text: #333;
             --text-light: #666;
             --bg: #f5f5f5;
@@ -30,7 +31,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 960px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -81,9 +82,7 @@
             outline: none;
         }
 
-        .auth-row input:focus {
-            border-color: var(--primary);
-        }
+        .auth-row input:focus { border-color: var(--primary); }
 
         .btn {
             padding: 10px 20px;
@@ -99,345 +98,338 @@
 
         .btn:hover { background: var(--primary-dark); }
         .btn:disabled { background: #ccc; cursor: not-allowed; }
-
-        .btn-sm {
-            padding: 6px 14px;
-            font-size: 13px;
-        }
-
-        .btn-success {
-            background: var(--success);
-        }
+        .btn-sm { padding: 6px 14px; font-size: 13px; }
+        .btn-success { background: var(--success); }
         .btn-success:hover { background: #219a52; }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--border); }
+        .btn-outline:hover { background: var(--light-tint); }
 
-        /* Selectors */
-        .selector-row {
-            display: flex;
+        /* Stats bar */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 12px;
-            flex-wrap: wrap;
-            align-items: end;
         }
 
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex: 1;
-            min-width: 180px;
-        }
-
-        .field label {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-light);
-        }
-
-        .field select, .field input[type="email"] {
-            padding: 10px 12px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            font-size: 14px;
-            background: white;
-            outline: none;
-        }
-
-        .field select:focus, .field input[type="email"]:focus {
-            border-color: var(--primary);
-        }
-
-        /* Archetype info */
-        .archetype-info {
+        .stat-item {
+            text-align: center;
+            padding: 16px 10px;
             background: var(--light-tint);
-            border-left: 4px solid var(--primary);
-            padding: 16px;
-            border-radius: 0 8px 8px 0;
-            margin-top: 12px;
-            display: none;
+            border-radius: 8px;
         }
 
-        .archetype-info.visible { display: block; }
-
-        .archetype-info h3 {
-            font-size: 16px;
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
             color: var(--primary);
-            margin-bottom: 6px;
         }
 
-        .archetype-info p {
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        /* User table */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 14px;
-            color: var(--text);
-            margin-bottom: 8px;
         }
 
-        .tag {
+        .user-table th {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 2px solid var(--border);
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .user-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-table tr.clickable { cursor: pointer; }
+        .user-table tr.clickable:hover { background: var(--light-tint); }
+        .user-table tr.active { background: #e8f0fe; }
+
+        .opt-badge {
             display: inline-block;
-            background: var(--primary);
-            color: white;
             padding: 2px 8px;
             border-radius: 10px;
-            font-size: 12px;
-            margin-right: 4px;
-            margin-bottom: 4px;
-        }
-
-        .tag.outline {
-            background: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        /* Summary */
-        .summary {
-            display: none;
-            font-size: 14px;
-            color: var(--text-light);
-            margin-bottom: 12px;
-        }
-
-        .summary.visible { display: block; }
-
-        .summary strong { color: var(--primary); }
-
-        /* Selection bar */
-        .selection-bar {
-            display: none;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-            padding: 12px 16px;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-        }
-
-        .selection-bar.visible { display: flex; }
-
-        .selection-bar .btn-sm {
-            background: var(--light-tint);
-            color: var(--primary);
-            border: 1px solid var(--border);
-        }
-        .selection-bar .btn-sm:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        .selection-count {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 600;
-            color: var(--primary);
-            background: var(--light-tint);
-            padding: 4px 12px;
-            border-radius: 12px;
-            margin-left: auto;
         }
 
-        /* Search & sort toolbar */
-        .toolbar {
-            display: none;
-            gap: 10px;
-            align-items: end;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-        }
+        .opt-in { background: #c6f6d5; color: #276749; }
+        .opt-out { background: #fed7d7; color: #9b2c2c; }
 
-        .toolbar.visible { display: flex; }
-
-        .toolbar input[type="search"] {
-            flex: 1;
-            min-width: 200px;
-            padding: 8px 12px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .toolbar input[type="search"]:focus {
-            border-color: var(--primary);
-        }
-
-        .toolbar select {
-            padding: 8px 12px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            font-size: 14px;
-            background: white;
-            outline: none;
-        }
-
-        .toolbar select:focus {
-            border-color: var(--primary);
-        }
-
-        /* Pagination */
-        .pagination {
-            display: none;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-top: 16px;
-            padding: 12px;
-        }
-
-        .pagination.visible { display: flex; }
-
-        .pagination .page-info {
-            font-size: 14px;
-            color: var(--text-light);
-        }
-
-        /* Event cards */
-        .event-list { display: flex; flex-direction: column; gap: 12px; }
-
-        .event-card {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            display: flex;
-            gap: 14px;
-            transition: border-color 0.15s;
-        }
-
-        .event-card.selected {
-            border-color: var(--primary);
-            background: #f7fafd;
-        }
-
-        .event-checkbox {
-            display: flex;
-            align-items: flex-start;
-            padding-top: 2px;
-            flex-shrink: 0;
-        }
-
-        .event-checkbox input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: var(--primary);
-        }
-
-        .event-thumb {
-            width: 80px;
-            height: 80px;
-            border-radius: 6px;
-            object-fit: cover;
-            background: var(--light-tint);
-            flex-shrink: 0;
-        }
-
-        .event-body { flex: 1; min-width: 0; }
-
-        .event-header {
+        .table-nav {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* User detail panel */
+        .detail-panel {
+            display: none;
+        }
+
+        .detail-panel.visible { display: block; }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .detail-header h2 { margin-bottom: 0; }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section h3 {
+            font-size: 14px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        /* Preference bars */
+        .pref-row {
+            display: flex;
+            align-items: center;
             gap: 10px;
             margin-bottom: 6px;
         }
 
-        .event-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .score-badge {
-            font-size: 14px;
-            font-weight: 700;
-            padding: 2px 10px;
-            border-radius: 12px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .score-high { background: #c6f6d5; color: #276749; }
-        .score-mid { background: var(--light-tint); color: var(--primary); }
-        .score-low { background: #feebc8; color: #9c4221; }
-
-        .event-meta {
+        .pref-label {
+            width: 120px;
             font-size: 13px;
-            color: var(--text-light);
-            margin-bottom: 8px;
-        }
-
-        .event-meta span { margin-right: 12px; }
-
-        /* Score breakdown */
-        .score-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 6px;
-        }
-
-        .score-item {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .score-item-label {
-            font-size: 11px;
-            color: var(--text-light);
+            color: var(--text);
+            text-transform: capitalize;
+            flex-shrink: 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .score-bar-container {
-            height: 6px;
-            background: #e2e8f0;
-            border-radius: 3px;
+        .pref-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
             overflow: hidden;
         }
 
-        .score-bar {
+        .pref-bar {
             height: 100%;
-            border-radius: 3px;
+            border-radius: 4px;
+            background: var(--primary);
             transition: width 0.3s;
         }
 
-        .bar-high { background: var(--success); }
-        .bar-mid { background: var(--primary); }
-        .bar-low { background: var(--warning); }
+        .pref-value {
+            font-size: 12px;
+            color: var(--text-light);
+            width: 36px;
+            text-align: right;
+            flex-shrink: 0;
+        }
 
-        .bool-indicator {
+        .pref-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .pref-chip {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--light-tint);
+            color: var(--primary);
+        }
+
+        .pref-chip.on { background: #c6f6d5; color: #276749; }
+
+        /* Digest preview events */
+        .digest-event {
+            display: flex;
+            gap: 12px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .digest-event-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .digest-event-body { flex: 1; min-width: 0; }
+
+        .digest-event-title {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .digest-event-meta {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .digest-event-score {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .digest-event .btn-remove {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--danger);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .digest-event .btn-remove:hover {
+            background: #fee;
+            border-color: var(--danger);
+        }
+
+        .override-banner {
+            background: #fefce8;
+            border: 1px solid #fde68a;
+            color: #854d0e;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .override-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        /* Event search picker for adding events */
+        .event-picker {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .event-picker.visible { display: block; }
+
+        .event-picker input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 8px;
+        }
+
+        .event-picker input:focus { border-color: var(--primary); }
+
+        .event-picker-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .picker-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .picker-item:last-child { border-bottom: none; }
+        .picker-item:hover { background: var(--light-tint); }
+
+        .picker-item-title { font-weight: 600; }
+        .picker-item-meta { font-size: 12px; color: var(--text-light); }
+
+        /* History */
+        .history-item {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .history-item:last-child { border-bottom: none; }
+
+        .history-date {
+            width: 90px;
+            flex-shrink: 0;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .history-subject {
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-indicators {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
             font-size: 11px;
             font-weight: 600;
         }
 
-        .bool-yes { color: var(--success); }
-        .bool-no { color: var(--warning); }
+        .ind-open { background: #c6f6d5; color: #276749; }
+        .ind-no-open { background: #fed7d7; color: #9b2c2c; }
+        .ind-click { background: #bee3f8; color: #2a4365; }
 
-        /* Loading & empty */
-        .loading-msg, .empty-msg {
-            text-align: center;
-            padding: 30px;
-            color: var(--text-light);
-            font-size: 15px;
-            display: none;
-        }
-
-        .loading-msg.visible, .empty-msg.visible { display: block; }
-
-        .spinner-sm {
-            width: 24px;
-            height: 24px;
-            border: 3px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
+        /* Banners */
         .error-banner {
             background: #fee;
             border: 1px solid #fcc;
@@ -464,75 +456,28 @@
 
         .success-banner.visible { display: block; }
 
-        /* Curation bar */
-        .curation-bar {
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 12px;
-            padding: 14px 16px;
-            background: var(--white);
-            border: 2px solid var(--success);
-            border-radius: 8px;
+        /* Loading */
+        .spinner-sm {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 10px;
         }
-        .curation-bar.visible { display: flex; }
 
-        .curation-status {
-            font-size: 13px;
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-msg {
+            text-align: center;
+            padding: 20px;
             color: var(--text-light);
-        }
-        .curation-status.saved {
-            color: #276749;
-            font-weight: 600;
-        }
-
-        .curation-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .btn-save-curation {
-            background: var(--success);
-            color: white;
-            padding: 10px 24px;
             font-size: 14px;
-            font-weight: 600;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .btn-save-curation:hover {
-            background: #219a52;
-        }
-
-        .btn-clear-curation {
-            background: transparent;
-            color: var(--warning);
-            border: 1px solid var(--warning);
-            padding: 6px 14px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .btn-clear-curation:hover {
-            background: var(--warning);
-            color: white;
-        }
-
-        /* Send digest card */
-        .send-card {
             display: none;
         }
-        .send-card.visible { display: block; }
 
-        .send-row {
-            display: flex;
-            gap: 10px;
-            align-items: end;
-            flex-wrap: wrap;
-        }
+        .loading-msg.visible { display: block; }
 
         footer {
             text-align: center;
@@ -545,19 +490,18 @@
 
         @media (max-width: 600px) {
             .container { padding: 12px; }
-            .event-card { flex-direction: column; }
-            .event-thumb { width: 100%; height: 120px; }
-            .selector-row { flex-direction: column; }
-            .score-grid { grid-template-columns: repeat(2, 1fr); }
-            .send-row { flex-direction: column; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .user-table { font-size: 12px; }
+            .user-table th, .user-table td { padding: 6px 8px; }
+            .pref-label { width: 80px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Archetype Audit</h1>
-            <p>Preview and debug archetype-to-event recommendations</p>
+            <h1>Admin Dashboard</h1>
+            <p>Manage users, preview digests, and override recommendations</p>
         </header>
 
         <!-- Auth -->
@@ -570,97 +514,83 @@
             <div class="error-banner" id="auth-error"></div>
         </div>
 
-        <!-- Archetype selector -->
-        <div class="card">
-            <h2>Select Archetype</h2>
-            <div class="selector-row">
-                <div class="field">
-                    <label>Primary Archetype</label>
-                    <select id="primary-select" onchange="onArchetypeChange()">
-                        <option value="">-- Choose --</option>
-                    </select>
+        <!-- Stats -->
+        <div class="card" id="stats-card" style="display:none">
+            <h2>Overview</h2>
+            <div class="stats-grid" id="stats-grid"></div>
+        </div>
+
+        <!-- User List -->
+        <div class="card" id="users-card" style="display:none">
+            <h2>Users</h2>
+            <div class="loading-msg" id="users-loading"><div class="spinner-sm"></div>Loading users...</div>
+            <table class="user-table" id="user-table" style="display:none">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Signed Up</th>
+                        <th>Last Email</th>
+                        <th>Likes</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="user-tbody"></tbody>
+            </table>
+            <div class="table-nav" id="table-nav" style="display:none">
+                <span id="user-page-info"></span>
+                <div>
+                    <button class="btn btn-sm btn-outline" id="users-prev-btn" onclick="usersPrev()" disabled>Prev</button>
+                    <button class="btn btn-sm btn-outline" id="users-next-btn" onclick="usersNext()">Next</button>
                 </div>
-                <div class="field">
-                    <label>Secondary (optional)</label>
-                    <select id="secondary-select" onchange="onArchetypeChange()">
-                        <option value="">None</option>
-                    </select>
+            </div>
+        </div>
+
+        <!-- User Detail Panel -->
+        <div class="card detail-panel" id="detail-panel">
+            <div class="detail-header">
+                <h2 id="detail-email"></h2>
+                <button class="btn btn-sm btn-outline" onclick="closeDetail()">Close</button>
+            </div>
+
+            <!-- Preferences -->
+            <div class="detail-section" id="prefs-section">
+                <h3>Preferences</h3>
+                <div id="prefs-content"></div>
+            </div>
+
+            <!-- Digest Preview -->
+            <div class="detail-section">
+                <h3>Next Digest Preview</h3>
+                <div class="loading-msg" id="digest-loading"><div class="spinner-sm"></div>Loading digest preview...</div>
+                <div id="override-banner-area"></div>
+                <div id="digest-events"></div>
+                <div class="event-picker" id="event-picker">
+                    <input type="text" id="picker-search" placeholder="Search events to add..." oninput="onPickerSearch()">
+                    <div class="event-picker-results" id="picker-results"></div>
                 </div>
-                <button class="btn" id="fetch-btn" onclick="fetchPreview()" disabled>Preview</button>
-            </div>
-
-            <div class="archetype-info" id="archetype-info">
-                <h3 id="arch-name"></h3>
-                <p id="arch-desc"></p>
-                <div id="arch-tags"></div>
-            </div>
-
-            <div class="error-banner" id="fetch-error"></div>
-        </div>
-
-        <!-- Results -->
-        <div class="summary" id="summary"></div>
-
-        <!-- Selection bar -->
-        <div class="selection-bar" id="selection-bar">
-            <button class="btn btn-sm" onclick="selectTop(7)">Select Top 7</button>
-            <button class="btn btn-sm" onclick="selectAll()">Select All</button>
-            <button class="btn btn-sm" onclick="deselectAll()">Deselect All</button>
-            <span class="selection-count" id="selection-count">0 selected</span>
-        </div>
-
-        <!-- Curation bar -->
-        <div class="curation-bar" id="curation-bar">
-            <div class="curation-status" id="curation-status"></div>
-            <div class="curation-actions">
-                <button class="btn btn-save-curation" id="save-curation-btn" onclick="saveCuration()">Save for Weekly Email</button>
-                <button class="btn btn-sm btn-clear-curation" id="clear-curation-btn" onclick="clearCuration()" style="display:none">Clear Saved</button>
-            </div>
-        </div>
-
-        <!-- Search & Sort -->
-        <div class="toolbar" id="toolbar">
-            <input type="search" id="search-input" placeholder="Search by title, source, or category..." oninput="onSearchChange()">
-            <select id="sort-select" onchange="onSortChange()">
-                <option value="score_desc">Score (high to low)</option>
-                <option value="score_asc">Score (low to high)</option>
-                <option value="date_asc">Date (soonest first)</option>
-                <option value="date_desc">Date (latest first)</option>
-                <option value="title_asc">Title (A-Z)</option>
-                <option value="title_desc">Title (Z-A)</option>
-            </select>
-        </div>
-
-        <div class="loading-msg" id="loading">
-            <div class="spinner-sm"></div>
-            Loading all scored events...
-        </div>
-
-        <div class="empty-msg" id="empty-msg">No events matched for this archetype.</div>
-
-        <div class="event-list" id="event-list"></div>
-
-        <!-- Pagination -->
-        <div class="pagination" id="pagination">
-            <button class="btn btn-sm" id="prev-btn" onclick="prevPage()" disabled>Prev</button>
-            <span class="page-info" id="page-info"></span>
-            <button class="btn btn-sm" id="next-btn" onclick="nextPage()">Next</button>
-        </div>
-
-        <!-- Send Curated Digest -->
-        <div class="card send-card" id="send-card">
-            <h2>Send Curated Digest</h2>
-            <div class="send-row">
-                <div class="field" style="flex:2">
-                    <label>Recipient Email</label>
-                    <input type="email" id="send-email" placeholder="user@example.com">
+                <div class="override-actions" id="override-actions" style="display:none">
+                    <button class="btn btn-sm" onclick="togglePicker()">Add Event</button>
+                    <button class="btn btn-sm btn-success" onclick="saveOverride()">Save Override</button>
+                    <button class="btn btn-sm btn-danger" onclick="clearOverride()">Reset to Algorithm</button>
                 </div>
-                <button class="btn btn-success" id="send-btn" onclick="sendCuratedDigest()">
-                    Send Digest (0 events)
-                </button>
+                <div class="success-banner" id="override-success"></div>
+                <div class="error-banner" id="override-error"></div>
             </div>
-            <div class="error-banner" id="send-error"></div>
-            <div class="success-banner" id="send-success"></div>
+
+            <!-- History -->
+            <div class="detail-section">
+                <h3>Email History</h3>
+                <div class="loading-msg" id="history-loading"><div class="spinner-sm"></div>Loading history...</div>
+                <div id="history-list"></div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="detail-section">
+                <h3>Actions</h3>
+                <button class="btn btn-sm" id="send-test-btn" onclick="sendTestEmail()">Send Test Email</button>
+                <div class="success-banner" id="action-success"></div>
+                <div class="error-banner" id="action-error"></div>
+            </div>
         </div>
 
         <footer>
@@ -669,41 +599,18 @@
     </div>
 
     <script>
-        // Archetype metadata (populated from API response)
-        const ARCHETYPES = {};
+        // State
+        let usersData = [];
+        let usersTotal = 0;
+        let usersOffset = 0;
+        const USERS_LIMIT = 20;
+        let selectedUserId = null;
+        let digestEvents = []; // Current digest preview events [{id, title, ...}]
+        let allEvents = []; // All events for the add picker
+        let hasOverride = false;
 
-        // Hard-coded archetype list for the dropdown (matches ArchetypeEnum values)
-        const ARCHETYPE_OPTIONS = [
-            { value: 'culture_professional', label: 'Culture-Loving Professional' },
-            { value: 'family_explorer', label: 'Family Explorer' },
-            { value: 'nightlife_enthusiast', label: 'Nightlife Enthusiast' },
-            { value: 'academic_curious', label: 'Academic & Curious' },
-            { value: 'social_connector', label: 'Social Connector' },
-            { value: 'arts_aficionado', label: 'Arts Aficionado' },
-            { value: 'active_adventurer', label: 'Active Adventurer' },
-            { value: 'budget_explorer', label: 'Budget Explorer' },
-        ];
-
-        // Pagination, search, sort & selection state
-        const PAGE_SIZE = 25;
-        let allEvents = [];
-        let filteredEvents = [];
-        let currentPage = 0;
-        let searchQuery = '';
-        let sortBy = 'score_desc';
-        const selectedEventIds = new Set();
-        let savedCuration = null; // { events: [...], updated_at: ... } or null
-
+        // Init
         function init() {
-            // Populate dropdowns
-            const primary = document.getElementById('primary-select');
-            const secondary = document.getElementById('secondary-select');
-            ARCHETYPE_OPTIONS.forEach(opt => {
-                primary.add(new Option(opt.label, opt.value));
-                secondary.add(new Option(opt.label, opt.value));
-            });
-
-            // Restore saved key
             const key = sessionStorage.getItem('admin_api_key');
             if (key) {
                 document.getElementById('api-key-input').value = key;
@@ -715,584 +622,520 @@
             if (!key) return;
             sessionStorage.setItem('admin_api_key', key);
             document.getElementById('auth-error').classList.remove('visible');
-            document.getElementById('auth-error').textContent = '';
 
-            // Visual feedback
             const btn = document.querySelector('#auth-card .btn');
             const orig = btn.textContent;
             btn.textContent = 'Saved!';
             btn.style.background = '#27ae60';
             setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 1500);
+
+            // Load dashboard
+            loadDashboard();
         }
 
         function getKey() {
             return sessionStorage.getItem('admin_api_key') || document.getElementById('api-key-input').value.trim();
         }
 
-        function onArchetypeChange() {
-            const val = document.getElementById('primary-select').value;
-            document.getElementById('fetch-btn').disabled = !val;
-
-            // Show archetype info if we have cached data
-            const info = ARCHETYPES[val];
-            const infoEl = document.getElementById('archetype-info');
-            if (info) {
-                showArchetypeInfo(info);
-            } else {
-                infoEl.classList.remove('visible');
-            }
-        }
-
-        function showArchetypeInfo(info) {
-            const el = document.getElementById('archetype-info');
-            document.getElementById('arch-name').textContent = info.name;
-            document.getElementById('arch-desc').textContent = info.description;
-
-            let tags = info.categories.map(c => `<span class="tag">${c}</span>`).join('');
-            tags += info.timing_preferences.map(t => `<span class="tag outline">${t}</span>`).join('');
-            if (info.special_rules) {
-                Object.keys(info.special_rules).forEach(r => {
-                    if (info.special_rules[r]) {
-                        tags += `<span class="tag outline">${r}</span>`;
-                    }
-                });
-            }
-            document.getElementById('arch-tags').innerHTML = tags;
-            el.classList.add('visible');
-        }
-
-        async function fetchPreview() {
+        async function apiFetch(path, options = {}) {
             const key = getKey();
-            if (!key) {
-                const err = document.getElementById('auth-error');
-                err.textContent = 'Please enter an API key first.';
-                err.classList.add('visible');
-                return;
+            if (!key) throw new Error('API key required');
+
+            const sep = path.includes('?') ? '&' : '?';
+            const url = `/onboarding${path}${sep}api_key=${encodeURIComponent(key)}`;
+
+            const resp = await fetch(url, options);
+            if (!resp.ok) {
+                const data = await resp.json().catch(() => ({ detail: resp.statusText }));
+                throw new Error(data.detail || `HTTP ${resp.status}`);
             }
-            saveKey();
+            return resp.json();
+        }
 
-            const primary = document.getElementById('primary-select').value;
-            if (!primary) return;
-
-            const secondary = document.getElementById('secondary-select').value;
-
-            // Reset state
-            allEvents = [];
-            filteredEvents = [];
-            currentPage = 0;
-            searchQuery = '';
-            sortBy = 'score_desc';
-            selectedEventIds.clear();
-            savedCuration = null;
-            document.getElementById('search-input').value = '';
-            document.getElementById('sort-select').value = 'score_desc';
-
-            // UI state
-            document.getElementById('loading').classList.add('visible');
-            document.getElementById('empty-msg').classList.remove('visible');
-            document.getElementById('fetch-error').classList.remove('visible');
-            document.getElementById('summary').classList.remove('visible');
-            document.getElementById('selection-bar').classList.remove('visible');
-            document.getElementById('curation-bar').classList.remove('visible');
-            document.getElementById('toolbar').classList.remove('visible');
-            document.getElementById('pagination').classList.remove('visible');
-            document.getElementById('send-card').classList.remove('visible');
-            document.getElementById('clear-curation-btn').style.display = 'none';
-            document.getElementById('event-list').innerHTML = '';
-
-            let url = `/onboarding/admin/preview-archetype?archetype=${primary}&api_key=${encodeURIComponent(key)}&all=true`;
-            if (secondary) url += `&secondary=${secondary}`;
-
+        // Load everything
+        async function loadDashboard() {
+            document.getElementById('stats-card').style.display = '';
+            document.getElementById('users-card').style.display = '';
             try {
-                const resp = await fetch(url);
-                document.getElementById('loading').classList.remove('visible');
-
-                if (!resp.ok) {
-                    const data = await resp.json().catch(() => ({ detail: resp.statusText }));
-                    throw new Error(data.detail || `HTTP ${resp.status}`);
-                }
-
-                const data = await resp.json();
-
-                // Cache archetype info
-                ARCHETYPES[primary] = data.archetype;
-                showArchetypeInfo(data.archetype);
-
-                allEvents = data.events;
-                filteredEvents = getFilteredEvents();
-
-                if (allEvents.length === 0) {
-                    document.getElementById('empty-msg').classList.add('visible');
-                    return;
-                }
-
-                // Try to load saved curation for this archetype
-                await loadSavedCuration(primary);
-
-                if (savedCuration && savedCuration.events && savedCuration.events.length > 0) {
-                    // Pre-select saved event IDs
-                    const savedIds = new Set(savedCuration.events.map(e => e.event_id));
-                    selectedEventIds.clear();
-                    allEvents.forEach(ev => {
-                        if (savedIds.has(ev.id)) selectedEventIds.add(ev.id);
-                    });
-                } else {
-                    // Auto-select top 7
-                    selectTop(7);
-                }
-
-                updateCurationStatus();
-
-                // Show UI
-                document.getElementById('selection-bar').classList.add('visible');
-                document.getElementById('curation-bar').classList.add('visible');
-                document.getElementById('toolbar').classList.add('visible');
-                document.getElementById('send-card').classList.add('visible');
-                renderCurrentPage();
-
+                await Promise.all([loadStats(), loadUsers()]);
             } catch (e) {
-                document.getElementById('loading').classList.remove('visible');
-                const err = document.getElementById('fetch-error');
+                const err = document.getElementById('auth-error');
                 err.textContent = e.message;
                 err.classList.add('visible');
             }
         }
 
-        // --- Search & Sort ---
+        // --- Stats ---
+        async function loadStats() {
+            const data = await apiFetch('/admin/stats');
+            document.getElementById('stats-grid').innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${data.total_users}</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.emails_sent_last_7_days}</div>
+                    <div class="stat-label">Emails (7d)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.open_rate}%</div>
+                    <div class="stat-label">Open Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.click_rate}%</div>
+                    <div class="stat-label">Click Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.total_opens}</div>
+                    <div class="stat-label">Total Opens</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.total_clicks}</div>
+                    <div class="stat-label">Total Clicks</div>
+                </div>
+            `;
+        }
 
-        function getFilteredEvents() {
-            let events = allEvents;
+        // --- Users ---
+        async function loadUsers() {
+            document.getElementById('users-loading').classList.add('visible');
+            document.getElementById('user-table').style.display = 'none';
 
-            // Search filter
-            if (searchQuery) {
-                const q = searchQuery.toLowerCase();
-                events = events.filter(ev =>
-                    ev.title.toLowerCase().includes(q) ||
-                    (ev.source_name || '').toLowerCase().includes(q) ||
-                    (ev.category || '').toLowerCase().includes(q)
-                );
+            const data = await apiFetch(`/admin/users?limit=${USERS_LIMIT}&offset=${usersOffset}`);
+            usersData = data.users;
+            usersTotal = data.total;
+
+            document.getElementById('users-loading').classList.remove('visible');
+
+            if (usersData.length === 0) {
+                document.getElementById('user-table').style.display = 'none';
+                return;
             }
 
-            // Sort
-            const sorted = [...events];
-            switch (sortBy) {
-                case 'score_desc':
-                    sorted.sort((a, b) => b.total_score - a.total_score);
-                    break;
-                case 'score_asc':
-                    sorted.sort((a, b) => a.total_score - b.total_score);
-                    break;
-                case 'date_asc':
-                    sorted.sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime));
-                    break;
-                case 'date_desc':
-                    sorted.sort((a, b) => new Date(b.start_datetime) - new Date(a.start_datetime));
-                    break;
-                case 'title_asc':
-                    sorted.sort((a, b) => a.title.localeCompare(b.title));
-                    break;
-                case 'title_desc':
-                    sorted.sort((a, b) => b.title.localeCompare(a.title));
-                    break;
-            }
+            const tbody = document.getElementById('user-tbody');
+            tbody.innerHTML = usersData.map(u => {
+                const created = new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const lastEmail = u.last_email_sent
+                    ? new Date(u.last_email_sent).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    : '--';
+                const optClass = u.email_opt_in ? 'opt-in' : 'opt-out';
+                const optText = u.email_opt_in ? 'Active' : 'Opted out';
+                const isActive = u.id === selectedUserId;
 
-            return sorted;
+                return `
+                    <tr class="clickable${isActive ? ' active' : ''}" onclick="selectUser('${u.id}')">
+                        <td>${u.email}</td>
+                        <td>${created}</td>
+                        <td>${lastEmail}</td>
+                        <td>${u.liked_count}</td>
+                        <td><span class="opt-badge ${optClass}">${optText}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('user-table').style.display = '';
+
+            // Pagination
+            const totalPages = Math.ceil(usersTotal / USERS_LIMIT);
+            const currentPage = Math.floor(usersOffset / USERS_LIMIT) + 1;
+            document.getElementById('user-page-info').textContent = `Page ${currentPage} of ${totalPages} (${usersTotal} users)`;
+            document.getElementById('users-prev-btn').disabled = usersOffset === 0;
+            document.getElementById('users-next-btn').disabled = usersOffset + USERS_LIMIT >= usersTotal;
+            document.getElementById('table-nav').style.display = '';
         }
 
-        function onSearchChange() {
-            searchQuery = document.getElementById('search-input').value.trim();
-            currentPage = 0;
-            filteredEvents = getFilteredEvents();
-            renderCurrentPage();
+        function usersPrev() {
+            usersOffset = Math.max(0, usersOffset - USERS_LIMIT);
+            loadUsers();
         }
 
-        function onSortChange() {
-            sortBy = document.getElementById('sort-select').value;
-            currentPage = 0;
-            filteredEvents = getFilteredEvents();
-            renderCurrentPage();
+        function usersNext() {
+            usersOffset += USERS_LIMIT;
+            loadUsers();
         }
 
-        // --- Pagination ---
+        // --- User Detail ---
+        async function selectUser(userId) {
+            selectedUserId = userId;
 
-        function totalPages() {
-            return Math.ceil(filteredEvents.length / PAGE_SIZE);
+            // Highlight row
+            document.querySelectorAll('#user-tbody tr').forEach(tr => tr.classList.remove('active'));
+            document.querySelector(`#user-tbody tr[onclick*="${userId}"]`)?.classList.add('active');
+
+            // Show panel
+            const panel = document.getElementById('detail-panel');
+            panel.classList.add('visible');
+
+            // Find user email
+            const user = usersData.find(u => u.id === userId);
+            document.getElementById('detail-email').textContent = user ? user.email : userId;
+
+            // Reset state
+            digestEvents = [];
+            hasOverride = false;
+            document.getElementById('prefs-content').innerHTML = '';
+            document.getElementById('digest-events').innerHTML = '';
+            document.getElementById('override-banner-area').innerHTML = '';
+            document.getElementById('history-list').innerHTML = '';
+            document.getElementById('override-actions').style.display = 'none';
+            document.getElementById('event-picker').classList.remove('visible');
+            hideMsg('override-success');
+            hideMsg('override-error');
+            hideMsg('action-success');
+            hideMsg('action-error');
+
+            // Load detail data in parallel
+            await Promise.all([
+                loadDigestPreview(userId),
+                loadHistory(userId),
+            ]);
         }
 
-        function renderCurrentPage() {
-            const start = currentPage * PAGE_SIZE;
-            const end = Math.min(start + PAGE_SIZE, filteredEvents.length);
-            const pageEvents = filteredEvents.slice(start, end);
-
-            // Summary
-            const summaryEl = document.getElementById('summary');
-            const filterNote = filteredEvents.length < allEvents.length ? ` (${allEvents.length} total)` : '';
-            summaryEl.innerHTML = `Showing <strong>${filteredEvents.length === 0 ? 0 : start + 1}-${end}</strong> of <strong>${filteredEvents.length}</strong> events${filterNote} | <strong>${selectedEventIds.size}</strong> selected`;
-            summaryEl.classList.add('visible');
-
-            // Render events
-            renderEvents(pageEvents);
-
-            // Pagination controls
-            const pages = totalPages();
-            if (pages > 1) {
-                document.getElementById('pagination').classList.add('visible');
-                document.getElementById('page-info').textContent = `Page ${currentPage + 1} of ${pages}`;
-                document.getElementById('prev-btn').disabled = currentPage === 0;
-                document.getElementById('next-btn').disabled = currentPage >= pages - 1;
-            } else {
-                document.getElementById('pagination').classList.remove('visible');
-            }
-
-            updateSelectionCount();
+        function closeDetail() {
+            document.getElementById('detail-panel').classList.remove('visible');
+            selectedUserId = null;
+            document.querySelectorAll('#user-tbody tr').forEach(tr => tr.classList.remove('active'));
         }
 
-        function prevPage() {
-            if (currentPage > 0) {
-                currentPage--;
-                renderCurrentPage();
-                window.scrollTo({ top: document.getElementById('selection-bar').offsetTop - 20, behavior: 'smooth' });
-            }
-        }
+        async function loadDigestPreview(userId) {
+            show('digest-loading');
 
-        function nextPage() {
-            if (currentPage < totalPages() - 1) {
-                currentPage++;
-                renderCurrentPage();
-                window.scrollTo({ top: document.getElementById('selection-bar').offsetTop - 20, behavior: 'smooth' });
-            }
-        }
+            try {
+                const data = await apiFetch(`/admin/user/${userId}/preview-digest`);
+                hide('digest-loading');
 
-        // --- Selection ---
+                // Render preferences
+                renderPreferences(data.preferences);
 
-        function toggleEvent(id) {
-            if (selectedEventIds.has(id)) {
-                selectedEventIds.delete(id);
-            } else {
-                selectedEventIds.add(id);
-            }
-            // Update checkbox and card styling without re-rendering
-            const card = document.querySelector(`[data-event-id="${id}"]`);
-            if (card) {
-                const cb = card.querySelector('input[type="checkbox"]');
-                cb.checked = selectedEventIds.has(id);
-                card.classList.toggle('selected', selectedEventIds.has(id));
-            }
-            updateSelectionCount();
-        }
+                // Store events
+                digestEvents = data.events || [];
+                renderDigestEvents();
 
-        function selectTop(n) {
-            selectedEventIds.clear();
-            // Select top N from filtered list (respects current sort)
-            const source = filteredEvents.length > 0 ? filteredEvents : allEvents;
-            for (let i = 0; i < Math.min(n, source.length); i++) {
-                selectedEventIds.add(source[i].id);
-            }
-            // Re-render if events are visible
-            if (allEvents.length > 0) renderCurrentPage();
-        }
+                // Override info
+                if (data.override) {
+                    hasOverride = true;
+                    const overrideDate = data.override.created_at
+                        ? new Date(data.override.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : '';
+                    document.getElementById('override-banner-area').innerHTML = `
+                        <div class="override-banner">
+                            Override active (${data.override.event_ids.length} events, set ${overrideDate}).
+                            Next email will use these events instead of algorithm picks.
+                        </div>
+                    `;
+                } else {
+                    hasOverride = false;
+                    document.getElementById('override-banner-area').innerHTML = '';
+                }
 
-        function selectAll() {
-            filteredEvents.forEach(ev => selectedEventIds.add(ev.id));
-            renderCurrentPage();
-        }
+                document.getElementById('override-actions').style.display = '';
 
-        function deselectAll() {
-            selectedEventIds.clear();
-            renderCurrentPage();
-        }
-
-        function updateSelectionCount() {
-            const n = selectedEventIds.size;
-            document.getElementById('selection-count').textContent = `${n} selected`;
-            document.getElementById('send-btn').textContent = `Send Digest (${n} events)`;
-            document.getElementById('send-btn').disabled = n === 0;
-
-            // Update summary line
-            const summaryEl = document.getElementById('summary');
-            if (summaryEl.classList.contains('visible')) {
-                const start = currentPage * PAGE_SIZE;
-                const end = Math.min(start + PAGE_SIZE, filteredEvents.length);
-                const filterNote = filteredEvents.length < allEvents.length ? ` (${allEvents.length} total)` : '';
-                summaryEl.innerHTML = `Showing <strong>${filteredEvents.length === 0 ? 0 : start + 1}-${end}</strong> of <strong>${filteredEvents.length}</strong> events${filterNote} | <strong>${n}</strong> selected`;
+            } catch (e) {
+                hide('digest-loading');
+                showError('override-error', e.message);
             }
         }
 
-        // --- Rendering ---
+        function renderPreferences(prefs) {
+            if (!prefs || Object.keys(prefs).length === 0) {
+                document.getElementById('prefs-content').innerHTML = '<p style="color:var(--text-light);font-size:13px;">No preferences set (new user or pre-migration).</p>';
+                return;
+            }
 
-        function scoreClass(val) {
-            if (val >= 0.8) return 'high';
-            if (val >= 0.5) return 'mid';
-            return 'low';
+            let html = '';
+
+            // Category weights
+            const cats = prefs.category_weights || {};
+            if (Object.keys(cats).length > 0) {
+                html += '<div style="margin-bottom:14px"><strong style="font-size:12px;color:var(--text-light);">Categories</strong>';
+                const sorted = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+                sorted.forEach(([cat, weight]) => {
+                    const pct = Math.round(weight * 100);
+                    html += `
+                        <div class="pref-row">
+                            <span class="pref-label">${cat.replace(/_/g, ' ')}</span>
+                            <div class="pref-bar-bg"><div class="pref-bar" style="width:${pct}%"></div></div>
+                            <span class="pref-value">${pct}%</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            // Timing weights
+            const timings = prefs.timing_weights || {};
+            if (Object.keys(timings).length > 0) {
+                html += '<div style="margin-bottom:14px"><strong style="font-size:12px;color:var(--text-light);">Timing</strong><div class="pref-chips">';
+                const sorted = Object.entries(timings).sort((a, b) => b[1] - a[1]);
+                sorted.forEach(([slot, weight]) => {
+                    const pct = Math.round(weight * 100);
+                    html += `<span class="pref-chip${weight > 0.5 ? ' on' : ''}">${slot.replace(/_/g, ' ')} (${pct}%)</span>`;
+                });
+                html += '</div></div>';
+            }
+
+            // Venue weights
+            const venues = prefs.venue_weights || {};
+            if (Object.keys(venues).length > 0) {
+                html += '<div style="margin-bottom:14px"><strong style="font-size:12px;color:var(--text-light);">Top Venues</strong><div class="pref-chips">';
+                const sorted = Object.entries(venues).sort((a, b) => b[1] - a[1]).slice(0, 5);
+                sorted.forEach(([venue, weight]) => {
+                    const pct = Math.round(weight * 100);
+                    html += `<span class="pref-chip">${venue} (${pct}%)</span>`;
+                });
+                html += '</div></div>';
+            }
+
+            // Price sensitivity & family friendly
+            html += '<div class="pref-chips">';
+            const price = prefs.price_sensitivity;
+            if (price !== undefined) {
+                const priceLabel = price < 0.3 ? 'Prefers free' : price > 0.7 ? 'Price flexible' : 'Moderate';
+                html += `<span class="pref-chip">${priceLabel} (${Math.round(price * 100)}%)</span>`;
+            }
+            if (prefs.prefers_family_friendly) {
+                html += `<span class="pref-chip on">Family friendly</span>`;
+            }
+            html += '</div>';
+
+            document.getElementById('prefs-content').innerHTML = html;
         }
 
-        function renderEvents(events) {
-            const list = document.getElementById('event-list');
-            list.innerHTML = events.map((ev, i) => {
-                const sc = scoreClass(ev.total_score);
-                const bd = ev.score_breakdown;
+        function renderDigestEvents() {
+            if (digestEvents.length === 0) {
+                document.getElementById('digest-events').innerHTML = '<p style="color:var(--text-light);font-size:13px;">No events to preview.</p>';
+                return;
+            }
+
+            document.getElementById('digest-events').innerHTML = digestEvents.map((ev, i) => {
                 const dt = new Date(ev.start_datetime);
                 const dateStr = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                 const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                const checked = selectedEventIds.has(ev.id);
-
-                const imgTag = ev.image_url
-                    ? `<img src="${ev.image_url}" class="event-thumb" alt="">`
-                    : `<div class="event-thumb"></div>`;
-
-                const numericScores = [
-                    ['Venue', bd.venue_score],
-                    ['Source', bd.source_score],
-                    ['Cost', bd.cost_score],
-                    ['Freshness', bd.freshness_score],
-                    ['Category', bd.category_score],
-                    ['Base Pop.', bd.base_popularity],
-                ];
-
-                const boolScores = [
-                    ['Cat Match', bd.category_match, bd.category_match ? `+${bd.category_boost}` : ''],
-                    ['Timing', bd.timing_match, `x${bd.timing_multiplier}`],
-                    ['Rules OK', bd.special_rules_passed, ''],
-                ];
-
-                const barsHtml = numericScores.map(([label, val]) => {
-                    const pct = Math.round(val * 100);
-                    const cls = scoreClass(val);
-                    return `
-                        <div class="score-item">
-                            <div class="score-item-label">${label}: ${val.toFixed(2)}</div>
-                            <div class="score-bar-container">
-                                <div class="score-bar bar-${cls}" style="width:${pct}%"></div>
-                            </div>
-                        </div>`;
-                }).join('');
-
-                const boolsHtml = boolScores.map(([label, val, extra]) => {
-                    const cls = val ? 'bool-yes' : 'bool-no';
-                    const icon = val ? '\u2713' : '\u2717';
-                    const suffix = extra ? ` (${extra})` : '';
-                    return `
-                        <div class="score-item">
-                            <div class="score-item-label">${label}</div>
-                            <div class="bool-indicator ${cls}">${icon}${suffix}</div>
-                        </div>`;
-                }).join('');
+                const imgHtml = ev.image_url
+                    ? `<img src="${ev.image_url}" class="digest-event-img" alt="">`
+                    : `<div class="digest-event-img"></div>`;
 
                 return `
-                    <div class="event-card${checked ? ' selected' : ''}" data-event-id="${ev.id}">
-                        <div class="event-checkbox">
-                            <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleEvent('${ev.id}')">
+                    <div class="digest-event" data-event-id="${ev.id}">
+                        ${imgHtml}
+                        <div class="digest-event-body">
+                            <div class="digest-event-title" title="${ev.title}">${ev.title}</div>
+                            <div class="digest-event-meta">${dateStr} ${timeStr} &middot; ${ev.venue_name || ''} &middot; ${(ev.category || '').replace(/_/g, ' ')}</div>
                         </div>
-                        ${imgTag}
-                        <div class="event-body">
-                            <div class="event-header">
-                                <div class="event-title" title="${ev.title}">${ev.title}</div>
-                                <span class="score-badge score-${sc}">${ev.total_score.toFixed(3)}</span>
-                            </div>
-                            <div class="event-meta">
-                                <span>${dateStr} ${timeStr}</span>
-                                <span>${ev.source_name || ''}</span>
-                                ${ev.category ? `<span class="tag">${ev.category}</span>` : ''}
-                                ${ev.cost ? `<span>${ev.cost}</span>` : ''}
-                            </div>
-                            <div class="score-grid">
-                                ${barsHtml}
-                                ${boolsHtml}
-                            </div>
-                        </div>
-                    </div>`;
+                        <span class="digest-event-score">${ev.score !== undefined ? ev.score.toFixed(3) : ''}</span>
+                        <button class="btn-remove" onclick="removeDigestEvent(${i})" title="Remove">&times;</button>
+                    </div>
+                `;
             }).join('');
         }
 
-        // --- Send Curated Digest ---
+        function removeDigestEvent(index) {
+            digestEvents.splice(index, 1);
+            renderDigestEvents();
+        }
 
-        async function sendCuratedDigest() {
-            const key = getKey();
-            if (!key) {
-                document.getElementById('send-error').textContent = 'API key required.';
-                document.getElementById('send-error').classList.add('visible');
+        // --- Event Picker ---
+        function togglePicker() {
+            const picker = document.getElementById('event-picker');
+            picker.classList.toggle('visible');
+            if (picker.classList.contains('visible')) {
+                document.getElementById('picker-search').focus();
+                // Load all events if not already loaded
+                if (allEvents.length === 0) loadAllEvents();
+            }
+        }
+
+        async function loadAllEvents() {
+            try {
+                const resp = await fetch('/events?limit=500');
+                const data = await resp.json();
+                allEvents = data.events || data || [];
+            } catch (e) {
+                allEvents = [];
+            }
+        }
+
+        function onPickerSearch() {
+            const q = document.getElementById('picker-search').value.trim().toLowerCase();
+            if (q.length < 2) {
+                document.getElementById('picker-results').innerHTML = '';
                 return;
             }
 
-            const email = document.getElementById('send-email').value.trim();
-            if (!email) {
-                document.getElementById('send-error').textContent = 'Please enter a recipient email.';
-                document.getElementById('send-error').classList.add('visible');
+            const existingIds = new Set(digestEvents.map(e => e.id));
+            const matches = allEvents
+                .filter(ev => !existingIds.has(ev.id) && (
+                    (ev.title || '').toLowerCase().includes(q) ||
+                    (ev.source_name || '').toLowerCase().includes(q) ||
+                    (ev.category || '').toLowerCase().includes(q)
+                ))
+                .slice(0, 10);
+
+            document.getElementById('picker-results').innerHTML = matches.map(ev => {
+                const dt = ev.start_datetime ? new Date(ev.start_datetime) : null;
+                const dateStr = dt ? dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+
+                return `
+                    <div class="picker-item" onclick='addEventFromPicker(${JSON.stringify({
+                        id: ev.id,
+                        title: ev.title,
+                        start_datetime: ev.start_datetime,
+                        venue_name: ev.venue_name || ev.source_name || '',
+                        category: ev.category || '',
+                        cost: ev.cost || '',
+                        score: 0,
+                        image_url: ev.image_url || '',
+                    }).replace(/'/g, "&#39;")})'>
+                        <div class="picker-item-title">${ev.title}</div>
+                        <div class="picker-item-meta">${dateStr} &middot; ${ev.source_name || ''} &middot; ${(ev.category || '').replace(/_/g, ' ')}</div>
+                    </div>
+                `;
+            }).join('') || '<div class="picker-item" style="color:var(--text-light)">No matches</div>';
+        }
+
+        function addEventFromPicker(ev) {
+            digestEvents.push(ev);
+            renderDigestEvents();
+            document.getElementById('picker-search').value = '';
+            document.getElementById('picker-results').innerHTML = '';
+        }
+
+        // --- Override Save/Clear ---
+        async function saveOverride() {
+            if (!selectedUserId) return;
+            if (digestEvents.length === 0) {
+                showError('override-error', 'No events to save.');
                 return;
             }
 
-            if (selectedEventIds.size === 0) {
-                document.getElementById('send-error').textContent = 'No events selected.';
-                document.getElementById('send-error').classList.add('visible');
-                return;
-            }
-
-            // Build event list with scores from allEvents
-            const scoreMap = {};
-            allEvents.forEach(ev => { scoreMap[ev.id] = ev.total_score; });
-
-            const eventPayload = Array.from(selectedEventIds).map(id => ({
-                event_id: id,
-                score: scoreMap[id] || 0,
-            }));
-
-            // UI
-            const sendBtn = document.getElementById('send-btn');
-            sendBtn.disabled = true;
-            sendBtn.textContent = 'Sending...';
-            document.getElementById('send-error').classList.remove('visible');
-            document.getElementById('send-success').classList.remove('visible');
+            const eventIds = digestEvents.map(e => e.id);
 
             try {
-                const resp = await fetch(`/onboarding/admin/send-curated-email?api_key=${encodeURIComponent(key)}`, {
+                await apiFetch(`/admin/user/${selectedUserId}/override-digest`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, events: eventPayload }),
+                    body: JSON.stringify({ event_ids: eventIds }),
                 });
+
+                hasOverride = true;
+                document.getElementById('override-banner-area').innerHTML = `
+                    <div class="override-banner">
+                        Override active (${eventIds.length} events, set just now).
+                        Next email will use these events instead of algorithm picks.
+                    </div>
+                `;
+                showSuccess('override-success', `Override saved with ${eventIds.length} events.`);
+            } catch (e) {
+                showError('override-error', e.message);
+            }
+        }
+
+        async function clearOverride() {
+            if (!selectedUserId) return;
+
+            try {
+                const key = getKey();
+                const sep = `/admin/user/${selectedUserId}/override-digest`.includes('?') ? '&' : '?';
+                const url = `/onboarding/admin/user/${selectedUserId}/override-digest?api_key=${encodeURIComponent(key)}`;
+                const resp = await fetch(url, { method: 'DELETE' });
 
                 if (!resp.ok) {
                     const data = await resp.json().catch(() => ({ detail: resp.statusText }));
                     throw new Error(data.detail || `HTTP ${resp.status}`);
                 }
 
-                const data = await resp.json();
-                document.getElementById('send-success').textContent = `Sent! ${data.events_sent} events emailed to ${email}. Log ID: ${data.email_log_id}`;
-                document.getElementById('send-success').classList.add('visible');
+                hasOverride = false;
+                document.getElementById('override-banner-area').innerHTML = '';
+                showSuccess('override-success', 'Override cleared. Next email will use algorithm picks.');
+
+                // Reload digest preview
+                await loadDigestPreview(selectedUserId);
+            } catch (e) {
+                showError('override-error', e.message);
+            }
+        }
+
+        // --- History ---
+        async function loadHistory(userId) {
+            show('history-loading');
+            try {
+                const data = await apiFetch(`/admin/user/${userId}/history`);
+                hide('history-loading');
+
+                const list = data.history || [];
+                if (list.length === 0) {
+                    document.getElementById('history-list').innerHTML = '<p style="color:var(--text-light);font-size:13px;">No emails sent yet.</p>';
+                    return;
+                }
+
+                document.getElementById('history-list').innerHTML = list.map(item => {
+                    const dt = item.sent_at ? new Date(item.sent_at) : null;
+                    const dateStr = dt ? dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--';
+
+                    const openInd = item.opened
+                        ? `<span class="indicator ind-open">Opened (${item.open_count})</span>`
+                        : `<span class="indicator ind-no-open">Not opened</span>`;
+
+                    const clickInd = item.click_count > 0
+                        ? `<span class="indicator ind-click">${item.click_count} click${item.click_count > 1 ? 's' : ''}</span>`
+                        : '';
+
+                    return `
+                        <div class="history-item">
+                            <span class="history-date">${dateStr}</span>
+                            <span class="history-subject">${item.subject || 'Weekly Digest'}</span>
+                            <div class="history-indicators">${openInd}${clickInd}</div>
+                        </div>
+                    `;
+                }).join('');
 
             } catch (e) {
-                document.getElementById('send-error').textContent = e.message;
-                document.getElementById('send-error').classList.add('visible');
+                hide('history-loading');
+                document.getElementById('history-list').innerHTML = `<p style="color:var(--danger);font-size:13px;">${e.message}</p>`;
+            }
+        }
+
+        // --- Send Test Email ---
+        async function sendTestEmail() {
+            if (!selectedUserId) return;
+            const user = usersData.find(u => u.id === selectedUserId);
+            if (!user) return;
+
+            const btn = document.getElementById('send-test-btn');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            hideMsg('action-success');
+            hideMsg('action-error');
+
+            try {
+                const data = await apiFetch(`/admin/send-test-email?email=${encodeURIComponent(user.email)}`);
+                showSuccess('action-success', `Test email sent! ${data.events_sent} events. Log: ${data.email_log_id}`);
+            } catch (e) {
+                showError('action-error', e.message);
             } finally {
-                sendBtn.disabled = false;
-                updateSelectionCount();
+                btn.disabled = false;
+                btn.textContent = 'Send Test Email';
             }
         }
 
-        // --- Curation Save/Load/Clear ---
-
-        async function loadSavedCuration(archetype) {
-            const key = getKey();
-            try {
-                const resp = await fetch(`/onboarding/admin/curated-events?archetype=${archetype}&api_key=${encodeURIComponent(key)}`);
-                if (resp.ok) {
-                    const data = await resp.json();
-                    if (data.events && data.events.length > 0) {
-                        savedCuration = { events: data.events, updated_at: data.updated_at };
-                    } else {
-                        savedCuration = null;
-                    }
-                } else {
-                    savedCuration = null;
-                }
-            } catch (e) {
-                savedCuration = null;
-            }
+        // --- Helpers ---
+        function show(id) { document.getElementById(id).classList.add('visible'); }
+        function hide(id) { document.getElementById(id).classList.remove('visible'); }
+        function showError(id, msg) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.classList.add('visible');
         }
-
-        function updateCurationStatus() {
-            const statusEl = document.getElementById('curation-status');
-            const clearBtn = document.getElementById('clear-curation-btn');
-
-            if (savedCuration && savedCuration.events && savedCuration.events.length > 0) {
-                const date = savedCuration.updated_at ? new Date(savedCuration.updated_at) : null;
-                const dateStr = date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-                const timeStr = date ? date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
-                statusEl.textContent = `Saved curation: ${savedCuration.events.length} events (${dateStr} ${timeStr})`;
-                statusEl.className = 'curation-status saved';
-                clearBtn.style.display = '';
-            } else {
-                statusEl.textContent = 'No saved curation — weekly email & signup preview will use algorithm';
-                statusEl.className = 'curation-status';
-                clearBtn.style.display = 'none';
-            }
+        function showSuccess(id, msg) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.classList.add('visible');
         }
+        function hideMsg(id) { document.getElementById(id).classList.remove('visible'); }
 
-        async function saveCuration() {
-            const key = getKey();
-            const primary = document.getElementById('primary-select').value;
-            if (!key || !primary) return;
-
-            if (selectedEventIds.size === 0) {
-                alert('No events selected to save.');
-                return;
-            }
-
-            // Build event list with scores
-            const scoreMap = {};
-            allEvents.forEach(ev => { scoreMap[ev.id] = ev.total_score; });
-
-            const eventPayload = Array.from(selectedEventIds).map(id => ({
-                event_id: id,
-                score: scoreMap[id] || 0,
-            }));
-
-            const saveBtn = document.getElementById('save-curation-btn');
-            const origText = saveBtn.textContent;
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-
-            try {
-                const resp = await fetch(`/onboarding/admin/save-curated-events?api_key=${encodeURIComponent(key)}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ archetype: primary, events: eventPayload }),
-                });
-
-                if (!resp.ok) {
-                    const data = await resp.json().catch(() => ({ detail: resp.statusText }));
-                    throw new Error(data.detail || `HTTP ${resp.status}`);
-                }
-
-                const data = await resp.json();
-                savedCuration = { events: eventPayload, updated_at: data.updated_at };
-                updateCurationStatus();
-
-                saveBtn.textContent = 'Saved!';
-                saveBtn.style.background = '#219a52';
-                setTimeout(() => {
-                    saveBtn.textContent = origText;
-                    saveBtn.style.background = '';
-                    saveBtn.disabled = false;
-                }, 1500);
-
-            } catch (e) {
-                alert('Failed to save: ' + e.message);
-                saveBtn.textContent = origText;
-                saveBtn.disabled = false;
-            }
-        }
-
-        async function clearCuration() {
-            const key = getKey();
-            const primary = document.getElementById('primary-select').value;
-            if (!key || !primary) return;
-
-            if (!confirm('Clear saved curation for this archetype? Weekly email will revert to algorithm.')) return;
-
-            try {
-                const resp = await fetch(`/onboarding/admin/save-curated-events?api_key=${encodeURIComponent(key)}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ archetype: primary, events: [] }),
-                });
-
-                if (!resp.ok) {
-                    const data = await resp.json().catch(() => ({ detail: resp.statusText }));
-                    throw new Error(data.detail || `HTTP ${resp.status}`);
-                }
-
-                savedCuration = null;
-                updateCurationStatus();
-
-                // Revert to top 7 auto-select
-                selectTop(7);
-
-            } catch (e) {
-                alert('Failed to clear: ' + e.message);
-            }
-        }
-
+        // Auto-load if key exists
         init();
+        if (getKey()) loadDashboard();
     </script>
 </body>
 </html>

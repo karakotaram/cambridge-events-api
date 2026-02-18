@@ -12,24 +12,17 @@ from sqlalchemy import func
 from src.db.database import get_db
 from src.models.user import (
     User,
+    UserPreferences,
+    OnboardingLike,
+    DigestOverride,
     EmailLog,
     ClickTracking,
-    CuratedDigest,
     OnboardingSubmit,
     OnboardingResponse,
     UnsubscribeRequest,
-    QuestionsResponse,
     AdminStats,
-    ArchetypeEnum,
     EmailStatus,
-    QuestionnaireResponses,
 )
-from src.services.onboarding import (
-    get_questionnaire,
-    calculate_archetype,
-    get_archetype_result,
-)
-from src.services.archetypes import get_archetype_description, get_archetype_name
 
 
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])
@@ -63,118 +56,57 @@ def verify_admin_key(api_key: str = Query(...)) -> bool:
     return True
 
 
-class CuratedEventItem(BaseModel):
-    event_id: str
-    score: float
-
-
-class CuratedDigestRequest(BaseModel):
-    email: str
-    events: List[CuratedEventItem]
-
-
-class SaveCuratedRequest(BaseModel):
-    archetype: str
-    events: List[CuratedEventItem]
-
-
-@router.get("/questions", response_model=QuestionsResponse)
-async def get_questions():
-    """
-    Get the onboarding questionnaire questions.
-
-    Returns the 4 questions with their options for the signup flow.
-    """
-    questions = get_questionnaire()
-    return QuestionsResponse(questions=questions)
-
-
-def _get_archetype_events(primary: ArchetypeEnum, secondary: Optional[ArchetypeEnum], db: Session):
-    """Shared helper: load events for an archetype (curated first, then algorithmic)."""
+def _load_events():
+    """Helper to load events from JSON file."""
     import json
     from pathlib import Path
+    from src.models.event import Event
 
     project_root = Path(__file__).parent.parent.parent
     events_file = project_root / "data" / "events.json"
 
     if not events_file.exists():
-        return {"archetype": primary.value, "archetype_name": get_archetype_name(primary), "events": []}
+        return []
 
-    from src.models.event import Event
     with open(events_file, "r") as f:
         data = json.load(f)
-        events = [Event(**e) for e in data]
+        return [Event(**e) for e in data]
 
-    # Check for curated events (primary first, then secondary)
-    recommended = []
-    curated = db.query(CuratedDigest).filter(
-        CuratedDigest.archetype == primary.value
-    ).order_by(CuratedDigest.created_at.desc()).first()
-    if (not curated or not curated.events) and secondary:
-        curated = db.query(CuratedDigest).filter(
-            CuratedDigest.archetype == secondary.value
-        ).order_by(CuratedDigest.created_at.desc()).first()
 
-    if curated and curated.events:
-        events_map = {e.id: e for e in events}
-        for item in curated.events:
-            event = events_map.get(item["event_id"])
-            if event:
-                recommended.append((event, item["score"]))
+# --- Public Endpoints ---
 
-    if not recommended:
-        from src.services.recommendation import get_weekly_digest_events
-        recommended = get_weekly_digest_events(events, primary, secondary)
 
-    # Return top 5 with minimal fields
-    sample = []
-    for event, score in recommended[:5]:
-        sample.append({
-            "title": event.title,
-            "start_datetime": event.start_datetime.isoformat(),
-            "source_name": event.source_name,
-            "category": event.category.value if hasattr(event.category, "value") else event.category,
-            "image_url": event.image_url,
+@router.get("/sample-events")
+async def get_sample_events():
+    """
+    Get 10 diverse events for the onboarding thumbs-up screen.
+
+    Returns events with: id, title, description (truncated), start_datetime,
+    venue_name, category, cost, image_url, family_friendly.
+    """
+    events = _load_events()
+    if not events:
+        return {"events": []}
+
+    from src.services.preferences import select_diverse_events
+    selected = select_diverse_events(events, count=10)
+
+    result = []
+    for ev in selected:
+        cat = ev.category.value if hasattr(ev.category, "value") else str(ev.category) if ev.category else "other"
+        result.append({
+            "id": ev.id,
+            "title": ev.title,
+            "description": ev.description[:150] + "..." if len(ev.description) > 150 else ev.description,
+            "start_datetime": ev.start_datetime.isoformat(),
+            "venue_name": ev.venue_name or ev.source_name,
+            "category": cat,
+            "cost": ev.cost,
+            "image_url": ev.image_url,
+            "family_friendly": ev.family_friendly,
         })
 
-    return {
-        "archetype": primary.value,
-        "archetype_name": get_archetype_name(primary),
-        "events": sample,
-    }
-
-
-@router.post("/preview-events")
-async def preview_events(
-    responses: QuestionnaireResponses,
-    db: Session = Depends(get_db),
-):
-    """
-    Preview top events for a user's archetype based on questionnaire responses.
-
-    Used on the signup page to show a sample of personalized events
-    before the user enters their email.
-    """
-    primary, secondary = calculate_archetype(responses)
-    return _get_archetype_events(primary, secondary, db)
-
-
-@router.get("/archetype-events/{archetype}")
-async def get_archetype_events(
-    archetype: str,
-    db: Session = Depends(get_db),
-):
-    """
-    Get sample events for any archetype. Public endpoint (no auth).
-
-    Used by the signup page to let users browse other archetypes.
-    """
-    try:
-        primary = ArchetypeEnum(archetype)
-    except ValueError:
-        valid = [e.value for e in ArchetypeEnum]
-        raise HTTPException(status_code=400, detail=f"Invalid archetype '{archetype}'. Valid: {valid}")
-    return _get_archetype_events(primary, None, db)
+    return {"events": result}
 
 
 @router.post("/submit", response_model=OnboardingResponse)
@@ -183,61 +115,75 @@ async def submit_onboarding(
     db: Session = Depends(get_db)
 ):
     """
-    Submit onboarding questionnaire and create user.
+    Submit onboarding: create user from liked events.
 
-    Calculates the user's archetype based on responses and creates
-    their account for weekly email recommendations.
+    Creates the user, stores OnboardingLike rows, computes initial
+    UserPreferences from liked events, and optionally sends welcome email.
     """
     # Check if user already exists
     existing = db.query(User).filter(User.email == data.email).first()
     if existing:
-        # Return existing user's archetype info
-        result = get_archetype_result(
-            existing.primary_archetype,
-            existing.secondary_archetype
-        )
+        liked_count = db.query(func.count(OnboardingLike.id)).filter(
+            OnboardingLike.user_id == existing.id
+        ).scalar() or 0
         return OnboardingResponse(
             success=True,
             user_id=str(existing.id),
-            primary_archetype=result["primary_archetype"],
-            secondary_archetype=result.get("secondary_archetype"),
-            archetype_description=result["description"],
-            message="Welcome back! You're already signed up."
+            message="Welcome back! You're already signed up.",
+            liked_count=liked_count,
         )
 
-    # Calculate archetype (with optional override)
-    if data.archetype_override:
-        try:
-            primary = ArchetypeEnum(data.archetype_override)
-        except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid archetype_override '{data.archetype_override}'")
-        secondary = None
-    else:
-        primary, secondary = calculate_archetype(data.responses)
-    result = get_archetype_result(primary, secondary)
-
-    # Create user
+    # Create user (no archetype columns)
     user = User(
         email=data.email,
-        primary_archetype=primary,
-        secondary_archetype=secondary,
-        questionnaire_responses=data.responses.model_dump(),
         email_opt_in=True,
-        unsubscribe_token=secrets.token_urlsafe(32)
+        unsubscribe_token=secrets.token_urlsafe(32),
     )
-
     db.add(user)
+    db.flush()  # Get user.id
+
+    # Store OnboardingLike rows
+    for event_id in data.liked_event_ids:
+        db.add(OnboardingLike(user_id=user.id, event_id=event_id))
+
+    # Compute initial preferences from liked events
+    liked_events = []
+    if data.liked_event_ids:
+        events = _load_events()
+        events_map = {e.id: e for e in events}
+        liked_events = [events_map[eid] for eid in data.liked_event_ids if eid in events_map]
+
+    from src.services.preferences import compute_preferences_from_likes
+    pref_data = compute_preferences_from_likes(liked_events)
+
+    prefs = UserPreferences(
+        user_id=user.id,
+        category_weights=pref_data["category_weights"],
+        timing_weights=pref_data["timing_weights"],
+        venue_weights=pref_data["venue_weights"],
+        price_sensitivity=pref_data["price_sensitivity"],
+        prefers_family_friendly=pref_data["prefers_family_friendly"],
+    )
+    db.add(prefs)
     db.commit()
     db.refresh(user)
+
+    # Try to send welcome email (non-blocking)
+    try:
+        from src.services.email_service import send_welcome_email_to_user
+        send_welcome_email_to_user(user, db, liked_count=len(data.liked_event_ids))
+    except Exception as e:
+        print(f"Welcome email failed for {user.email}: {e}")
 
     return OnboardingResponse(
         success=True,
         user_id=str(user.id),
-        primary_archetype=result["primary_archetype"],
-        secondary_archetype=result.get("secondary_archetype"),
-        archetype_description=result["description"],
-        message=f"Welcome! You've been identified as a {result['primary_name']}."
+        message="You're all set! We'll send you personalized weekly recommendations.",
+        liked_count=len(data.liked_event_ids),
     )
+
+
+# --- Unsubscribe Endpoints ---
 
 
 @router.post("/unsubscribe")
@@ -245,9 +191,7 @@ async def unsubscribe(
     data: UnsubscribeRequest,
     db: Session = Depends(get_db)
 ):
-    """
-    Unsubscribe a user using their unique token.
-    """
+    """Unsubscribe a user using their unique token."""
     user = db.query(User).filter(User.unsubscribe_token == data.token).first()
     if not user:
         raise HTTPException(status_code=404, detail="Invalid unsubscribe token")
@@ -263,9 +207,7 @@ async def unsubscribe_get(
     token: str,
     db: Session = Depends(get_db)
 ):
-    """
-    Unsubscribe via GET request (for email links).
-    """
+    """Unsubscribe via GET request (for email links)."""
     user = db.query(User).filter(User.unsubscribe_token == token).first()
     if not user:
         raise HTTPException(status_code=404, detail="Invalid unsubscribe token")
@@ -273,7 +215,6 @@ async def unsubscribe_get(
     user.email_opt_in = False
     db.commit()
 
-    # Return simple HTML confirmation
     html = """
     <!DOCTYPE html>
     <html>
@@ -288,17 +229,15 @@ async def unsubscribe_get(
     return Response(content=html, media_type="text/html")
 
 
+# --- Tracking Endpoints ---
+
+
 @router.get("/track/open/{email_log_id}")
 async def track_open(
     email_log_id: str,
     db: Session = Depends(get_db)
 ):
-    """
-    Track email opens via 1x1 transparent pixel.
-
-    This endpoint is called when the email is opened and the
-    tracking pixel image loads.
-    """
+    """Track email opens via 1x1 transparent pixel."""
     try:
         email_log = db.query(EmailLog).filter(EmailLog.id == email_log_id).first()
         if email_log:
@@ -307,7 +246,7 @@ async def track_open(
             email_log.open_count += 1
             db.commit()
     except Exception:
-        pass  # Silently fail - don't break email viewing
+        pass
 
     return Response(
         content=TRACKING_PIXEL,
@@ -322,15 +261,10 @@ async def track_click(
     redirect: str = Query(...),
     db: Session = Depends(get_db)
 ):
-    """
-    Track link clicks and redirect to destination.
-
-    All event links in emails are wrapped with this tracker.
-    """
+    """Track link clicks and redirect to destination."""
     import urllib.parse
 
     try:
-        # Convert string to UUID for comparison
         import uuid
         click_uuid = uuid.UUID(click_id)
         click = db.query(ClickTracking).filter(ClickTracking.id == click_uuid).first()
@@ -338,11 +272,13 @@ async def track_click(
             click.clicked_at = datetime.utcnow()
             db.commit()
     except Exception as e:
-        print(f"Click tracking error: {e}")  # Log but don't break redirect
+        print(f"Click tracking error: {e}")
 
-    # Decode the redirect URL if it's encoded
     decoded_redirect = urllib.parse.unquote(redirect)
     return RedirectResponse(url=decoded_redirect, status_code=302)
+
+
+# --- Admin Endpoints ---
 
 
 @router.get("/admin/stats", response_model=AdminStats)
@@ -350,45 +286,23 @@ async def get_admin_stats(
     verified: bool = Depends(verify_admin_key),
     db: Session = Depends(get_db)
 ):
-    """
-    Get email analytics for admin dashboard.
-
-    Requires API key authentication.
-    """
-    # Total users
+    """Get email analytics for admin dashboard."""
     total_users = db.query(func.count(User.id)).scalar() or 0
 
-    # Users by archetype
-    archetype_counts = db.query(
-        User.primary_archetype,
-        func.count(User.id)
-    ).group_by(User.primary_archetype).all()
-
-    users_by_archetype = {
-        str(arch.value if hasattr(arch, 'value') else arch): count
-        for arch, count in archetype_counts
-    }
-
-    # Emails sent in last 7 days
     week_ago = datetime.utcnow() - timedelta(days=7)
     emails_last_7_days = db.query(func.count(EmailLog.id)).filter(
         EmailLog.sent_at >= week_ago
     ).scalar() or 0
 
-    # Total opens
     total_opens = db.query(func.sum(EmailLog.open_count)).scalar() or 0
-
-    # Total clicks
     total_clicks = db.query(func.count(ClickTracking.id)).scalar() or 0
 
-    # Calculate rates
     total_emails = db.query(func.count(EmailLog.id)).scalar() or 0
     open_rate = (total_opens / total_emails * 100) if total_emails > 0 else 0.0
     click_rate = (total_clicks / total_emails * 100) if total_emails > 0 else 0.0
 
     return AdminStats(
         total_users=total_users,
-        users_by_archetype=users_by_archetype,
         emails_sent_last_7_days=emails_last_7_days,
         total_opens=total_opens,
         total_clicks=total_clicks,
@@ -404,85 +318,102 @@ async def get_admin_users(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db)
 ):
-    """
-    Get list of users for admin dashboard.
-    """
+    """Get list of users for admin dashboard."""
     users = db.query(User).order_by(User.created_at.desc()).offset(offset).limit(limit).all()
 
+    result = []
+    for u in users:
+        # Get liked count
+        liked_count = db.query(func.count(OnboardingLike.id)).filter(
+            OnboardingLike.user_id == u.id
+        ).scalar() or 0
+
+        result.append({
+            "id": str(u.id),
+            "email": u.email,
+            "email_opt_in": u.email_opt_in,
+            "created_at": u.created_at.isoformat(),
+            "last_email_sent": u.last_email_sent.isoformat() if u.last_email_sent else None,
+            "liked_count": liked_count,
+        })
+
     return {
-        "users": [
-            {
-                "id": str(u.id),
-                "email": u.email,
-                "primary_archetype": u.primary_archetype.value,
-                "secondary_archetype": u.secondary_archetype.value if u.secondary_archetype else None,
-                "email_opt_in": u.email_opt_in,
-                "created_at": u.created_at.isoformat(),
-                "last_email_sent": u.last_email_sent.isoformat() if u.last_email_sent else None,
-            }
-            for u in users
-        ],
+        "users": result,
         "total": db.query(func.count(User.id)).scalar() or 0
     }
 
 
-@router.post("/admin/send-test-email")
-async def send_test_email(
-    email: str = Query(...),
+@router.get("/admin/user/{user_id}/preview-digest")
+async def preview_user_digest(
+    user_id: str,
     verified: bool = Depends(verify_admin_key),
     db: Session = Depends(get_db)
 ):
     """
-    Send a test email to a specific user.
-
-    Requires API key authentication.
+    Preview the ~7 events that would be recommended for this specific user.
+    Also returns any saved override if it exists.
     """
-    import json
-    import os
+    import uuid as uuid_mod
     import traceback
-    from pathlib import Path
 
     try:
-        # Check if RESEND_API_KEY is set
-        if not os.environ.get("RESEND_API_KEY"):
-            raise HTTPException(status_code=500, detail="RESEND_API_KEY not configured in environment variables")
+        user_uuid = uuid_mod.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user_id")
 
-        # Find user
-        user = db.query(User).filter(User.email == email).first()
-        if not user:
-            raise HTTPException(status_code=404, detail=f"User not found. Make sure {email} has signed up first at /signup")
+    user = db.query(User).filter(User.id == user_uuid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-        # Load events
-        project_root = Path(__file__).parent.parent.parent
-        events_file = project_root / "data" / "events.json"
+    try:
+        events = _load_events()
+        if not events:
+            return {"events": [], "override": None, "user_email": user.email}
 
-        if not events_file.exists():
-            raise HTTPException(status_code=500, detail=f"Events file not found at {events_file}")
+        # Get user preferences
+        prefs_row = db.query(UserPreferences).filter(UserPreferences.user_id == user_uuid).first()
+        prefs = {}
+        if prefs_row:
+            prefs = {
+                "category_weights": prefs_row.category_weights or {},
+                "timing_weights": prefs_row.timing_weights or {},
+                "venue_weights": prefs_row.venue_weights or {},
+                "price_sensitivity": prefs_row.price_sensitivity if prefs_row.price_sensitivity is not None else 0.5,
+                "prefers_family_friendly": prefs_row.prefers_family_friendly or False,
+            }
 
-        from src.models.event import Event
-        with open(events_file, 'r') as f:
-            data = json.load(f)
-            events = [Event(**event) for event in data]
-
-        # Get recommendations
         from src.services.recommendation import get_weekly_digest_events
-        recommended = get_weekly_digest_events(
-            events,
-            user.primary_archetype,
-            user.secondary_archetype
-        )
+        recommended = get_weekly_digest_events(events, prefs)
 
-        if not recommended:
-            raise HTTPException(status_code=400, detail="No events to recommend for this user's archetype")
+        events_out = []
+        for ev, score in recommended:
+            cat = ev.category.value if hasattr(ev.category, "value") else str(ev.category) if ev.category else "other"
+            events_out.append({
+                "id": ev.id,
+                "title": ev.title,
+                "start_datetime": ev.start_datetime.isoformat(),
+                "venue_name": ev.venue_name or ev.source_name,
+                "category": cat,
+                "cost": ev.cost,
+                "score": round(score, 4),
+                "image_url": ev.image_url,
+            })
 
-        # Send email
-        from src.services.email_service import send_weekly_digest
-        email_log_id = send_weekly_digest(user, recommended, db)
+        # Check for override
+        override = db.query(DigestOverride).filter(DigestOverride.user_id == user_uuid).first()
+        override_data = None
+        if override:
+            override_data = {
+                "event_ids": override.event_ids,
+                "created_at": override.created_at.isoformat() if override.created_at else None,
+            }
 
-        if email_log_id:
-            return {"success": True, "email_log_id": email_log_id, "events_sent": len(recommended)}
-        else:
-            raise HTTPException(status_code=500, detail="Failed to send email - check RESEND_API_KEY is valid")
+        return {
+            "user_email": user.email,
+            "preferences": prefs,
+            "events": events_out,
+            "override": override_data,
+        }
 
     except HTTPException:
         raise
@@ -491,70 +422,147 @@ async def send_test_email(
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}\n\n{error_details}")
 
 
-@router.post("/admin/send-curated-email")
-async def send_curated_email(
-    body: CuratedDigestRequest,
-    verified: bool = Depends(verify_admin_key),
-    db: Session = Depends(get_db),
-):
-    """
-    Send a curated digest email with hand-picked events.
+class OverrideDigestRequest(BaseModel):
+    event_ids: List[str]
 
-    Requires API key authentication.
-    """
-    import json
+
+@router.post("/admin/user/{user_id}/override-digest")
+async def override_user_digest(
+    user_id: str,
+    body: OverrideDigestRequest,
+    verified: bool = Depends(verify_admin_key),
+    db: Session = Depends(get_db)
+):
+    """Save a manually curated event list for this user's next email."""
+    import uuid as uuid_mod
+
+    try:
+        user_uuid = uuid_mod.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user_id")
+
+    user = db.query(User).filter(User.id == user_uuid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Upsert override
+    existing = db.query(DigestOverride).filter(DigestOverride.user_id == user_uuid).first()
+    if existing:
+        existing.event_ids = body.event_ids
+        existing.created_at = datetime.utcnow()
+    else:
+        db.add(DigestOverride(
+            user_id=user_uuid,
+            event_ids=body.event_ids,
+            created_by="admin",
+        ))
+    db.commit()
+
+    return {"success": True, "event_count": len(body.event_ids)}
+
+
+@router.delete("/admin/user/{user_id}/override-digest")
+async def clear_user_digest_override(
+    user_id: str,
+    verified: bool = Depends(verify_admin_key),
+    db: Session = Depends(get_db)
+):
+    """Clear any saved override, revert to algorithmic picks."""
+    import uuid as uuid_mod
+
+    try:
+        user_uuid = uuid_mod.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user_id")
+
+    existing = db.query(DigestOverride).filter(DigestOverride.user_id == user_uuid).first()
+    if existing:
+        db.delete(existing)
+        db.commit()
+
+    return {"success": True}
+
+
+@router.get("/admin/user/{user_id}/history")
+async def get_user_email_history(
+    user_id: str,
+    limit: int = Query(5, ge=1, le=50),
+    verified: bool = Depends(verify_admin_key),
+    db: Session = Depends(get_db)
+):
+    """Return last N emails sent to this user with open/click data."""
+    import uuid as uuid_mod
+
+    try:
+        user_uuid = uuid_mod.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user_id")
+
+    logs = db.query(EmailLog).filter(
+        EmailLog.user_id == user_uuid
+    ).order_by(EmailLog.sent_at.desc()).limit(limit).all()
+
+    result = []
+    for log in logs:
+        click_count = db.query(func.count(ClickTracking.id)).filter(
+            ClickTracking.email_log_id == log.id
+        ).scalar() or 0
+
+        result.append({
+            "id": str(log.id),
+            "subject": log.subject,
+            "sent_at": log.sent_at.isoformat() if log.sent_at else None,
+            "opened": log.opened_at is not None,
+            "open_count": log.open_count,
+            "click_count": click_count,
+            "event_ids": log.event_ids or [],
+        })
+
+    return {"history": result}
+
+
+@router.post("/admin/send-test-email")
+async def send_test_email(
+    email: str = Query(...),
+    verified: bool = Depends(verify_admin_key),
+    db: Session = Depends(get_db)
+):
+    """Send a test email to a specific user."""
     import traceback
-    from pathlib import Path
 
     try:
         if not os.environ.get("RESEND_API_KEY"):
             raise HTTPException(status_code=500, detail="RESEND_API_KEY not configured")
 
-        # Find user
-        user = db.query(User).filter(User.email == body.email).first()
+        user = db.query(User).filter(User.email == email).first()
         if not user:
-            raise HTTPException(status_code=404, detail=f"User not found: {body.email}")
+            raise HTTPException(status_code=404, detail=f"User not found: {email}")
 
-        # Load events
-        project_root = Path(__file__).parent.parent.parent
-        events_file = project_root / "data" / "events.json"
-        if not events_file.exists():
-            raise HTTPException(status_code=500, detail="Events file not found")
+        events = _load_events()
 
-        from src.models.event import Event
-        with open(events_file, 'r') as f:
-            data = json.load(f)
-            events_map = {e["id"]: Event(**e) for e in data}
+        # Get user preferences
+        prefs_row = db.query(UserPreferences).filter(UserPreferences.user_id == user.id).first()
+        prefs = {}
+        if prefs_row:
+            prefs = {
+                "category_weights": prefs_row.category_weights or {},
+                "timing_weights": prefs_row.timing_weights or {},
+                "venue_weights": prefs_row.venue_weights or {},
+                "price_sensitivity": prefs_row.price_sensitivity if prefs_row.price_sensitivity is not None else 0.5,
+                "prefers_family_friendly": prefs_row.prefers_family_friendly or False,
+            }
 
-        # Resolve event IDs to (Event, score) tuples
-        curated_events = []
-        missing_ids = []
-        for item in body.events:
-            event = events_map.get(item.event_id)
-            if event:
-                curated_events.append((event, item.score))
-            else:
-                missing_ids.append(item.event_id)
+        from src.services.recommendation import get_weekly_digest_events
+        recommended = get_weekly_digest_events(events, prefs)
 
-        if missing_ids:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Event IDs not found: {missing_ids[:10]}"
-            )
+        if not recommended:
+            raise HTTPException(status_code=400, detail="No events to recommend")
 
-        if not curated_events:
-            raise HTTPException(status_code=400, detail="No events provided")
-
-        # Send email
         from src.services.email_service import send_weekly_digest
-        email_log_id = send_weekly_digest(user, curated_events, db)
+        email_log_id = send_weekly_digest(user, recommended, db)
 
         if email_log_id:
-            return {
-                "success": True,
-                "email_log_id": email_log_id,
-                "events_sent": len(curated_events),
-            }
+            return {"success": True, "email_log_id": email_log_id, "events_sent": len(recommended)}
         else:
             raise HTTPException(status_code=500, detail="Failed to send email")
 
@@ -565,219 +573,58 @@ async def send_curated_email(
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}\n\n{error_details}")
 
 
-@router.post("/admin/save-curated-events")
-async def save_curated_events(
-    body: SaveCuratedRequest,
+class CuratedEventItem(BaseModel):
+    event_id: str
+    score: float
+
+
+class CuratedDigestRequest(BaseModel):
+    email: str
+    events: List[CuratedEventItem]
+
+
+@router.post("/admin/send-curated-email")
+async def send_curated_email(
+    body: CuratedDigestRequest,
     verified: bool = Depends(verify_admin_key),
     db: Session = Depends(get_db),
 ):
-    """
-    Save curated event picks for an archetype, used by weekly email job.
-    """
-    # Validate archetype
-    try:
-        ArchetypeEnum(body.archetype)
-    except ValueError:
-        valid = [e.value for e in ArchetypeEnum]
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid archetype '{body.archetype}'. Valid: {valid}"
-        )
-
-    events_data = [{"event_id": e.event_id, "score": e.score} for e in body.events]
-    now = datetime.utcnow()
-
-    db.add(CuratedDigest(
-        archetype=body.archetype,
-        events=events_data,
-        created_at=now,
-    ))
-    db.commit()
-
-    return {
-        "success": True,
-        "archetype": body.archetype,
-        "events_saved": len(body.events),
-        "updated_at": now.isoformat() + "Z",
-    }
-
-
-@router.get("/admin/curated-events")
-async def get_curated_events(
-    archetype: str = Query(..., description="Archetype enum value"),
-    verified: bool = Depends(verify_admin_key),
-    db: Session = Depends(get_db),
-):
-    """
-    Get saved curated event picks for an archetype.
-    """
-    # Validate archetype
-    try:
-        ArchetypeEnum(archetype)
-    except ValueError:
-        valid = [e.value for e in ArchetypeEnum]
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid archetype '{archetype}'. Valid: {valid}"
-        )
-
-    curated = db.query(CuratedDigest).filter(
-        CuratedDigest.archetype == archetype
-    ).order_by(CuratedDigest.created_at.desc()).first()
-
-    if curated and curated.events:
-        return {
-            "archetype": archetype,
-            "events": curated.events,
-            "updated_at": curated.created_at.isoformat() + "Z" if curated.created_at else None,
-        }
-    else:
-        return {
-            "archetype": archetype,
-            "events": [],
-            "updated_at": None,
-        }
-
-
-@router.get("/admin/preview-archetype")
-async def preview_archetype(
-    archetype: str = Query(..., description="Archetype enum value (e.g. culture_professional)"),
-    secondary: Optional[str] = Query(None, description="Secondary archetype"),
-    limit: int = Query(20, ge=1, le=5000),
-    return_all: bool = Query(False, alias="all"),
-    verified: bool = Depends(verify_admin_key),
-):
-    """
-    Preview which events an archetype would receive, with full score breakdowns.
-
-    Useful for auditing and debugging recommendation quality.
-    """
-    import json
+    """Send a curated digest email with hand-picked events."""
     import traceback
-    from pathlib import Path
-    from src.services.archetypes import ARCHETYPES, get_archetype
-    from src.services.recommendation import (
-        get_recommended_events,
-        score_event_for_archetype,
-        matches_category,
-        matches_timing,
-        passes_special_rules,
-    )
-    from src.services.popularity import get_event_scores
-    from src.models.event import EASTERN_TZ
-
-    # Parse archetype
-    try:
-        primary_archetype = ArchetypeEnum(archetype)
-    except ValueError:
-        valid = [e.value for e in ArchetypeEnum]
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid archetype '{archetype}'. Valid: {valid}"
-        )
-
-    secondary_archetype = None
-    if secondary:
-        try:
-            secondary_archetype = ArchetypeEnum(secondary)
-        except ValueError:
-            valid = [e.value for e in ArchetypeEnum]
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid secondary archetype '{secondary}'. Valid: {valid}"
-            )
 
     try:
-        # Load events
-        project_root = Path(__file__).parent.parent.parent
-        events_file = project_root / "data" / "events.json"
-        if not events_file.exists():
-            raise HTTPException(status_code=500, detail="Events file not found")
+        if not os.environ.get("RESEND_API_KEY"):
+            raise HTTPException(status_code=500, detail="RESEND_API_KEY not configured")
 
-        from src.models.event import Event
-        with open(events_file, 'r') as f:
-            data = json.load(f)
-            all_events = [Event(**event) for event in data]
+        user = db.query(User).filter(User.email == body.email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail=f"User not found: {body.email}")
 
-        # Build archetype info
-        arch_def = get_archetype(primary_archetype)
-        archetype_info = {
-            "id": arch_def.id.value,
-            "name": arch_def.name,
-            "description": arch_def.description,
-            "categories": arch_def.categories,
-            "timing_preferences": arch_def.timing_preferences,
-            "special_rules": arch_def.special_rules,
-        }
+        events = _load_events()
+        events_map = {e.id: e for e in events}
 
-        if return_all:
-            # Return ALL events in the next week, scored but not filtered
-            now = datetime.now(EASTERN_TZ)
-            week_end = now + timedelta(days=8)
+        curated_events = []
+        missing_ids = []
+        for item in body.events:
+            event = events_map.get(item.event_id)
+            if event:
+                curated_events.append((event, item.score))
+            else:
+                missing_ids.append(item.event_id)
 
-            scored_events = []
-            for event in all_events:
-                event_dt = event.start_datetime
-                if event_dt.tzinfo is None:
-                    import pytz
-                    event_dt = EASTERN_TZ.localize(event_dt)
-                # Only include events in the next week
-                if event_dt < now or event_dt > week_end:
-                    continue
+        if missing_ids:
+            raise HTTPException(status_code=400, detail=f"Event IDs not found: {missing_ids[:10]}")
 
-                total_score = score_event_for_archetype(
-                    event, primary_archetype, secondary_archetype
-                )
-                scored_events.append((event, total_score))
+        if not curated_events:
+            raise HTTPException(status_code=400, detail="No events provided")
 
-            # Sort by score descending
-            scored_events.sort(key=lambda x: x[1], reverse=True)
-            recommended = scored_events
+        from src.services.email_service import send_weekly_digest
+        email_log_id = send_weekly_digest(user, curated_events, db)
+
+        if email_log_id:
+            return {"success": True, "email_log_id": email_log_id, "events_sent": len(curated_events)}
         else:
-            recommended = get_recommended_events(
-                all_events,
-                primary_archetype,
-                secondary_archetype,
-                limit=limit,
-            )
-
-        # Build score breakdowns for each event
-        events_out = []
-        for event, total_score in recommended:
-            scores = get_event_scores(event)
-            cat_match, cat_boost = matches_category(event, arch_def.categories)
-            timing_match = matches_timing(event, arch_def.timing_preferences)
-            rules_pass = passes_special_rules(event, arch_def.special_rules)
-
-            events_out.append({
-                "id": event.id,
-                "title": event.title,
-                "start_datetime": event.start_datetime.isoformat(),
-                "category": event.category.value if hasattr(event.category, 'value') else event.category,
-                "cost": event.cost,
-                "source_name": event.source_name,
-                "image_url": event.image_url,
-                "total_score": round(total_score, 4),
-                "score_breakdown": {
-                    "base_popularity": scores["popularity_score"],
-                    "venue_score": scores["venue_score"],
-                    "source_score": scores["source_score"],
-                    "cost_score": scores["cost_score"],
-                    "freshness_score": scores["freshness_score"],
-                    "category_score": scores["category_score"],
-                    "category_match": cat_match,
-                    "category_boost": round(cat_boost, 2),
-                    "timing_match": timing_match,
-                    "timing_multiplier": 1.2 if timing_match else 0.8,
-                    "special_rules_passed": rules_pass,
-                },
-            })
-
-        return {
-            "archetype": archetype_info,
-            "total_events_evaluated": len(all_events),
-            "events": events_out,
-        }
+            raise HTTPException(status_code=500, detail="Failed to send email")
 
     except HTTPException:
         raise
@@ -792,40 +639,14 @@ async def trigger_weekly_email(
     verified: bool = Depends(verify_admin_key),
     db: Session = Depends(get_db)
 ):
-    """
-    Trigger the weekly email job.
-
-    This endpoint is called by the GitHub Action cron job.
-    """
-    import json
-    from pathlib import Path
-    from datetime import timedelta
-
-    # Load events
-    project_root = Path(__file__).parent.parent.parent
-    events_file = project_root / "data" / "events.json"
-
-    if not events_file.exists():
+    """Trigger the weekly email job."""
+    events = _load_events()
+    if not events:
         raise HTTPException(status_code=500, detail="Events file not found")
 
-    from src.models.event import Event
-    with open(events_file, 'r') as f:
-        data = json.load(f)
-        events = [Event(**event) for event in data]
-
-    # Build events map for fast lookup (used by curated path)
     events_map = {e.id: e for e in events}
 
-    # Load most recent curated digest per archetype from DB
-    all_curations = db.query(CuratedDigest).order_by(
-        CuratedDigest.archetype, CuratedDigest.created_at.desc()
-    ).all()
-    curations = {}
-    for c in all_curations:
-        if c.archetype not in curations and c.events:
-            curations[c.archetype] = c.events
-
-    # Get users who need emails (haven't received in 6+ days)
+    # Get users who need emails
     six_days_ago = datetime.utcnow() - timedelta(days=6)
     users = db.query(User).filter(
         User.email_opt_in == True,
@@ -835,35 +656,42 @@ async def trigger_weekly_email(
     if not users:
         return {"success": True, "message": "No users need emails", "sent": 0, "failed": 0}
 
-    # Send emails
     from src.services.recommendation import get_weekly_digest_events
     from src.services.email_service import send_weekly_digest
 
     sent = 0
     failed = 0
-    used_curated = 0
+    used_override = 0
 
     for user in users:
-        # Check for curated events for this user's archetype
-        archetype_key = user.primary_archetype.value
-        curated_events_data = curations.get(archetype_key)
-
+        # Check for digest override
+        override = db.query(DigestOverride).filter(DigestOverride.user_id == user.id).first()
         recommended = []
-        if curated_events_data:
-            for item in curated_events_data:
-                event = events_map.get(item["event_id"])
+
+        if override and override.event_ids:
+            for eid in override.event_ids:
+                event = events_map.get(eid)
                 if event:
-                    recommended.append((event, item["score"]))
+                    recommended.append((event, 1.0))
             if recommended:
-                used_curated += 1
+                used_override += 1
+            db.delete(override)
+            db.flush()
 
         if not recommended:
-            # Fall back to algorithmic recommendations
-            recommended = get_weekly_digest_events(
-                events,
-                user.primary_archetype,
-                user.secondary_archetype
-            )
+            # Get preference-based recommendations
+            prefs_row = db.query(UserPreferences).filter(UserPreferences.user_id == user.id).first()
+            prefs = {}
+            if prefs_row:
+                prefs = {
+                    "category_weights": prefs_row.category_weights or {},
+                    "timing_weights": prefs_row.timing_weights or {},
+                    "venue_weights": prefs_row.venue_weights or {},
+                    "price_sensitivity": prefs_row.price_sensitivity if prefs_row.price_sensitivity is not None else 0.5,
+                    "prefers_family_friendly": prefs_row.prefers_family_friendly or False,
+                }
+
+            recommended = get_weekly_digest_events(events, prefs)
 
         if not recommended:
             continue
@@ -877,9 +705,9 @@ async def trigger_weekly_email(
 
     return {
         "success": True,
-        "message": f"Weekly email job complete",
+        "message": "Weekly email job complete",
         "users_processed": len(users),
         "sent": sent,
         "failed": failed,
-        "used_curated": used_curated,
+        "used_override": used_override,
     }

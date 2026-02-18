@@ -29,30 +29,12 @@
             margin: 0;
             font-size: 28px;
         }
-        .archetype-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #1a365d, #153052);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 20px;
-            font-weight: 600;
-            margin: 20px 0;
-        }
         .description {
             background-color: #edf2f7;
             border-left: 4px solid #1a365d;
             padding: 20px;
             margin: 20px 0;
             border-radius: 0 8px 8px 0;
-        }
-        .secondary-note {
-            background-color: #f0f8ff;
-            border-left: 4px solid #3498db;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 0 8px 8px 0;
-            font-size: 14px;
         }
         .what-next {
             margin-top: 30px;
@@ -108,21 +90,15 @@
             <p style="color: #666;">Your personalized event digest is on its way</p>
         </div>
 
-        <div style="text-align: center;">
-            <p style="font-size: 16px; color: #666;">Based on your preferences, you are a...</p>
-            <div class="archetype-badge">{{ archetype_name }}</div>
-        </div>
-
         <div class="description">
-            <p style="margin: 0;">{{ archetype_description }}</p>
+            <p style="margin: 0;">
+                {% if liked_count > 0 %}
+                Based on the {{ liked_count }} events you liked, we'll send you personalized weekly recommendations tailored to your interests.
+                {% else %}
+                We'll send you personalized weekly recommendations for the best events in Cambridge and Somerville.
+                {% endif %}
+            </p>
         </div>
-
-        {% if secondary_archetype_name %}
-        <div class="secondary-note">
-            <strong>Bonus:</strong> You also have traits of a <strong>{{ secondary_archetype_name }}</strong>!
-            We'll mix in some recommendations based on that too.
-        </div>
-        {% endif %}
 
         <div class="what-next">
             <h2>What happens next?</h2>

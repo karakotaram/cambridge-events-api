@@ -11,7 +11,7 @@ sys.path.insert(0, str(project_root))
 
 from sqlalchemy.orm import Session
 from src.db.database import SessionLocal, engine, Base
-from src.models.user import User, EmailLog
+from src.models.user import User, UserPreferences, DigestOverride, EmailLog, ClickTracking
 from src.models.event import Event
 from src.services.recommendation import get_weekly_digest_events
 from src.services.email_service import send_weekly_digest
@@ -50,7 +50,6 @@ def get_users_to_email(db: Session, batch_size: int = 100) -> list:
 def get_click_data(db: Session) -> dict:
     """Get click counts per event for popularity boosting"""
     from sqlalchemy import func
-    from src.models.user import ClickTracking
 
     results = db.query(
         ClickTracking.event_id,
@@ -58,6 +57,76 @@ def get_click_data(db: Session) -> dict:
     ).group_by(ClickTracking.event_id).all()
 
     return {event_id: count for event_id, count in results}
+
+
+def get_user_prefs_dict(user: User, db: Session) -> dict:
+    """Get user preferences as a plain dict for scoring."""
+    prefs = db.query(UserPreferences).filter(UserPreferences.user_id == user.id).first()
+    if prefs:
+        return {
+            "category_weights": prefs.category_weights or {},
+            "timing_weights": prefs.timing_weights or {},
+            "venue_weights": prefs.venue_weights or {},
+            "price_sensitivity": prefs.price_sensitivity if prefs.price_sensitivity is not None else 0.5,
+            "prefers_family_friendly": prefs.prefers_family_friendly or False,
+        }
+    # Default neutral preferences
+    return {
+        "category_weights": {},
+        "timing_weights": {},
+        "venue_weights": {},
+        "price_sensitivity": 0.5,
+        "prefers_family_friendly": False,
+    }
+
+
+def update_preferences_from_recent_clicks(user: User, events_map: dict, db: Session):
+    """Update user preferences based on recent click engagement."""
+    from src.services.preferences import update_preferences_from_engagement
+
+    # Get clicks from last 14 days
+    two_weeks_ago = datetime.utcnow() - timedelta(days=14)
+    recent_clicks = db.query(ClickTracking).filter(
+        ClickTracking.user_id == user.id,
+        ClickTracking.clicked_at >= two_weeks_ago,
+    ).all()
+
+    if not recent_clicks:
+        return
+
+    # Resolve clicked events
+    clicked_events = []
+    for click in recent_clicks:
+        event = events_map.get(click.event_id)
+        if event:
+            clicked_events.append(event)
+
+    if not clicked_events:
+        return
+
+    # Get current preferences
+    prefs_row = db.query(UserPreferences).filter(UserPreferences.user_id == user.id).first()
+    if not prefs_row:
+        return
+
+    current = {
+        "category_weights": prefs_row.category_weights or {},
+        "timing_weights": prefs_row.timing_weights or {},
+        "venue_weights": prefs_row.venue_weights or {},
+        "price_sensitivity": prefs_row.price_sensitivity if prefs_row.price_sensitivity is not None else 0.5,
+        "prefers_family_friendly": prefs_row.prefers_family_friendly or False,
+    }
+
+    updated = update_preferences_from_engagement(current, clicked_events)
+
+    # Save back
+    prefs_row.category_weights = updated["category_weights"]
+    prefs_row.timing_weights = updated["timing_weights"]
+    prefs_row.venue_weights = updated["venue_weights"]
+    prefs_row.price_sensitivity = updated["price_sensitivity"]
+    prefs_row.prefers_family_friendly = updated["prefers_family_friendly"]
+    prefs_row.updated_at = datetime.utcnow()
+    db.flush()
 
 
 def run_weekly_email_job(dry_run: bool = False, max_users: int = None):
@@ -85,6 +154,7 @@ def run_weekly_email_job(dry_run: bool = False, max_users: int = None):
             return
 
         print(f"Loaded {len(events)} events")
+        events_map = {e.id: e for e in events}
 
         # Get click data for popularity boosting
         click_data = get_click_data(db)
@@ -103,19 +173,45 @@ def run_weekly_email_job(dry_run: bool = False, max_users: int = None):
         sent_count = 0
         failed_count = 0
         skipped_count = 0
+        used_override = 0
 
         for user in users:
             print(f"\nProcessing user: {user.email}")
-            print(f"  Primary archetype: {user.primary_archetype.value}")
 
-            # Get personalized events
-            recommended = get_weekly_digest_events(
-                events,
-                user.primary_archetype,
-                user.secondary_archetype,
-                exclude_event_ids=None,  # Could track sent events to avoid repeats
-                click_data=click_data
-            )
+            # Step 1: Update preferences from recent clicks
+            try:
+                update_preferences_from_recent_clicks(user, events_map, db)
+            except Exception as e:
+                print(f"  Warning: Failed to update preferences: {e}")
+
+            # Step 2: Check for digest override
+            override = db.query(DigestOverride).filter(
+                DigestOverride.user_id == user.id
+            ).first()
+
+            recommended = []
+            if override and override.event_ids:
+                # Use override event IDs
+                for eid in override.event_ids:
+                    event = events_map.get(eid)
+                    if event:
+                        recommended.append((event, 1.0))
+                if recommended:
+                    used_override += 1
+                    print(f"  Using admin override ({len(recommended)} events)")
+                # Clear override after use (one-time)
+                db.delete(override)
+                db.flush()
+
+            if not recommended:
+                # Step 3: Get preference-based recommendations
+                prefs = get_user_prefs_dict(user, db)
+                recommended = get_weekly_digest_events(
+                    events,
+                    prefs,
+                    exclude_event_ids=None,
+                    click_data=click_data,
+                )
 
             if not recommended:
                 print(f"  No events found for user. Skipping.")
@@ -131,13 +227,16 @@ def run_weekly_email_job(dry_run: bool = False, max_users: int = None):
                 continue
 
             # Send email
-            email_log_id = send_weekly_digest(user, recommended, db)
-
-            if email_log_id:
-                print(f"  Sent email successfully (log: {email_log_id})")
-                sent_count += 1
-            else:
-                print(f"  Failed to send email")
+            try:
+                email_log_id = send_weekly_digest(user, recommended, db)
+                if email_log_id:
+                    print(f"  Sent email successfully (log: {email_log_id})")
+                    sent_count += 1
+                else:
+                    print(f"  Failed to send email")
+                    failed_count += 1
+            except Exception as e:
+                print(f"  Failed to send to {user.email}: {e}")
                 failed_count += 1
 
         # Print summary
@@ -146,6 +245,7 @@ def run_weekly_email_job(dry_run: bool = False, max_users: int = None):
         print(f"  Sent: {sent_count}")
         print(f"  Failed: {failed_count}")
         print(f"  Skipped: {skipped_count}")
+        print(f"  Used override: {used_override}")
         print(f"{'='*50}")
 
     except Exception as e:
