@@ -155,8 +155,9 @@ def select_diverse_events(events: List[Event], count: int = 10) -> List[Event]:
     Filters to future events in next 14 days, sorts by popularity,
     then greedily selects ensuring diversity:
     - Max 2 per category
-    - Max 2 per source
+    - Max 1 per venue (normalized name)
     - Max 3 per timing slot
+    - At least 3 family-friendly events
     """
     now = datetime.now(EASTERN_TZ)
     cutoff = now + timedelta(days=14)
@@ -178,33 +179,87 @@ def select_diverse_events(events: List[Event], count: int = 10) -> List[Event]:
     scored = [(ev, calculate_popularity_score(ev)) for ev in upcoming]
     scored.sort(key=lambda x: x[1], reverse=True)
 
-    # Greedy diverse selection
-    selected = []
-    cat_counts = defaultdict(int)
-    source_counts = defaultdict(int)
-    timing_counts = defaultdict(int)
+    def _normalize_venue(name: str) -> str:
+        """Normalize venue name for dedup (strip suffixes like '- Studio 2')."""
+        import re
+        name = name.strip().lower()
+        # Remove trailing " - Studio X", " - Room X", etc.
+        name = re.sub(r'\s*[-–]\s*(studio|room|hall|theater)\s*\S*$', '', name)
+        # Remove trailing punctuation differences like "Co." vs ""
+        name = re.sub(r'\bco\.?$', '', name).strip()
+        return name
 
-    for ev, score in scored:
+    def _pick_events(candidates, target, cat_limit=2, ff_only=False):
+        """Greedy picker with venue/category/timing diversity."""
+        picked = []
+        cat_counts = defaultdict(int)
+        venue_counts = defaultdict(int)
+        timing_counts = defaultdict(int)
+
+        for ev, score in candidates:
+            if ff_only and not ev.family_friendly:
+                continue
+            cat = ev.category.value if hasattr(ev.category, "value") else str(ev.category) if ev.category else "other"
+            venue_key = _normalize_venue(ev.venue_name or ev.source_name or "unknown")
+            slot = classify_timing_slot(ev.start_datetime)
+
+            if cat_counts[cat] >= cat_limit:
+                continue
+            if venue_counts[venue_key] >= 1:
+                continue
+            if timing_counts[slot] >= 3:
+                continue
+
+            picked.append(ev)
+            cat_counts[cat] += 1
+            venue_counts[venue_key] += 1
+            timing_counts[slot] += 1
+
+            if len(picked) >= target:
+                break
+        return picked
+
+    # First, pick at least 3 family-friendly events
+    min_ff = 3
+    ff_picks = _pick_events(scored, min_ff, cat_limit=2, ff_only=True)
+
+    # Then fill the rest from all events, excluding already-picked IDs
+    picked_ids = {ev.id for ev in ff_picks}
+    remaining = [(ev, s) for ev, s in scored if ev.id not in picked_ids]
+    remaining_needed = count - len(ff_picks)
+
+    # Rebuild venue/cat/timing counts from ff_picks so the second pass respects them
+    general_picks = []
+    cat_counts = defaultdict(int)
+    venue_counts = defaultdict(int)
+    timing_counts = defaultdict(int)
+    for ev in ff_picks:
         cat = ev.category.value if hasattr(ev.category, "value") else str(ev.category) if ev.category else "other"
-        venue = ev.venue_name or ev.source_name or "unknown"
+        cat_counts[cat] += 1
+        venue_counts[_normalize_venue(ev.venue_name or ev.source_name or "unknown")] += 1
+        timing_counts[classify_timing_slot(ev.start_datetime)] += 1
+
+    for ev, score in remaining:
+        cat = ev.category.value if hasattr(ev.category, "value") else str(ev.category) if ev.category else "other"
+        venue_key = _normalize_venue(ev.venue_name or ev.source_name or "unknown")
         slot = classify_timing_slot(ev.start_datetime)
 
         if cat_counts[cat] >= 2:
             continue
-        if source_counts[venue] >= 1:
+        if venue_counts[venue_key] >= 1:
             continue
         if timing_counts[slot] >= 3:
             continue
 
-        selected.append(ev)
+        general_picks.append(ev)
         cat_counts[cat] += 1
-        source_counts[venue] += 1
+        venue_counts[venue_key] += 1
         timing_counts[slot] += 1
 
-        if len(selected) >= count:
+        if len(general_picks) >= remaining_needed:
             break
 
-    return selected
+    return ff_picks + general_picks
 
 
 # --- Archetype-to-preference migration mapper ---
