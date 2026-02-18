@@ -186,19 +186,19 @@ def select_diverse_events(events: List[Event], count: int = 10) -> List[Event]:
 
     for ev, score in scored:
         cat = ev.category.value if hasattr(ev.category, "value") else str(ev.category) if ev.category else "other"
-        source = ev.source_name or "unknown"
+        venue = ev.venue_name or ev.source_name or "unknown"
         slot = classify_timing_slot(ev.start_datetime)
 
         if cat_counts[cat] >= 2:
             continue
-        if source_counts[source] >= 1:
+        if source_counts[venue] >= 1:
             continue
         if timing_counts[slot] >= 3:
             continue
 
         selected.append(ev)
         cat_counts[cat] += 1
-        source_counts[source] += 1
+        source_counts[venue] += 1
         timing_counts[slot] += 1
 
         if len(selected) >= count:
