@@ -97,7 +97,7 @@ async def get_sample_events():
         result.append({
             "id": ev.id,
             "title": ev.title,
-            "description": ev.description[:150] + "..." if len(ev.description) > 150 else ev.description,
+            "description": ev.description,
             "start_datetime": ev.start_datetime.isoformat(),
             "venue_name": ev.venue_name or ev.source_name,
             "category": cat,
