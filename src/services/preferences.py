@@ -191,7 +191,7 @@ def select_diverse_events(events: List[Event], count: int = 10) -> List[Event]:
 
         if cat_counts[cat] >= 2:
             continue
-        if source_counts[source] >= 2:
+        if source_counts[source] >= 1:
             continue
         if timing_counts[slot] >= 3:
             continue
