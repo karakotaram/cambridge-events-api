@@ -30,17 +30,27 @@ def score_event_for_user(
     click_count = click_data.get(event.id, 0) if click_data else 0
     base_score = calculate_popularity_score(event, click_count)
 
-    # Category multiplier (0.5 to 1.5)
+    # Category multiplier (0.3 to 2.0)
+    # Strong signal: preferred categories get 2x, unknown categories get 0.5x,
+    # explicitly unpreferred (present in weights at 0) get 0.3x
     cat_weights = prefs.get("category_weights", {})
     event_cat = event.category.value if hasattr(event.category, "value") else str(event.category) if event.category else "other"
-    cat_weight = cat_weights.get(event_cat, 0.0)
-    category_multiplier = 0.5 + cat_weight  # 0.5 (no match) to 1.5 (full match)
+    if cat_weights:
+        cat_weight = cat_weights.get(event_cat, None)
+        if cat_weight is None:
+            # Category not in user's preferences at all — mild penalty
+            category_multiplier = 0.5
+        else:
+            # 0.3 (weight=0, explicitly low) to 2.0 (weight=1.0, top preference)
+            category_multiplier = 0.3 + cat_weight * 1.7
+    else:
+        category_multiplier = 1.0  # No preferences yet, neutral
 
-    # Timing multiplier (0.7 to 1.3)
+    # Timing multiplier (0.6 to 1.5)
     timing_weights = prefs.get("timing_weights", {})
     event_slot = classify_timing_slot(event.start_datetime)
     timing_weight = timing_weights.get(event_slot, 0.0)
-    timing_multiplier = 0.7 + timing_weight * 0.6  # 0.7 to 1.3
+    timing_multiplier = 0.6 + timing_weight * 0.9  # 0.6 to 1.5
 
     # Venue multiplier (1.0 to 1.3)
     venue_weights = prefs.get("venue_weights", {})
@@ -153,17 +163,25 @@ def get_weekly_digest_events(
         click_data=click_data,
     )
 
-    # Select ~7 events with day diversity
+    # Select ~7 events with day diversity and title dedup
+    # (same event with multiple showtimes should only appear once)
     selected = []
     days_covered = set()
+    titles_seen = set()
 
     for event, score in recommended:
+        # Skip duplicate titles (e.g. same film at different showtimes)
+        title_key = event.title.strip().lower()
+        if title_key in titles_seen:
+            continue
+
         event_day = event.start_datetime.date()
 
         # Prefer events on different days
         if event_day not in days_covered or len(selected) < 3:
             selected.append((event, score))
             days_covered.add(event_day)
+            titles_seen.add(title_key)
 
         if len(selected) >= 7:
             break
@@ -171,9 +189,12 @@ def get_weekly_digest_events(
     # If we don't have enough, add more regardless of day
     if len(selected) < 5:
         for event, score in recommended:
-            if (event, score) not in selected:
-                selected.append((event, score))
-                if len(selected) >= 7:
-                    break
+            title_key = event.title.strip().lower()
+            if title_key in titles_seen:
+                continue
+            selected.append((event, score))
+            titles_seen.add(title_key)
+            if len(selected) >= 7:
+                break
 
     return selected

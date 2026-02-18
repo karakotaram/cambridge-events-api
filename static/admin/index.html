@@ -887,16 +887,27 @@
             }
 
             // Price sensitivity & family friendly
-            html += '<div class="pref-chips">';
+            html += '<div style="margin-bottom:14px"><strong style="font-size:12px;color:var(--text-light);">Other</strong><div class="pref-chips">';
             const price = prefs.price_sensitivity;
             if (price !== undefined) {
-                const priceLabel = price < 0.3 ? 'Prefers free' : price > 0.7 ? 'Price flexible' : 'Moderate';
-                html += `<span class="pref-chip">${priceLabel} (${Math.round(price * 100)}%)</span>`;
+                const pricePct = Math.round(price * 100);
+                let priceLabel, priceClass;
+                if (price < 0.3) {
+                    priceLabel = 'Prefers free events';
+                    priceClass = ' on';
+                } else if (price > 0.7) {
+                    priceLabel = 'Open to paid events';
+                    priceClass = '';
+                } else {
+                    priceLabel = 'No strong price preference';
+                    priceClass = '';
+                }
+                html += `<span class="pref-chip${priceClass}">${priceLabel}</span>`;
             }
             if (prefs.prefers_family_friendly) {
-                html += `<span class="pref-chip on">Family friendly</span>`;
+                html += `<span class="pref-chip on">Prefers family-friendly</span>`;
             }
-            html += '</div>';
+            html += '</div></div>';
 
             document.getElementById('prefs-content').innerHTML = html;
         }
