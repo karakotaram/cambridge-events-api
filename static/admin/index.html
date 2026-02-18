@@ -530,6 +530,7 @@
                         <th>Email</th>
                         <th>Signed Up</th>
                         <th>Last Email</th>
+                        <th>Next Email</th>
                         <th>Likes</th>
                         <th>Status</th>
                     </tr>
@@ -718,6 +719,7 @@
                 const lastEmail = u.last_email_sent
                     ? new Date(u.last_email_sent).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                     : '--';
+                const nextEmail = getNextEmailInfo(u);
                 const optClass = u.email_opt_in ? 'opt-in' : 'opt-out';
                 const optText = u.email_opt_in ? 'Active' : 'Opted out';
                 const isActive = u.id === selectedUserId;
@@ -727,6 +729,7 @@
                         <td>${u.email}</td>
                         <td>${created}</td>
                         <td>${lastEmail}</td>
+                        <td><span class="opt-badge ${nextEmail.class}">${nextEmail.label}</span></td>
                         <td>${u.liked_count}</td>
                         <td><span class="opt-badge ${optClass}">${optText}</span></td>
                     </tr>
@@ -754,6 +757,23 @@
             loadUsers();
         }
 
+        function getNextEmailInfo(user) {
+            if (!user.email_opt_in) {
+                return { label: 'Opted out', class: 'opt-out' };
+            }
+            if (!user.last_email_sent) {
+                return { label: 'Eligible now', class: 'opt-in' };
+            }
+            const lastSent = new Date(user.last_email_sent);
+            const eligible = new Date(lastSent.getTime() + 6 * 24 * 60 * 60 * 1000); // +6 days
+            const now = new Date();
+            if (now >= eligible) {
+                return { label: 'Eligible now', class: 'opt-in' };
+            }
+            const dateStr = eligible.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return { label: dateStr, class: '' };
+        }
+
         // --- User Detail ---
         async function selectUser(userId) {
             selectedUserId = userId;
@@ -766,9 +786,11 @@
             const panel = document.getElementById('detail-panel');
             panel.classList.add('visible');
 
-            // Find user email
+            // Find user email and show next email status
             const user = usersData.find(u => u.id === userId);
-            document.getElementById('detail-email').textContent = user ? user.email : userId;
+            const nextEmail = user ? getNextEmailInfo(user) : null;
+            const nextHtml = nextEmail ? ` <span class="opt-badge ${nextEmail.class}" style="font-size:12px;vertical-align:middle;margin-left:8px;">Next email: ${nextEmail.label}</span>` : '';
+            document.getElementById('detail-email').innerHTML = (user ? user.email : userId) + nextHtml;
 
             // Reset state
             digestEvents = [];
