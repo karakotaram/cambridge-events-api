@@ -382,8 +382,12 @@ async def preview_user_digest(
                 "prefers_family_friendly": prefs_row.prefers_family_friendly or False,
             }
 
+        # Get liked event IDs from onboarding
+        liked_rows = db.query(OnboardingLike).filter(OnboardingLike.user_id == user_uuid).all()
+        liked_event_ids = [row.event_id for row in liked_rows]
+
         from src.services.recommendation import get_weekly_digest_events
-        recommended = get_weekly_digest_events(events, prefs)
+        recommended = get_weekly_digest_events(events, prefs, liked_event_ids=liked_event_ids)
 
         events_out = []
         for ev, score in recommended:
@@ -691,7 +695,13 @@ async def trigger_weekly_email(
                     "prefers_family_friendly": prefs_row.prefers_family_friendly or False,
                 }
 
-            recommended = get_weekly_digest_events(events, prefs)
+            # Get liked event IDs from onboarding
+            liked_rows = db.query(OnboardingLike).filter(
+                OnboardingLike.user_id == user.id
+            ).all()
+            liked_event_ids = [row.event_id for row in liked_rows]
+
+            recommended = get_weekly_digest_events(events, prefs, liked_event_ids=liked_event_ids)
 
         if not recommended:
             continue

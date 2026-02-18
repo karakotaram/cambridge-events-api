@@ -132,9 +132,13 @@ def get_weekly_digest_events(
     prefs: dict,
     exclude_event_ids: Optional[List[str]] = None,
     click_data: Optional[Dict[str, int]] = None,
+    liked_event_ids: Optional[List[str]] = None,
 ) -> List[Tuple[Event, float]]:
     """
     Get events for weekly email digest.
+
+    Liked events are included first (if still upcoming), then remaining
+    slots are filled with preference-scored events for variety.
 
     Selects ~7 events spread across the upcoming week,
     balancing variety with preference matching.
@@ -147,54 +151,74 @@ def get_weekly_digest_events(
 
     # Filter to events in the next week
     upcoming = []
+    upcoming_map = {}
     for event in events:
         event_dt = event.start_datetime
         if event_dt.tzinfo is None:
             event_dt = EASTERN_TZ.localize(event_dt)
         if now <= event_dt <= week_end:
             upcoming.append(event)
+            upcoming_map[event.id] = event
 
-    # Get recommendations from upcoming events
-    recommended = get_recommended_events(
-        upcoming,
-        prefs,
-        limit=20,
-        exclude_event_ids=exclude_event_ids,
-        click_data=click_data,
-    )
-
-    # Select ~7 events with day diversity and title dedup
-    # (same event with multiple showtimes should only appear once)
+    # Step 1: Include liked events that are still upcoming (top priority)
+    liked_ids = set(liked_event_ids or [])
     selected = []
-    days_covered = set()
     titles_seen = set()
+    days_covered = set()
+    included_ids = set()
 
-    for event, score in recommended:
-        # Skip duplicate titles (e.g. same film at different showtimes)
-        title_key = event.title.strip().lower()
+    for eid in (liked_event_ids or []):
+        ev = upcoming_map.get(eid)
+        if not ev:
+            continue
+        title_key = ev.title.strip().lower()
         if title_key in titles_seen:
             continue
-
-        event_day = event.start_datetime.date()
-
-        # Prefer events on different days
-        if event_day not in days_covered or len(selected) < 3:
-            selected.append((event, score))
-            days_covered.add(event_day)
-            titles_seen.add(title_key)
-
+        score = score_event_for_user(ev, prefs, click_data)
+        selected.append((ev, score))
+        titles_seen.add(title_key)
+        days_covered.add(ev.start_datetime.date())
+        included_ids.add(ev.id)
         if len(selected) >= 7:
             break
 
-    # If we don't have enough, add more regardless of day
-    if len(selected) < 5:
+    # Step 2: Fill remaining slots with preference-scored events
+    if len(selected) < 7:
+        # Exclude already-included events and liked events that weren't upcoming
+        all_exclude = set(exclude_event_ids or []) | included_ids
+        recommended = get_recommended_events(
+            upcoming,
+            prefs,
+            limit=20,
+            exclude_event_ids=list(all_exclude),
+            click_data=click_data,
+        )
+
         for event, score in recommended:
             title_key = event.title.strip().lower()
             if title_key in titles_seen:
                 continue
-            selected.append((event, score))
-            titles_seen.add(title_key)
+
+            event_day = event.start_datetime.date()
+
+            # Prefer events on different days
+            if event_day not in days_covered or len(selected) < 3:
+                selected.append((event, score))
+                days_covered.add(event_day)
+                titles_seen.add(title_key)
+
             if len(selected) >= 7:
                 break
+
+        # If still not enough, add more regardless of day
+        if len(selected) < 5:
+            for event, score in recommended:
+                title_key = event.title.strip().lower()
+                if title_key in titles_seen:
+                    continue
+                selected.append((event, score))
+                titles_seen.add(title_key)
+                if len(selected) >= 7:
+                    break
 
     return selected

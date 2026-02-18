@@ -206,11 +206,20 @@ def run_weekly_email_job(dry_run: bool = False, max_users: int = None):
             if not recommended:
                 # Step 3: Get preference-based recommendations
                 prefs = get_user_prefs_dict(user, db)
+
+                # Get liked event IDs from onboarding
+                from src.models.user import OnboardingLike
+                liked_rows = db.query(OnboardingLike).filter(
+                    OnboardingLike.user_id == user.id
+                ).all()
+                liked_event_ids = [row.event_id for row in liked_rows]
+
                 recommended = get_weekly_digest_events(
                     events,
                     prefs,
                     exclude_event_ids=None,
                     click_data=click_data,
+                    liked_event_ids=liked_event_ids,
                 )
 
             if not recommended:
