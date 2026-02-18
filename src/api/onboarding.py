@@ -122,31 +122,29 @@ async def submit_onboarding(
     """
     # Check if user already exists
     existing = db.query(User).filter(User.email == data.email).first()
-    if existing:
-        liked_count = db.query(func.count(OnboardingLike.id)).filter(
-            OnboardingLike.user_id == existing.id
-        ).scalar() or 0
-        return OnboardingResponse(
-            success=True,
-            user_id=str(existing.id),
-            message="Welcome back! You're already signed up.",
-            liked_count=liked_count,
-        )
+    is_returning = existing is not None
 
-    # Create user (no archetype columns)
-    user = User(
-        email=data.email,
-        email_opt_in=True,
-        unsubscribe_token=secrets.token_urlsafe(32),
-    )
-    db.add(user)
-    db.flush()  # Get user.id
+    if existing:
+        user = existing
+        # Re-opt in if they previously unsubscribed
+        user.email_opt_in = True
+        # Clear old likes and replace with new ones
+        db.query(OnboardingLike).filter(OnboardingLike.user_id == user.id).delete()
+    else:
+        # Create new user
+        user = User(
+            email=data.email,
+            email_opt_in=True,
+            unsubscribe_token=secrets.token_urlsafe(32),
+        )
+        db.add(user)
+        db.flush()  # Get user.id
 
     # Store OnboardingLike rows
     for event_id in data.liked_event_ids:
         db.add(OnboardingLike(user_id=user.id, event_id=event_id))
 
-    # Compute initial preferences from liked events
+    # Compute preferences from liked events
     liked_events = []
     if data.liked_event_ids:
         events = _load_events()
@@ -156,29 +154,42 @@ async def submit_onboarding(
     from src.services.preferences import compute_preferences_from_likes
     pref_data = compute_preferences_from_likes(liked_events)
 
-    prefs = UserPreferences(
-        user_id=user.id,
-        category_weights=pref_data["category_weights"],
-        timing_weights=pref_data["timing_weights"],
-        venue_weights=pref_data["venue_weights"],
-        price_sensitivity=pref_data["price_sensitivity"],
-        prefers_family_friendly=pref_data["prefers_family_friendly"],
-    )
-    db.add(prefs)
+    # Upsert preferences
+    prefs_row = db.query(UserPreferences).filter(UserPreferences.user_id == user.id).first()
+    if prefs_row:
+        prefs_row.category_weights = pref_data["category_weights"]
+        prefs_row.timing_weights = pref_data["timing_weights"]
+        prefs_row.venue_weights = pref_data["venue_weights"]
+        prefs_row.price_sensitivity = pref_data["price_sensitivity"]
+        prefs_row.prefers_family_friendly = pref_data["prefers_family_friendly"]
+        prefs_row.updated_at = datetime.utcnow()
+    else:
+        db.add(UserPreferences(
+            user_id=user.id,
+            category_weights=pref_data["category_weights"],
+            timing_weights=pref_data["timing_weights"],
+            venue_weights=pref_data["venue_weights"],
+            price_sensitivity=pref_data["price_sensitivity"],
+            prefers_family_friendly=pref_data["prefers_family_friendly"],
+        ))
+
     db.commit()
     db.refresh(user)
 
-    # Try to send welcome email (non-blocking)
-    try:
-        from src.services.email_service import send_welcome_email_to_user
-        send_welcome_email_to_user(user, db, liked_count=len(data.liked_event_ids))
-    except Exception as e:
-        print(f"Welcome email failed for {user.email}: {e}")
+    # Send welcome email for new users only (non-blocking)
+    if not is_returning:
+        try:
+            from src.services.email_service import send_welcome_email_to_user
+            send_welcome_email_to_user(user, db, liked_count=len(data.liked_event_ids))
+        except Exception as e:
+            print(f"Welcome email failed for {user.email}: {e}")
+
+    message = "Welcome back! We've updated your preferences." if is_returning else "You're all set! We'll send you personalized weekly recommendations."
 
     return OnboardingResponse(
         success=True,
         user_id=str(user.id),
-        message="You're all set! We'll send you personalized weekly recommendations.",
+        message=message,
         liked_count=len(data.liked_event_ids),
     )
 
