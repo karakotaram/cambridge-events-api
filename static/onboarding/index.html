@@ -153,10 +153,41 @@
             font-size: 13px;
             color: var(--text-light);
             margin-top: 4px;
+        }
+
+        .event-card-desc-text {
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+        }
+
+        .event-card-desc-text.expanded {
+            display: block;
+            -webkit-line-clamp: unset;
+        }
+
+        .desc-toggle {
+            color: var(--secondary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: none;
+            margin-top: 2px;
+        }
+
+        .desc-toggle.visible { display: inline; }
+
+        /* Category fallback images */
+        .event-card-img-fallback {
+            width: 64px;
+            height: 64px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
         }
 
         .event-card-badges {
@@ -433,19 +464,39 @@
             }
         }
 
+        const CATEGORY_FALLBACKS = {
+            'music':            { emoji: '🎵', bg: '#e8f4fd' },
+            'arts and culture': { emoji: '🎨', bg: '#fef3e2' },
+            'food and drink':   { emoji: '🍽️', bg: '#fef9e7' },
+            'theater':          { emoji: '🎭', bg: '#f5e6f0' },
+            'lectures':         { emoji: '🎓', bg: '#edf2f7' },
+            'sports':           { emoji: '⚽', bg: '#e8fde8' },
+            'community':        { emoji: '🤝', bg: '#e8f8f5' },
+            'other':            { emoji: '📅', bg: '#f0f0f0' },
+        };
+
+        function getFallbackImg(category) {
+            const cat = (category || 'other').replace(/_/g, ' ');
+            const fb = CATEGORY_FALLBACKS[cat] || CATEGORY_FALLBACKS['other'];
+            return `<div class="event-card-img-fallback" style="background:${fb.bg}">${fb.emoji}</div>`;
+        }
+
         function renderEvents() {
-            eventGrid.innerHTML = sampleEvents.map(ev => {
+            eventGrid.innerHTML = sampleEvents.map((ev, idx) => {
                 const dt = new Date(ev.start_datetime);
                 const dateStr = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                 const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 const liked = likedIds.has(ev.id);
+                const fallback = getFallbackImg(ev.category);
                 const imgHtml = ev.image_url
-                    ? `<img src="${ev.image_url}" class="event-card-img" alt="">`
-                    : `<div class="event-card-img"></div>`;
+                    ? `<img src="${ev.image_url}" class="event-card-img" alt="" onerror="this.outerHTML=getFallbackImg('${(ev.category || '').replace(/'/g, '')}')">`
+                    : fallback;
 
                 let badges = `<span class="badge badge-cat">${(ev.category || '').replace(/_/g, ' ')}</span>`;
                 if (ev.cost) badges += `<span class="badge badge-cost">${ev.cost}</span>`;
                 if (ev.family_friendly) badges += `<span class="badge badge-ff">Family Friendly</span>`;
+
+                const desc = ev.description || '';
 
                 return `
                     <div class="event-card${liked ? ' liked' : ''}" onclick="toggleLike('${ev.id}')">
@@ -453,13 +504,35 @@
                         <div class="event-card-body">
                             <div class="event-card-title">${ev.title}</div>
                             <div class="event-card-meta">${dateStr} ${timeStr} &middot; ${ev.venue_name || ''}</div>
-                            <div class="event-card-desc">${ev.description || ''}</div>
+                            <div class="event-card-desc">
+                                <div class="event-card-desc-text" id="desc-${idx}">${desc}</div>
+                                ${desc.length > 80 ? `<span class="desc-toggle" id="toggle-${idx}" onclick="event.stopPropagation(); toggleDesc(${idx})">more</span>` : ''}
+                            </div>
                             <div class="event-card-badges">${badges}</div>
                         </div>
                         <div class="thumb-btn">${liked ? '&#10003;' : '&#128077;'}</div>
                     </div>
                 `;
             }).join('');
+
+            // Show "more" toggles for descriptions that are actually clamped
+            requestAnimationFrame(() => {
+                sampleEvents.forEach((ev, idx) => {
+                    const el = document.getElementById('desc-' + idx);
+                    const toggle = document.getElementById('toggle-' + idx);
+                    if (el && toggle && el.scrollHeight > el.clientHeight + 2) {
+                        toggle.classList.add('visible');
+                    }
+                });
+            });
+        }
+
+        function toggleDesc(idx) {
+            const el = document.getElementById('desc-' + idx);
+            const toggle = document.getElementById('toggle-' + idx);
+            if (!el || !toggle) return;
+            const expanded = el.classList.toggle('expanded');
+            toggle.textContent = expanded ? 'less' : 'more';
         }
 
         function toggleLike(id) {
