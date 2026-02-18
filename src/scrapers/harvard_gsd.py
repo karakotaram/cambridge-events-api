@@ -18,7 +18,7 @@ API_URL = "https://www.gsd.harvard.edu/wp-json/gsd/v1/events"
 # Alumni/off-site events not relevant to Cambridge
 EXCLUDED_SLUGS = {
     "apa-detroit-gsd-alumni-reception-2026",
-    "gsd-comeback-alumni-friends-celebration-2026",
+    "comeback",
 }
 
 
