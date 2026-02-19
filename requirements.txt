@@ -25,3 +25,6 @@ psycopg2-binary>=2.9.9
 posthog>=3.0.0
 # Agent system (scraper generator)
 anthropic>=0.20.0
+# Recommendation engine (LightFM collaborative filtering)
+lightfm>=1.17
+scipy>=1.11.0

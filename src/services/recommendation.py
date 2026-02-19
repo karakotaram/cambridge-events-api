@@ -6,6 +6,11 @@ from src.models.event import Event, EASTERN_TZ
 from src.services.popularity import calculate_popularity_score
 from src.services.preferences import classify_timing_slot
 
+# TYPE_CHECKING import to avoid circular / heavyweight imports at runtime
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from src.services.lightfm_recommender import LightFMRecommender
+
 
 def score_event_for_user(
     event: Event,
@@ -127,12 +132,80 @@ def get_recommended_events(
     return scored_events[:limit]
 
 
+def get_lightfm_recommended_events(
+    events: List[Event],
+    user_uuid: str,
+    recommender: "LightFMRecommender",
+    prefs: dict,
+    limit: int = 20,
+    exclude_event_ids: Optional[List[str]] = None,
+    click_data: Optional[Dict[str, int]] = None,
+) -> List[Tuple[Event, float]]:
+    """
+    Get recommended events using LightFM hybrid collaborative filtering.
+
+    Falls back to get_recommended_events() if LightFM returns empty scores.
+
+    Returns:
+        List of (event, blended_score) tuples, sorted by score descending
+    """
+    now = datetime.now(EASTERN_TZ)
+    exclude_ids = set(exclude_event_ids or [])
+
+    # Filter to upcoming events
+    upcoming = []
+    for event in events:
+        if event.id in exclude_ids:
+            continue
+        event_dt = event.start_datetime
+        if event_dt.tzinfo is None:
+            event_dt = EASTERN_TZ.localize(event_dt)
+        if event_dt >= now:
+            upcoming.append(event)
+
+    if not upcoming:
+        return []
+
+    # Get LightFM scores
+    candidate_ids = [e.id for e in upcoming]
+    lfm_scores = recommender.predict_scores(user_uuid, candidate_ids)
+
+    if not lfm_scores:
+        # Fallback to multiplier-based scoring
+        return get_recommended_events(
+            events, prefs, limit=limit,
+            exclude_event_ids=list(exclude_ids),
+            click_data=click_data,
+        )
+
+    # Normalize LightFM scores to [0, 1]
+    score_vals = list(lfm_scores.values())
+    min_s, max_s = min(score_vals), max(score_vals)
+    score_range = max_s - min_s if max_s > min_s else 1.0
+    norm_scores = {eid: (s - min_s) / score_range for eid, s in lfm_scores.items()}
+
+    # Blend with popularity: 0.7 LightFM + 0.3 popularity
+    scored = []
+    for event in upcoming:
+        lfm_norm = norm_scores.get(event.id, 0.0)
+        click_count = click_data.get(event.id, 0) if click_data else 0
+        pop = calculate_popularity_score(event, click_count)
+        blended = 0.7 * lfm_norm + 0.3 * pop
+        scored.append((event, round(blended, 4)))
+
+    scored.sort(key=lambda x: x[1], reverse=True)
+    return scored[:limit]
+
+
 def get_weekly_digest_events(
     events: List[Event],
     prefs: dict,
     exclude_event_ids: Optional[List[str]] = None,
     click_data: Optional[Dict[str, int]] = None,
     liked_event_ids: Optional[List[str]] = None,
+    user_uuid: Optional[str] = None,
+    recommender: Optional["LightFMRecommender"] = None,
+    use_groq_reranking: bool = True,
 ) -> List[Tuple[Event, float]]:
     """
     Get events for weekly email digest.
@@ -182,33 +255,75 @@ def get_weekly_digest_events(
         if len(selected) >= 7:
             break
 
-    # Step 2: Fill remaining slots with preference-scored events
+    # Step 2: Fill remaining slots with scored events
     if len(selected) < 7:
-        # Exclude already-included events and liked events that weren't upcoming
         all_exclude = set(exclude_event_ids or []) | included_ids
-        recommended = get_recommended_events(
-            upcoming,
-            prefs,
-            limit=20,
-            exclude_event_ids=list(all_exclude),
-            click_data=click_data,
-        )
+        slots_needed = 7 - len(selected)
 
-        for event, score in recommended:
-            title_key = event.title.strip().lower()
-            if title_key in titles_seen:
-                continue
+        # Try LightFM if recommender and user_uuid are provided
+        if recommender is not None and user_uuid is not None:
+            recommended = get_lightfm_recommended_events(
+                upcoming,
+                user_uuid,
+                recommender,
+                prefs,
+                limit=20,
+                exclude_event_ids=list(all_exclude),
+                click_data=click_data,
+            )
+        else:
+            recommended = get_recommended_events(
+                upcoming,
+                prefs,
+                limit=20,
+                exclude_event_ids=list(all_exclude),
+                click_data=click_data,
+            )
 
-            event_day = event.start_datetime.date()
+        # Step 3: Optionally re-rank with Groq LLM for diversity
+        groq_reranked = None
+        if use_groq_reranking and recommended and len(recommended) >= slots_needed:
+            try:
+                from src.services.groq_reranker import rerank_events_with_groq
+                groq_reranked = rerank_events_with_groq(
+                    recommended, prefs, count=slots_needed
+                )
+            except Exception as e:
+                print(f"[Groq Reranker] Failed, using ML order: {e}")
 
-            # Prefer events on different days
-            if event_day not in days_covered or len(selected) < 3:
-                selected.append((event, score))
-                days_covered.add(event_day)
+        if groq_reranked:
+            # Use Groq's ordering
+            rec_map = {ev.id: (ev, score) for ev, score in recommended}
+            for item in groq_reranked:
+                eid = item["event_id"]
+                if eid not in rec_map:
+                    continue
+                ev, score = rec_map[eid]
+                title_key = ev.title.strip().lower()
+                if title_key in titles_seen:
+                    continue
+                selected.append((ev, score))
                 titles_seen.add(title_key)
+                days_covered.add(ev.start_datetime.date())
+                if len(selected) >= 7:
+                    break
+        else:
+            # Fallback: use ML/multiplier order with day diversity
+            for event, score in recommended:
+                title_key = event.title.strip().lower()
+                if title_key in titles_seen:
+                    continue
 
-            if len(selected) >= 7:
-                break
+                event_day = event.start_datetime.date()
+
+                # Prefer events on different days
+                if event_day not in days_covered or len(selected) < 3:
+                    selected.append((event, score))
+                    days_covered.add(event_day)
+                    titles_seen.add(title_key)
+
+                if len(selected) >= 7:
+                    break
 
         # If still not enough, add more regardless of day
         if len(selected) < 5:

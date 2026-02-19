@@ -129,6 +129,46 @@ def update_preferences_from_recent_clicks(user: User, events_map: dict, db: Sess
     db.flush()
 
 
+def train_lightfm_model(db: Session, events: list):
+    """
+    Train LightFM model from all OnboardingLikes and ClickTracking data.
+
+    Returns:
+        LightFMRecommender instance if training succeeded, None otherwise
+    """
+    try:
+        from src.services.lightfm_recommender import LightFMRecommender
+        from src.models.user import OnboardingLike, ClickTracking
+
+        # Gather likes: (user_uuid_str, event_id)
+        likes_rows = db.query(OnboardingLike).all()
+        likes = [(str(row.user_id), row.event_id) for row in likes_rows]
+
+        # Gather clicks: (user_uuid_str, event_id, position)
+        clicks_rows = db.query(ClickTracking).all()
+        clicks = [
+            (str(row.user_id), row.event_id, row.event_position)
+            for row in clicks_rows
+        ]
+
+        if not likes and not clicks:
+            print("[LightFM] No interaction data, skipping training")
+            return None
+
+        recommender = LightFMRecommender()
+        success = recommender.train(events, likes, clicks)
+
+        if success:
+            return recommender
+        return None
+
+    except Exception as e:
+        print(f"[LightFM] Training failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
 def run_weekly_email_job(dry_run: bool = False, max_users: int = None):
     """
     Run the weekly email job.
@@ -159,6 +199,13 @@ def run_weekly_email_job(dry_run: bool = False, max_users: int = None):
         # Get click data for popularity boosting
         click_data = get_click_data(db)
         print(f"Loaded click data for {len(click_data)} events")
+
+        # Train LightFM model (once per batch)
+        recommender = train_lightfm_model(db, events)
+        if recommender:
+            print("LightFM model trained successfully")
+        else:
+            print("LightFM training skipped/failed, using multiplier fallback")
 
         # Get users to email
         batch_size = max_users or 100
@@ -220,6 +267,8 @@ def run_weekly_email_job(dry_run: bool = False, max_users: int = None):
                     exclude_event_ids=None,
                     click_data=click_data,
                     liked_event_ids=liked_event_ids,
+                    user_uuid=str(user.id),
+                    recommender=recommender,
                 )
 
             if not recommended:

@@ -124,6 +124,7 @@ def render_welcome_email(user: User, liked_count: int = 0) -> Tuple[str, str]:
         liked_count=liked_count,
         unsubscribe_url=unsubscribe_url,
         current_year=datetime.now().year,
+        user_id=str(user.id),
     )
 
     subject = "Welcome! Your Cambridge Events Await"

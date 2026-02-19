@@ -397,8 +397,21 @@ async def preview_user_digest(
         liked_rows = db.query(OnboardingLike).filter(OnboardingLike.user_id == user_uuid).all()
         liked_event_ids = [row.event_id for row in liked_rows]
 
+        # Train LightFM model on-demand for preview
+        recommender = None
+        try:
+            from src.jobs.weekly_email import train_lightfm_model
+            recommender = train_lightfm_model(db, events)
+        except Exception as e:
+            print(f"[Preview] LightFM training skipped: {e}")
+
         from src.services.recommendation import get_weekly_digest_events
-        recommended = get_weekly_digest_events(events, prefs, liked_event_ids=liked_event_ids)
+        recommended = get_weekly_digest_events(
+            events, prefs,
+            liked_event_ids=liked_event_ids,
+            user_uuid=user_id,
+            recommender=recommender,
+        )
 
         events_out = []
         for ev, score in recommended:
@@ -567,8 +580,20 @@ async def send_test_email(
                 "prefers_family_friendly": prefs_row.prefers_family_friendly or False,
             }
 
+        # Train LightFM for test email
+        recommender = None
+        try:
+            from src.jobs.weekly_email import train_lightfm_model
+            recommender = train_lightfm_model(db, events)
+        except Exception as e:
+            print(f"[TestEmail] LightFM training skipped: {e}")
+
         from src.services.recommendation import get_weekly_digest_events
-        recommended = get_weekly_digest_events(events, prefs)
+        recommended = get_weekly_digest_events(
+            events, prefs,
+            user_uuid=str(user.id),
+            recommender=recommender,
+        )
 
         if not recommended:
             raise HTTPException(status_code=400, detail="No events to recommend")
@@ -674,6 +699,14 @@ async def trigger_weekly_email(
     from src.services.recommendation import get_weekly_digest_events
     from src.services.email_service import send_weekly_digest
 
+    # Train LightFM model once for the batch
+    recommender = None
+    try:
+        from src.jobs.weekly_email import train_lightfm_model
+        recommender = train_lightfm_model(db, events)
+    except Exception as e:
+        print(f"[TriggerEmail] LightFM training skipped: {e}")
+
     sent = 0
     failed = 0
     used_override = 0
@@ -712,7 +745,12 @@ async def trigger_weekly_email(
             ).all()
             liked_event_ids = [row.event_id for row in liked_rows]
 
-            recommended = get_weekly_digest_events(events, prefs, liked_event_ids=liked_event_ids)
+            recommended = get_weekly_digest_events(
+                events, prefs,
+                liked_event_ids=liked_event_ids,
+                user_uuid=str(user.id),
+                recommender=recommender,
+            )
 
         if not recommended:
             continue

@@ -451,6 +451,7 @@ async def get_events_slim(
     upcoming_only: bool = Query(True, description="Show only upcoming events (default: true)"),
     family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
     ranked: bool = Query(True, description="Sort by relevance score instead of date (default: true)"),
+    user_id: Optional[str] = Query(None, description="User UUID for personalized ranking"),
     limit: int = Query(1000, ge=1, le=5000),
     offset: int = Query(0, ge=0)
 ):
@@ -510,6 +511,53 @@ async def get_events_slim(
     event_scores = {}
     if ranked:
         event_scores = score_events(events, use_interactions=True)
+
+        # Refresh cached recommender if stale (>1 hour old)
+        if user_id and hasattr(app.state, "recommender_trained_at"):
+            trained_at = app.state.recommender_trained_at
+            if trained_at is None or (time.time() - trained_at) > 3600:
+                try:
+                    refreshed = _train_recommender_from_db()
+                    if refreshed:
+                        app.state.recommender = refreshed
+                        app.state.recommender_trained_at = time.time()
+                        print("[RANKING] LightFM model refreshed")
+                except Exception as e:
+                    print(f"[RANKING] LightFM refresh failed: {e}")
+
+        # Personalize with LightFM if user_id provided
+        if user_id and hasattr(app.state, "recommender") and app.state.recommender is not None:
+            try:
+                lfm_scores = app.state.recommender.predict_scores(
+                    user_id, [e.id for e in events]
+                )
+                if lfm_scores:
+                    # Normalize LightFM scores to [0, 1]
+                    vals = list(lfm_scores.values())
+                    min_s, max_s = min(vals), max(vals)
+                    rng = max_s - min_s if max_s > min_s else 1.0
+                    norm_lfm = {eid: (s - min_s) / rng for eid, s in lfm_scores.items()}
+
+                    # Normalize existing scores to [0, 1] for fair blending
+                    if event_scores:
+                        existing_vals = list(event_scores.values())
+                        e_min, e_max = min(existing_vals), max(existing_vals)
+                        e_rng = e_max - e_min if e_max > e_min else 1.0
+                        norm_existing = {eid: (s - e_min) / e_rng for eid, s in event_scores.items()}
+                    else:
+                        norm_existing = {}
+
+                    # Blend: 0.6 existing + 0.4 LightFM
+                    for eid in event_scores:
+                        if eid in norm_lfm:
+                            event_scores[eid] = (
+                                0.6 * norm_existing.get(eid, 0.0)
+                                + 0.4 * norm_lfm[eid]
+                            )
+                    print(f"[RANKING] Personalized for user {user_id[:8]}... "
+                          f"({len(lfm_scores)} LightFM scores blended)")
+            except Exception as e:
+                print(f"[RANKING] LightFM personalization error: {e}")
 
         # Sort by score descending
         events.sort(key=lambda e: event_scores.get(e.id, 0), reverse=True)
@@ -1335,6 +1383,30 @@ def _run_migrations():
         print(f"[MIGRATION] Error: {e}")
 
 
+def _train_recommender_from_db():
+    """Train LightFM model from DB data. Returns recommender or None."""
+    if SessionLocal is None:
+        return None
+    try:
+        from src.jobs.weekly_email import train_lightfm_model, load_events
+        db = SessionLocal()
+        try:
+            events = load_events()
+            if not events:
+                return None
+            return train_lightfm_model(db, events)
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"[LightFM] Startup training failed: {e}")
+        return None
+
+
+# Initialize app state for cached recommender
+app.state.recommender = None
+app.state.recommender_trained_at = None
+
+
 @app.on_event("startup")
 async def startup_migrations():
     from src.db.database import engine, Base
@@ -1348,6 +1420,18 @@ async def startup_migrations():
             print("[STARTUP] Database tables ready")
         except Exception as e:
             print(f"[STARTUP] Database setup error: {e}")
+
+    # Train LightFM model on startup (non-blocking failure)
+    try:
+        recommender = _train_recommender_from_db()
+        if recommender:
+            app.state.recommender = recommender
+            app.state.recommender_trained_at = time.time()
+            print("[STARTUP] LightFM model trained and cached")
+        else:
+            print("[STARTUP] LightFM model not available (no data or training failed)")
+    except Exception as e:
+        print(f"[STARTUP] LightFM training error: {e}")
 
 
 @app.get("/init-db")

@@ -608,6 +608,14 @@
                     document.getElementById('step-result').classList.add('active');
                     document.getElementById('result-message').textContent = data.message;
 
+                    // Update browse links with user_id for personalized ranking
+                    if (data.user_id) {
+                        const browseBtn = document.querySelector('.browse-button');
+                        if (browseBtn) {
+                            browseBtn.href = 'https://cambridge-event-compass.lovable.app/?user_id=' + data.user_id;
+                        }
+                    }
+
                     // Complete progress
                     document.getElementById('step-1').classList.add('completed');
                     document.getElementById('step-2').classList.add('completed');
