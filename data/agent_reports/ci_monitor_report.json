@@ -1,19 +1,19 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-18T07:41:36.944996",
-  "total_events": 2531,
+  "timestamp": "2026-02-19T07:40:27.623274",
+  "total_events": 2549,
   "total_sources_registered": 38,
   "total_sources_with_events": 27,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 16,
+      "event_count": 15,
       "days_since_scrape": 0
     },
     {
       "source": "Boston Swing Central",
       "event_count": 4,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "The Comedy Studio",
@@ -22,12 +22,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 14,
+      "event_count": 12,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1110,
+      "event_count": 1109,
       "days_since_scrape": 0
     },
     {
@@ -42,7 +42,7 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 56,
+      "event_count": 59,
       "days_since_scrape": 0
     },
     {
@@ -52,7 +52,7 @@
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 5,
+      "event_count": 1,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 889,
+      "event_count": 898,
       "days_since_scrape": 0
     },
     {
@@ -82,7 +82,7 @@
     },
     {
       "source": "The Middle East",
-      "event_count": 19,
+      "event_count": 18,
       "days_since_scrape": 0
     },
     {
@@ -97,7 +97,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 6,
+      "event_count": 8,
       "days_since_scrape": 0
     },
     {
@@ -118,25 +118,20 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 7,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Somerville Theatre",
       "event_count": 10,
+      "days_since_scrape": 1
+    },
+    {
+      "source": "User Submitted",
+      "event_count": 58,
       "days_since_scrape": 0
     }
   ],
-  "stale": [
-    {
-      "source": "User Submitted",
-      "ci": true,
-      "event_count": 43,
-      "days_stale": 5,
-      "latest_scraped": "2026-02-12T08:56:40.884862",
-      "threshold_days": 3,
-      "issue": "Last scraped 5 days ago (threshold: 3)"
-    }
-  ],
+  "stale": [],
   "missing": [
     {
       "source": "Harvard Book Store",
@@ -207,7 +202,7 @@
   "unregistered": [
     {
       "source": "Harvard GSD",
-      "event_count": 20
+      "event_count": 18
     },
     {
       "source": "The Sinclair",
@@ -215,8 +210,8 @@
     }
   ],
   "summary": {
-    "healthy": 24,
-    "stale": 1,
+    "healthy": 25,
+    "stale": 0,
     "missing": 13,
     "unregistered": 2
   }
