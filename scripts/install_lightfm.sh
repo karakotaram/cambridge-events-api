@@ -5,13 +5,14 @@ set -e
 
 pip install cython numpy scipy
 
-pip download lightfm==1.17 --no-binary :all: --no-deps -d /tmp/lfm
-cd /tmp/lfm
+# Download tarball directly (pip download triggers the broken build)
+curl -sL "https://files.pythonhosted.org/packages/1f/96/5ec230f5c27811534af0faaa8525f11c1000ee1c24c8a82c0546d0724aea/lightfm-1.17.tar.gz" -o /tmp/lightfm-1.17.tar.gz
+cd /tmp
 tar xzf lightfm-1.17.tar.gz
 cd lightfm-1.17
 
-# Patch setup.py: replace 'import builtins' + 'builtins.__LIGHTFM_SETUP__'
-# with __import__('builtins') which works correctly inside setuptools exec()
+# Patch setup.py: setuptools exec()s setup.py in a context where
+# 'import builtins' yields a dict, not the module. __import__ always works.
 sed -i 's/^import builtins$//' setup.py
 sed -i "s/builtins\.__LIGHTFM_SETUP__/__import__('builtins').__LIGHTFM_SETUP__/g" setup.py
 
