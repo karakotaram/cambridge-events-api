@@ -569,6 +569,14 @@ async def get_events_slim(
             except Exception as e:
                 print(f"[RANKING] LightFM blending error: {e}")
 
+        # Apply temporal boost AFTER blending so it's not diluted by LightFM weight
+        from src.services.scoring import calculate_temporal_boost
+        now = datetime.utcnow()
+        for e in events:
+            if e.id in event_scores:
+                temporal = calculate_temporal_boost(e.start_datetime, now)
+                event_scores[e.id] *= temporal
+
         # Sort by score descending
         events.sort(key=lambda e: event_scores.get(e.id, 0), reverse=True)
 

@@ -156,10 +156,18 @@ def calculate_temporal_boost(start_datetime: datetime, now: Optional[datetime] =
     if hours_until > 24 * 30:
         return 1.0
 
-    # Gradual boost as event approaches:
-    # 30 days: ~1.07x, 7 days: ~1.25x, 1 day: ~2.0x, 3 hours: ~2.8x
-    boost = 1.0 + 2.0 / (hours_until / 24 + 1)
-    return min(boost, 3.0)
+    days_until = hours_until / 24
+
+    # Strong bias toward events in the next 7 days:
+    # today: 5.0x, 1 day: 3.5x, 3 days: 2.75x, 7 days: 2.4x
+    # then taper: 14 days: 2.0x, 21 days: 1.5x, 30 days: 1.0x
+    if days_until <= 7:
+        boost = 2.0 + 3.0 / (days_until + 1)
+    else:
+        # Linear taper from ~2.4x at day 7 to 1.0x at day 30
+        boost = max(1.0, 2.4 - 1.4 * (days_until - 7) / 23)
+
+    return min(boost, 5.0)
 
 
 def calculate_honeymoon_boost(created_at: datetime, now: Optional[datetime] = None) -> float:
