@@ -1,6 +1,4 @@
 [phases.install]
 cmds = [
-    "pip install 'setuptools<74' cython numpy scipy",
-    "pip install --no-build-isolation lightfm>=1.17",
-    "pip install -r requirements.txt",
+    "python -m venv --copies /opt/venv && . /opt/venv/bin/activate && pip install 'setuptools<74' cython numpy scipy && pip install --no-build-isolation lightfm>=1.17 && pip install -r requirements.txt",
 ]
