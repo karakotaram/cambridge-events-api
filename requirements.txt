@@ -26,7 +26,5 @@ posthog>=3.0.0
 # Agent system (scraper generator)
 anthropic>=0.20.0
 # Recommendation engine (LightFM collaborative filtering)
-# lightfm 1.17 requires setuptools<74 for build compatibility
-setuptools<74.0
-lightfm>=1.17
+# lightfm installed separately in nixpacks.toml (needs --no-build-isolation)
 scipy>=1.11.0
