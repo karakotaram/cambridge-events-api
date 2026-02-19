@@ -11,9 +11,12 @@ cd /tmp
 tar xzf lightfm-1.17.tar.gz
 cd lightfm-1.17
 
-# Patch setup.py: setuptools exec()s setup.py in a context where
-# 'import builtins' yields a dict, not the module. __import__ always works.
-sed -i 's/^import builtins$//' setup.py
-sed -i "s/builtins\.__LIGHTFM_SETUP__/__import__('builtins').__LIGHTFM_SETUP__/g" setup.py
+# Patch setup.py: setuptools exec()s setup.py with locals() where
+# __builtins__ is a dict, not the module. Replace with __import__.
+# Original line: __builtins__.__LIGHTFM_SETUP__ = True
+sed -i "s/__builtins__\.__LIGHTFM_SETUP__/__import__('builtins').__LIGHTFM_SETUP__/g" setup.py
+
+echo "Patched setup.py line 11:"
+sed -n '11p' setup.py
 
 pip install --no-build-isolation .
