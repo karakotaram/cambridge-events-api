@@ -513,7 +513,7 @@ async def get_events_slim(
         event_scores = score_events(events, use_interactions=True)
 
         # Refresh cached recommender if stale (>1 hour old)
-        if user_id and hasattr(app.state, "recommender_trained_at"):
+        if hasattr(app.state, "recommender_trained_at"):
             trained_at = app.state.recommender_trained_at
             if trained_at is None or (time.time() - trained_at) > 3600:
                 try:
@@ -525,12 +525,20 @@ async def get_events_slim(
                 except Exception as e:
                     print(f"[RANKING] LightFM refresh failed: {e}")
 
-        # Personalize with LightFM if user_id provided
-        if user_id and hasattr(app.state, "recommender") and app.state.recommender is not None:
+        # Blend LightFM scores into ranking (works for all users)
+        if hasattr(app.state, "recommender") and app.state.recommender is not None:
             try:
-                lfm_scores = app.state.recommender.predict_scores(
-                    user_id, [e.id for e in events]
-                )
+                event_ids = [e.id for e in events]
+
+                # Per-user scores if user_id provided, otherwise global community scores
+                if user_id:
+                    lfm_scores = app.state.recommender.predict_scores(user_id, event_ids)
+                    if not lfm_scores:
+                        # Unknown user, fall back to global
+                        lfm_scores = app.state.recommender.get_global_scores(event_ids)
+                else:
+                    lfm_scores = app.state.recommender.get_global_scores(event_ids)
+
                 if lfm_scores:
                     # Normalize LightFM scores to [0, 1]
                     vals = list(lfm_scores.values())
@@ -547,17 +555,19 @@ async def get_events_slim(
                     else:
                         norm_existing = {}
 
-                    # Blend: 0.6 existing + 0.4 LightFM
+                    # Blend: 0.8 LightFM + 0.2 existing
                     for eid in event_scores:
                         if eid in norm_lfm:
                             event_scores[eid] = (
-                                0.6 * norm_existing.get(eid, 0.0)
-                                + 0.4 * norm_lfm[eid]
+                                0.2 * norm_existing.get(eid, 0.0)
+                                + 0.8 * norm_lfm[eid]
                             )
-                    print(f"[RANKING] Personalized for user {user_id[:8]}... "
-                          f"({len(lfm_scores)} LightFM scores blended)")
+
+                    label = f"user {user_id[:8]}..." if user_id else "global"
+                    print(f"[RANKING] LightFM blended ({label}, "
+                          f"{len(lfm_scores)} scores, 0.8 LightFM + 0.2 existing)")
             except Exception as e:
-                print(f"[RANKING] LightFM personalization error: {e}")
+                print(f"[RANKING] LightFM blending error: {e}")
 
         # Sort by score descending
         events.sort(key=lambda e: event_scores.get(e.id, 0), reverse=True)

@@ -285,3 +285,44 @@ class LightFMRecommender:
         )
 
         return {eid: float(s) for eid, s in zip(valid_event_ids, scores)}
+
+    def get_global_scores(self, candidate_event_ids: List[str]) -> Dict[str, float]:
+        """
+        Get aggregated scores across all users for candidate events.
+
+        Averages predictions across every known user to produce a
+        "community preference" signal — what subscribers collectively like.
+
+        Returns:
+            Dict mapping event_id -> average score. Empty dict if model not trained.
+        """
+        if self.model is None or self.item_features is None or self._n_users == 0:
+            return {}
+
+        # Map candidate IDs to internal indices
+        item_indices = []
+        valid_event_ids = []
+        for eid in candidate_event_ids:
+            idx = self.item_id_map.get(eid)
+            if idx is not None:
+                item_indices.append(idx)
+                valid_event_ids.append(eid)
+
+        if not item_indices:
+            return {}
+
+        item_indices_arr = np.array(item_indices)
+
+        # Average predictions across all users
+        all_scores = np.zeros(len(item_indices_arr), dtype=np.float64)
+        for user_idx in range(self._n_users):
+            scores = self.model.predict(
+                user_idx,
+                item_indices_arr,
+                item_features=self.item_features,
+            )
+            all_scores += scores
+
+        all_scores /= self._n_users
+
+        return {eid: float(s) for eid, s in zip(valid_event_ids, all_scores)}
