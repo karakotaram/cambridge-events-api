@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-19T07:40:27.623274",
-  "total_events": 2549,
+  "timestamp": "2026-02-20T07:37:18.045097",
+  "total_events": 2562,
   "total_sources_registered": 38,
   "total_sources_with_events": 27,
   "healthy": [
@@ -13,7 +13,7 @@
     {
       "source": "Boston Swing Central",
       "event_count": 4,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "The Comedy Studio",
@@ -22,12 +22,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 12,
+      "event_count": 4,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1109,
+      "event_count": 1117,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 898,
+      "event_count": 910,
       "days_since_scrape": 0
     },
     {
@@ -97,12 +97,12 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 8,
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
       "source": "Central Square Theater",
-      "event_count": 59,
+      "event_count": 61,
       "days_since_scrape": 0
     },
     {
@@ -118,16 +118,16 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 7,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Somerville Theatre",
       "event_count": 10,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "User Submitted",
-      "event_count": 58,
+      "event_count": 60,
       "days_since_scrape": 0
     }
   ],
@@ -202,11 +202,11 @@
   "unregistered": [
     {
       "source": "Harvard GSD",
-      "event_count": 18
+      "event_count": 17
     },
     {
       "source": "The Sinclair",
-      "event_count": 9
+      "event_count": 8
     }
   ],
   "summary": {

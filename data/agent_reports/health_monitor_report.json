@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-19T07:40:26.245567",
-  "total_events": 2549,
+  "timestamp": "2026-02-20T07:37:16.768349",
+  "total_events": 2562,
   "total_sources": 27,
   "history_runs": 6,
   "alerts": [
@@ -18,12 +18,19 @@
       "current": 1,
       "average": 4.0,
       "message": "1 events vs avg 4 (25%)"
+    },
+    {
+      "source": "The Dance Complex",
+      "severity": "WARNING",
+      "current": 4,
+      "average": 11.2,
+      "message": "4 events vs avg 11 (36%)"
     }
   ],
-  "diagnosis": "Here are the most likely reasons:\n* Website structure change: The venue's website layout or HTML structure has changed, breaking the scraper.\n* New anti-scraping measures: The website has implemented anti-scraping techniques, such as CAPTCHAs or rate limiting.\n* Changed event listing format: The format of the event listings has changed, making it difficult for the scraper to parse.\n* Temporary website issues: The website is experiencing technical difficulties or maintenance, resulting in empty or missing event listings.",
+  "diagnosis": "Here are the most likely reasons a web scraper would suddenly return 0 events:\n* Website structure change: The venue's website layout or HTML structure has changed, breaking the scraper.\n* New anti-scraping measures: The website has implemented anti-scraping techniques, such as CAPTCHAs or rate limiting.\n* Changed event listing format: The format of the event listings has changed, making it difficult for the scraper to parse.\n* Server-side rendering: The website has switched to server-side rendering, making it harder for the scraper to access the event data.",
   "summary": {
     "critical": 1,
-    "warning": 1,
+    "warning": 2,
     "missing": 0
   }
 }
