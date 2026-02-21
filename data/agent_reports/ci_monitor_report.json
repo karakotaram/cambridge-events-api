@@ -1,19 +1,19 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-20T07:37:18.045097",
-  "total_events": 2562,
+  "timestamp": "2026-02-21T07:25:12.279274",
+  "total_events": 2599,
   "total_sources_registered": 38,
   "total_sources_with_events": 27,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 15,
+      "event_count": 14,
       "days_since_scrape": 0
     },
     {
       "source": "Boston Swing Central",
       "event_count": 4,
-      "days_since_scrape": 2
+      "days_since_scrape": 3
     },
     {
       "source": "The Comedy Studio",
@@ -22,12 +22,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 4,
+      "event_count": 19,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1117,
+      "event_count": 1126,
       "days_since_scrape": 0
     },
     {
@@ -42,17 +42,17 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 59,
+      "event_count": 55,
       "days_since_scrape": 0
     },
     {
       "source": "Grolier Poetry Book Shop",
-      "event_count": 14,
+      "event_count": 15,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 1,
+      "event_count": 2,
       "days_since_scrape": 0
     },
     {
@@ -67,12 +67,12 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 3,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 910,
+      "event_count": 925,
       "days_since_scrape": 0
     },
     {
@@ -87,7 +87,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 20,
+      "event_count": 19,
       "days_since_scrape": 0
     },
     {
@@ -97,7 +97,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 7,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
@@ -118,16 +118,16 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 7,
-      "days_since_scrape": 2
+      "days_since_scrape": 3
     },
     {
       "source": "Somerville Theatre",
       "event_count": 10,
-      "days_since_scrape": 2
+      "days_since_scrape": 3
     },
     {
       "source": "User Submitted",
-      "event_count": 60,
+      "event_count": 61,
       "days_since_scrape": 0
     }
   ],
@@ -202,7 +202,7 @@
   "unregistered": [
     {
       "source": "Harvard GSD",
-      "event_count": 17
+      "event_count": 16
     },
     {
       "source": "The Sinclair",
