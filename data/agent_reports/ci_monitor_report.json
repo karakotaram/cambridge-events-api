@@ -1,19 +1,19 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-21T07:25:12.279274",
-  "total_events": 2599,
+  "timestamp": "2026-02-22T07:29:59.052285",
+  "total_events": 2541,
   "total_sources_registered": 38,
   "total_sources_with_events": 27,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 14,
+      "event_count": 12,
       "days_since_scrape": 0
     },
     {
       "source": "Boston Swing Central",
       "event_count": 4,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "The Comedy Studio",
@@ -22,12 +22,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 19,
+      "event_count": 12,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1126,
+      "event_count": 1117,
       "days_since_scrape": 0
     },
     {
@@ -37,12 +37,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 71,
+      "event_count": 69,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 55,
+      "event_count": 49,
       "days_since_scrape": 0
     },
     {
@@ -62,17 +62,17 @@
     },
     {
       "source": "Mount Auburn Cemetery",
-      "event_count": 10,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 6,
+      "event_count": 11,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 925,
+      "event_count": 891,
       "days_since_scrape": 0
     },
     {
@@ -87,7 +87,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 19,
+      "event_count": 18,
       "days_since_scrape": 0
     },
     {
@@ -118,17 +118,17 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 7,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Somerville Theatre",
       "event_count": 10,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "User Submitted",
       "event_count": 61,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [],
@@ -206,7 +206,7 @@
     },
     {
       "source": "The Sinclair",
-      "event_count": 8
+      "event_count": 7
     }
   ],
   "summary": {

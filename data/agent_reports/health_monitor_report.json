@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-21T07:25:09.265951",
-  "total_events": 2599,
+  "timestamp": "2026-02-22T07:29:56.357070",
+  "total_events": 2541,
   "total_sources": 27,
   "history_runs": 6,
   "alerts": [
@@ -13,7 +13,7 @@
       "message": "0 events (avg: 69) - scraper may be broken"
     }
   ],
-  "diagnosis": "Here are the most likely reasons a web scraper would suddenly return 0 events:\n* Website structure change: The venue's website layout or HTML structure has changed, breaking the scraper's parsing logic.\n* New anti-scraping measures: The website has implemented anti-scraping techniques, such as CAPTCHAs or rate limiting, to block the scraper.\n* Changes in event data format: The format of the event data on the website has changed, making it unrecognizable to the scraper.\n* Server-side rendering: The website has switched to server-side rendering, making the scraper's client-side parsing ineffective.",
+  "diagnosis": "Here are the most likely reasons a web scraper would suddenly return 0 events:\n* Website structure change: The venue's website may have changed its HTML structure, breaking the scraper's parsing logic.\n* New anti-scraping measures: The website may have implemented new measures to prevent scraping, such as CAPTCHAs or rate limiting.\n* Changes in event listing format: The format of event listings on the website may have changed, causing the scraper to fail to extract events.\n* Temporary website issues: The website may be experiencing technical issues, such as downtime or maintenance, preventing the scraper from accessing event data.",
   "summary": {
     "critical": 1,
     "warning": 0,
