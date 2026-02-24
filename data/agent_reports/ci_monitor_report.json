@@ -1,19 +1,19 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-23T07:46:20.002223",
-  "total_events": 2480,
+  "timestamp": "2026-02-24T07:37:31.371968",
+  "total_events": 2356,
   "total_sources_registered": 38,
   "total_sources_with_events": 27,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 12,
+      "event_count": 16,
       "days_since_scrape": 0
     },
     {
       "source": "Boston Swing Central",
       "event_count": 4,
-      "days_since_scrape": 5
+      "days_since_scrape": 6
     },
     {
       "source": "The Comedy Studio",
@@ -27,7 +27,7 @@
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1076,
+      "event_count": 1070,
       "days_since_scrape": 0
     },
     {
@@ -42,12 +42,12 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 43,
+      "event_count": 42,
       "days_since_scrape": 0
     },
     {
       "source": "Grolier Poetry Book Shop",
-      "event_count": 15,
+      "event_count": 16,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 874,
+      "event_count": 753,
       "days_since_scrape": 0
     },
     {
@@ -97,17 +97,17 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 6,
+      "event_count": 5,
       "days_since_scrape": 0
     },
     {
       "source": "Central Square Theater",
-      "event_count": 61,
+      "event_count": 60,
       "days_since_scrape": 0
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 9,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
@@ -118,17 +118,17 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 7,
-      "days_since_scrape": 5
+      "days_since_scrape": 6
     },
     {
       "source": "Somerville Theatre",
       "event_count": 10,
-      "days_since_scrape": 5
+      "days_since_scrape": 6
     },
     {
       "source": "User Submitted",
       "event_count": 61,
-      "days_since_scrape": 2
+      "days_since_scrape": 3
     }
   ],
   "stale": [],
