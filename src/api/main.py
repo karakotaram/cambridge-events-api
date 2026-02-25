@@ -178,9 +178,16 @@ def load_events(use_cache: bool = True) -> List[Event]:
             featured_list = load_featured()
             events = []
             for event_data in data:
+                # Check featured before construction (mutation may not work in Pydantic v2)
+                title = event_data.get("title", "")
+                source = event_data.get("source_name", "")
+                is_feat = any(
+                    e.get("title") == title and e.get("source_name") == source
+                    for e in featured_list
+                )
+                if is_feat:
+                    event_data = {**event_data, "featured": True}
                 event = Event(**event_data)
-                if _is_featured(event, featured_list):
-                    event.featured = True
                 events.append(event)
 
             # Update cache
