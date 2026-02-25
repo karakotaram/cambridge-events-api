@@ -651,7 +651,8 @@ async def get_events_slim(
             image_url=e.image_url,
             source_url=e.source_url,
             source_name=e.source_name,
-            cost=e.cost
+            cost=e.cost,
+            featured=getattr(e, 'featured', False)
         )
         # Include score in response if ranked
         if ranked and e.id in event_scores:
