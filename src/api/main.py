@@ -128,7 +128,7 @@ app.include_router(onboarding_router)
 
 # Mount static files for onboarding page (if directory exists)
 if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 
 def load_events(use_cache: bool = True) -> List[Event]:

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cambridge Events - Kaleidoscope</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --cream: #fefce8; --sky: #3b82f6; --coral: #f97316; --mint: #10b981;
+  --purple: #8b5cf6; --pink: #ec4899; --amber: #f59e0b;
+  --card-radius: 16px; --shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+body { font-family: 'Inter', sans-serif; background: var(--cream); color: #1e293b; overflow-x: hidden; }
+h1, h2, h3, h4 { font-family: 'Nunito', sans-serif; }
+
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, var(--sky) 0%, var(--purple) 50%, var(--coral) 100%);
+  padding: 60px 20px 100px; text-align: center; position: relative; overflow: hidden;
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 80px;
+  background: var(--cream); border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+.hero h1 { font-size: 2.8rem; font-weight: 900; color: #fff; margin-bottom: 8px; position: relative; z-index: 1; }
+.hero p { font-size: 1.15rem; color: rgba(255,255,255,0.9); font-weight: 500; position: relative; z-index: 1; }
+
+/* Floating emojis */
+.floating-emoji {
+  position: absolute; font-size: 2rem; animation: floatEmoji 6s ease-in-out infinite; z-index: 0; opacity: 0.7;
+  pointer-events: none;
+}
+@keyframes floatEmoji {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-18px) rotate(8deg); }
+  50% { transform: translateY(-8px) rotate(-5deg); }
+  75% { transform: translateY(-22px) rotate(6deg); }
+}
+.floating-emoji:nth-child(1) { top: 20%; left: 8%; animation-delay: 0s; }
+.floating-emoji:nth-child(2) { top: 30%; right: 10%; animation-delay: 1.5s; }
+.floating-emoji:nth-child(3) { top: 55%; left: 15%; animation-delay: 3s; }
+.floating-emoji:nth-child(4) { top: 45%; right: 18%; animation-delay: 4.5s; }
+.floating-emoji:nth-child(5) { top: 15%; left: 45%; animation-delay: 0.8s; font-size: 1.5rem; }
+.floating-emoji:nth-child(6) { top: 60%; right: 35%; animation-delay: 2.2s; font-size: 1.4rem; }
+
+/* Search bar */
+.search-wrap { max-width: 520px; margin: -30px auto 20px; position: relative; z-index: 2; padding: 0 20px; }
+.search-bar {
+  width: 100%; padding: 16px 20px 16px 50px; border-radius: 50px; border: 3px solid var(--sky);
+  font-size: 1rem; font-family: 'Inter', sans-serif; background: #fff; outline: none;
+  box-shadow: 0 6px 24px rgba(59,130,246,0.15); transition: border-color 0.3s, box-shadow 0.3s;
+}
+.search-bar:focus { border-color: var(--purple); box-shadow: 0 6px 28px rgba(139,92,246,0.2); }
+.search-icon { position: absolute; left: 38px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+
+/* Categories */
+.categories { padding: 10px 20px 20px; overflow-x: auto; display: flex; gap: 10px; scrollbar-width: none; }
+.categories::-webkit-scrollbar { display: none; }
+.cat-pill {
+  flex-shrink: 0; padding: 10px 20px; border-radius: 50px; border: none; font-family: 'Nunito', sans-serif;
+  font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+  color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.cat-pill:hover, .cat-pill.active { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
+.cat-pill[data-cat="all"] { background: linear-gradient(135deg, var(--sky), var(--purple)); }
+.cat-pill[data-cat="music"] { background: var(--coral); }
+.cat-pill[data-cat="arts and culture"] { background: var(--purple); }
+.cat-pill[data-cat="food and drink"] { background: var(--amber); }
+.cat-pill[data-cat="theater"] { background: var(--pink); }
+.cat-pill[data-cat="lectures"] { background: var(--sky); }
+.cat-pill[data-cat="sports"] { background: var(--mint); }
+.cat-pill[data-cat="community"] { background: #6366f1; }
+.cat-pill[data-cat="other"] { background: #94a3b8; }
+
+/* Section headings */
+.section-title {
+  font-size: 1.5rem; font-weight: 800; padding: 20px 20px 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-title span { font-size: 1.6rem; }
+
+/* Today carousel */
+.carousel-wrap { padding: 0 20px 24px; overflow-x: auto; display: flex; gap: 16px; scrollbar-width: none; }
+.carousel-wrap::-webkit-scrollbar { display: none; }
+.carousel-card {
+  flex-shrink: 0; width: 260px; background: #fff; border-radius: var(--card-radius); overflow: hidden;
+  box-shadow: var(--shadow); cursor: pointer; transition: transform 0.25s, box-shadow 0.25s;
+}
+.carousel-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+.carousel-img {
+  width: 100%; height: 140px; object-fit: cover; display: flex; align-items: center;
+  justify-content: center; font-size: 3rem; background: linear-gradient(135deg, #e0e7ff, #fce7f3);
+}
+.carousel-img img { width: 100%; height: 100%; object-fit: cover; }
+.carousel-body { padding: 14px; }
+.carousel-body h4 { font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; line-height: 1.3; }
+.carousel-body .venue-line { font-size: 0.8rem; color: #64748b; margin-bottom: 6px; }
+.carousel-body .time-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 50px; font-size: 0.75rem;
+  font-weight: 600; background: #ede9fe; color: var(--purple);
+}
+
+/* Event grid */
+.events-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px; padding: 0 20px 40px;
+}
+.event-card {
+  background: #fff; border-radius: var(--card-radius); overflow: hidden;
+  box-shadow: var(--shadow); cursor: pointer; transition: transform 0.25s, box-shadow 0.25s;
+  border-left: 5px solid var(--sky); display: flex; flex-direction: column;
+}
+.event-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+.event-card[data-cat="music"] { border-left-color: var(--coral); }
+.event-card[data-cat="arts and culture"] { border-left-color: var(--purple); }
+.event-card[data-cat="food and drink"] { border-left-color: var(--amber); }
+.event-card[data-cat="theater"] { border-left-color: var(--pink); }
+.event-card[data-cat="lectures"] { border-left-color: var(--sky); }
+.event-card[data-cat="sports"] { border-left-color: var(--mint); }
+.event-card[data-cat="community"] { border-left-color: #6366f1; }
+.event-card[data-cat="other"] { border-left-color: #94a3b8; }
+
+.card-img {
+  width: 100%; height: 160px; object-fit: cover; display: flex; align-items: center;
+  justify-content: center; font-size: 3.5rem; background: linear-gradient(135deg, #e0e7ff, #fce7f3);
+}
+.card-img img { width: 100%; height: 100%; object-fit: cover; }
+.card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+.card-body h3 { font-size: 1.05rem; font-weight: 800; margin-bottom: 6px; line-height: 1.3; }
+.card-meta { font-size: 0.82rem; color: #64748b; margin-bottom: 10px; }
+.card-meta .venue { font-weight: 600; color: #475569; }
+.card-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+.badge {
+  display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700;
+}
+.badge-free { background: #d1fae5; color: #065f46; }
+.badge-cost { background: #dbeafe; color: #1e40af; }
+.badge-family { background: #fef3c7; color: #92400e; }
+.badge-cat {
+  background: #f1f5f9; color: #475569; font-weight: 600; text-transform: capitalize;
+}
+
+/* Loading */
+.loading { text-align: center; padding: 60px 20px; }
+.bouncing-dots span {
+  display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin: 0 5px;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+.bouncing-dots span:nth-child(1) { background: var(--sky); animation-delay: -0.32s; }
+.bouncing-dots span:nth-child(2) { background: var(--coral); animation-delay: -0.16s; }
+.bouncing-dots span:nth-child(3) { background: var(--mint); animation-delay: 0s; }
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+.loading p { margin-top: 14px; font-weight: 600; color: #64748b; font-size: 0.95rem; }
+.no-events { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 1.1rem; font-weight: 600; }
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; opacity: 0;
+  pointer-events: none; transition: opacity 0.3s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.modal-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0; max-height: 85vh; background: #fff; z-index: 101;
+  border-radius: 24px 24px 0 0; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
+  overflow-y: auto; padding: 0;
+}
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-handle { width: 40px; height: 5px; background: #cbd5e1; border-radius: 3px; margin: 12px auto; }
+.modal-close {
+  position: sticky; top: 0; float: right; margin: 12px 16px 0 0; width: 36px; height: 36px;
+  border-radius: 50%; border: none; background: #f1f5f9; font-size: 1.2rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; z-index: 5;
+}
+.modal-close:hover { background: #e2e8f0; }
+.modal-hero-img {
+  width: 100%; height: 220px; object-fit: cover; display: flex; align-items: center;
+  justify-content: center; font-size: 5rem; background: linear-gradient(135deg, #e0e7ff, #fce7f3);
+}
+.modal-hero-img img { width: 100%; height: 100%; object-fit: cover; }
+.modal-content { padding: 20px 24px 40px; }
+.modal-content h2 { font-size: 1.5rem; font-weight: 900; margin-bottom: 8px; }
+.modal-detail-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 0.92rem; color: #475569; }
+.modal-detail-row .icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.modal-description { margin-top: 16px; line-height: 1.7; color: #334155; font-size: 0.95rem; }
+.modal-link {
+  display: inline-block; margin-top: 20px; padding: 12px 28px; border-radius: 50px;
+  background: linear-gradient(135deg, var(--sky), var(--purple)); color: #fff;
+  text-decoration: none; font-weight: 700; font-family: 'Nunito', sans-serif;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.modal-link:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(59,130,246,0.3); }
+.modal-loading { text-align: center; padding: 40px; }
+
+/* Chat bubble */
+.chat-fab {
+  position: fixed; bottom: 24px; right: 24px; z-index: 90; padding: 14px 22px;
+  border-radius: 50px; border: none; background: linear-gradient(135deg, var(--sky), var(--purple));
+  color: #fff; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.95rem;
+  cursor: pointer; box-shadow: 0 6px 24px rgba(59,130,246,0.35); transition: transform 0.2s, box-shadow 0.2s;
+}
+.chat-fab:hover { transform: scale(1.08); box-shadow: 0 8px 30px rgba(59,130,246,0.45); }
+
+/* Chat window */
+.chat-window {
+  position: fixed; bottom: 90px; right: 24px; width: 360px; max-height: 480px; z-index: 91;
+  background: #fff; border-radius: 20px; box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+  display: flex; flex-direction: column; transform: scale(0.9) translateY(20px);
+  opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+.chat-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+.chat-header {
+  padding: 16px 20px; background: linear-gradient(135deg, var(--sky), var(--purple));
+  border-radius: 20px 20px 0 0; color: #fff; font-family: 'Nunito', sans-serif; font-weight: 800;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.chat-header button {
+  background: rgba(255,255,255,0.2); border: none; color: #fff; width: 28px; height: 28px;
+  border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
+}
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;
+  min-height: 260px; max-height: 320px;
+}
+.chat-msg {
+  max-width: 85%; padding: 10px 16px; border-radius: 18px; font-size: 0.88rem; line-height: 1.5;
+  word-wrap: break-word;
+}
+.chat-msg.bot { background: #f1f5f9; color: #334155; align-self: flex-start; border-bottom-left-radius: 4px; }
+.chat-msg.user { background: linear-gradient(135deg, var(--sky), var(--purple)); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.chat-msg.typing { font-style: italic; color: #94a3b8; }
+.chat-input-wrap { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #f1f5f9; }
+.chat-input {
+  flex: 1; padding: 10px 16px; border-radius: 50px; border: 2px solid #e2e8f0;
+  font-size: 0.88rem; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s;
+}
+.chat-input:focus { border-color: var(--sky); }
+.chat-send {
+  width: 40px; height: 40px; border-radius: 50%; border: none;
+  background: linear-gradient(135deg, var(--sky), var(--purple)); color: #fff;
+  font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s;
+}
+.chat-send:hover { transform: scale(1.1); }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .hero h1 { font-size: 2rem; }
+  .hero { padding: 40px 16px 80px; }
+  .events-grid { grid-template-columns: 1fr; padding: 0 16px 40px; }
+  .carousel-card { width: 220px; }
+  .chat-window { right: 12px; left: 12px; width: auto; bottom: 80px; }
+  .chat-fab { bottom: 16px; right: 16px; padding: 12px 18px; font-size: 0.88rem; }
+  .section-title { font-size: 1.25rem; }
+  .search-wrap { margin-top: -24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <span class="floating-emoji">&#127917;</span>
+  <span class="floating-emoji">&#127925;</span>
+  <span class="floating-emoji">&#127912;</span>
+  <span class="floating-emoji">&#127914;</span>
+  <span class="floating-emoji">&#127911;</span>
+  <span class="floating-emoji">&#9889;</span>
+  <h1>Cambridge Events</h1>
+  <p>Discover amazing things happening around you!</p>
+</div>
+
+<!-- Search -->
+<div class="search-wrap">
+  <span class="search-icon">&#128269;</span>
+  <input class="search-bar" type="text" placeholder="Search events, venues, keywords..." id="searchInput">
+</div>
+
+<!-- Categories -->
+<div class="categories" id="categories">
+  <button class="cat-pill active" data-cat="all">All Events</button>
+  <button class="cat-pill" data-cat="music">&#127925; Music</button>
+  <button class="cat-pill" data-cat="arts and culture">&#127912; Arts</button>
+  <button class="cat-pill" data-cat="theater">&#127917; Theater</button>
+  <button class="cat-pill" data-cat="food and drink">&#127869; Food</button>
+  <button class="cat-pill" data-cat="lectures">&#128218; Lectures</button>
+  <button class="cat-pill" data-cat="sports">&#9917; Sports</button>
+  <button class="cat-pill" data-cat="community">&#129309; Community</button>
+  <button class="cat-pill" data-cat="other">&#10024; Other</button>
+</div>
+
+<!-- Today Section -->
+<div id="todaySection" style="display:none;">
+  <div class="section-title"><span>&#128293;</span> Happening Today</div>
+  <div class="carousel-wrap" id="todayCarousel"></div>
+</div>
+
+<!-- All Events -->
+<div class="section-title"><span>&#127880;</span> Upcoming Events</div>
+<div id="eventsLoading" class="loading">
+  <div class="bouncing-dots"><span></span><span></span><span></span></div>
+  <p>Finding fun things to do...</p>
+</div>
+<div class="events-grid" id="eventsGrid"></div>
+<div class="no-events" id="noEvents" style="display:none;">No events match your search. Try something else!</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-sheet" id="modalSheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" id="modalClose">&#10005;</button>
+    <div id="modalBody">
+      <div class="modal-loading">
+        <div class="bouncing-dots"><span></span><span></span><span></span></div>
+        <p>Loading details...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chat -->
+<button class="chat-fab" id="chatFab">Ask Cammie &#129302;</button>
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header">
+    <span>Cammie &#129302;</span>
+    <button id="chatClose">&#10005;</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg bot">Hi there! I'm Cammie, your Cambridge events guide. Ask me anything about what's happening around town!</div>
+  </div>
+  <div class="chat-input-wrap">
+    <input class="chat-input" id="chatInput" type="text" placeholder="Ask about events...">
+    <button class="chat-send" id="chatSend">&#10148;</button>
+  </div>
+</div>
+
+<script>
+const API = 'https://web-production-00281.up.railway.app';
+const EMOJIS = { music:'&#127925;', 'arts and culture':'&#127912;', 'food and drink':'&#127869;', theater:'&#127917;', lectures:'&#128218;', sports:'&#9917;', community:'&#129309;', other:'&#10024;' };
+
+let allEvents = [];
+let activeCategory = 'all';
+let searchQuery = '';
+let searchTimeout = null;
+
+// ---- Helpers ----
+function catEmoji(cat) { return EMOJIS[cat] || '&#10024;'; }
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const opts = { weekday: 'short', month: 'short', day: 'numeric' };
+  return d.toLocaleDateString('en-US', opts);
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function isToday(iso) {
+  if (!iso) return false;
+  const d = new Date(iso);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+}
+
+function costBadge(cost) {
+  if (!cost || cost.toLowerCase() === 'free' || cost === '$0' || cost === '0') {
+    return '<span class="badge badge-free">Free!</span>';
+  }
+  return `<span class="badge badge-cost">${cost}</span>`;
+}
+
+function imgHtml(ev, cls) {
+  if (ev.image_url) {
+    return `<div class="${cls}"><img src="${ev.image_url}" alt="" onerror="this.parentNode.innerHTML='${catEmoji(ev.category)}'"></div>`;
+  }
+  return `<div class="${cls}">${catEmoji(ev.category)}</div>`;
+}
+
+// ---- Render ----
+function renderToday(events) {
+  const today = events.filter(e => isToday(e.start_datetime));
+  const section = document.getElementById('todaySection');
+  const carousel = document.getElementById('todayCarousel');
+  if (today.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  carousel.innerHTML = today.slice(0, 12).map(ev => `
+    <div class="carousel-card" onclick="openModal('${ev.id}')">
+      ${imgHtml(ev, 'carousel-img')}
+      <div class="carousel-body">
+        <h4>${ev.title}</h4>
+        <div class="venue-line">${ev.venue_name || ev.city || ''}</div>
+        <span class="time-badge">${formatTime(ev.start_datetime)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderGrid(events) {
+  const grid = document.getElementById('eventsGrid');
+  const noEv = document.getElementById('noEvents');
+  if (events.length === 0) { grid.innerHTML = ''; noEv.style.display = 'block'; return; }
+  noEv.style.display = 'none';
+  grid.innerHTML = events.map(ev => `
+    <div class="event-card" data-cat="${ev.category}" onclick="openModal('${ev.id}')">
+      ${imgHtml(ev, 'card-img')}
+      <div class="card-body">
+        <h3>${ev.title}</h3>
+        <div class="card-meta">
+          <span class="venue">${ev.venue_name || ''}</span>
+          ${ev.venue_name ? ' &middot; ' : ''}${formatDate(ev.start_datetime)} &middot; ${formatTime(ev.start_datetime)}
+        </div>
+        <div class="card-badges">
+          ${costBadge(ev.cost)}
+          ${ev.family_friendly ? '<span class="badge badge-family">Family Friendly &#127880;</span>' : ''}
+          <span class="badge badge-cat">${ev.category}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function applyFilters() {
+  let filtered = allEvents;
+  if (activeCategory !== 'all') {
+    filtered = filtered.filter(e => e.category === activeCategory);
+  }
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(e =>
+      e.title.toLowerCase().includes(q) ||
+      (e.venue_name && e.venue_name.toLowerCase().includes(q)) ||
+      e.category.toLowerCase().includes(q)
+    );
+  }
+  renderToday(filtered);
+  renderGrid(filtered);
+}
+
+// ---- Load events ----
+async function loadEvents() {
+  try {
+    const res = await fetch(`${API}/events/slim?upcoming_only=true&ranked=true&limit=100`);
+    allEvents = await res.json();
+    document.getElementById('eventsLoading').style.display = 'none';
+    applyFilters();
+  } catch (err) {
+    document.getElementById('eventsLoading').innerHTML = '<p style="color:#ef4444;">Could not load events. Please try again later.</p>';
+  }
+}
+
+// ---- Search (API-powered for non-trivial queries) ----
+async function doSearch(query) {
+  if (!query.trim()) { applyFilters(); return; }
+  try {
+    const res = await fetch(`${API}/events/search?q=${encodeURIComponent(query)}`);
+    const results = await res.json();
+    renderToday(results);
+    renderGrid(results);
+  } catch { applyFilters(); }
+}
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  searchQuery = this.value;
+  clearTimeout(searchTimeout);
+  if (searchQuery.trim().length > 2) {
+    searchTimeout = setTimeout(() => doSearch(searchQuery), 400);
+  } else {
+    applyFilters();
+  }
+});
+
+// ---- Categories ----
+document.getElementById('categories').addEventListener('click', function(e) {
+  const pill = e.target.closest('.cat-pill');
+  if (!pill) return;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  activeCategory = pill.dataset.cat;
+  searchQuery = '';
+  document.getElementById('searchInput').value = '';
+  applyFilters();
+});
+
+// ---- Modal ----
+async function openModal(id) {
+  const overlay = document.getElementById('modalOverlay');
+  const body = document.getElementById('modalBody');
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  body.innerHTML = '<div class="modal-loading"><div class="bouncing-dots"><span></span><span></span><span></span></div><p>Loading details...</p></div>';
+  try {
+    const res = await fetch(`${API}/events/${id}`);
+    const ev = await res.json();
+    body.innerHTML = `
+      ${ev.image_url
+        ? `<div class="modal-hero-img"><img src="${ev.image_url}" alt="" onerror="this.parentNode.innerHTML='${catEmoji(ev.category)}'"></div>`
+        : `<div class="modal-hero-img">${catEmoji(ev.category)}</div>`
+      }
+      <div class="modal-content">
+        <h2>${ev.title}</h2>
+        <div class="card-badges" style="margin-bottom:14px;">
+          ${costBadge(ev.cost)}
+          ${ev.family_friendly ? '<span class="badge badge-family">Family Friendly &#127880;</span>' : ''}
+          <span class="badge badge-cat">${ev.category}</span>
+        </div>
+        <div class="modal-detail-row"><span class="icon">&#128197;</span><span>${formatDate(ev.start_datetime)} at ${formatTime(ev.start_datetime)}${ev.end_datetime ? ' - ' + formatTime(ev.end_datetime) : ''}</span></div>
+        ${ev.venue_name ? `<div class="modal-detail-row"><span class="icon">&#128205;</span><span>${ev.venue_name}${ev.address ? ', ' + ev.address : ''}${ev.city ? ', ' + ev.city : ''}</span></div>` : ''}
+        ${ev.description ? `<div class="modal-description">${ev.description}</div>` : ''}
+        <a class="modal-link" href="${ev.source_url}" target="_blank" rel="noopener">View Original Source &#8599;</a>
+      </div>
+    `;
+  } catch {
+    body.innerHTML = '<div class="modal-loading"><p style="color:#ef4444;">Failed to load event details.</p></div>';
+  }
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ---- Chat ----
+let chatOpen = false;
+let chatHistory = [];
+
+document.getElementById('chatFab').addEventListener('click', function() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatWindow').classList.toggle('open', chatOpen);
+  if (chatOpen) document.getElementById('chatInput').focus();
+});
+document.getElementById('chatClose').addEventListener('click', function() {
+  chatOpen = false;
+  document.getElementById('chatWindow').classList.remove('open');
+});
+
+function addChatMsg(text, who) {
+  const el = document.createElement('div');
+  el.className = 'chat-msg ' + who;
+  el.textContent = text;
+  document.getElementById('chatMessages').appendChild(el);
+  document.getElementById('chatMessages').scrollTop = 99999;
+  return el;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addChatMsg(text, 'user');
+  chatHistory.push({ role: 'user', content: text });
+  const typing = addChatMsg('Cammie is thinking...', 'bot typing');
+  try {
+    const res = await fetch(`${API}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, conversation_history: chatHistory.slice(-10) })
+    });
+    const data = await res.json();
+    typing.remove();
+    const reply = data.response || 'Hmm, I had trouble with that. Try asking again!';
+    addChatMsg(reply, 'bot');
+    chatHistory.push({ role: 'assistant', content: reply });
+  } catch {
+    typing.remove();
+    addChatMsg('Oops, something went wrong. Please try again!', 'bot');
+  }
+}
+
+document.getElementById('chatSend').addEventListener('click', sendChat);
+document.getElementById('chatInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') sendChat();
+});
+
+// ---- Init ----
+loadEvents();
+</script>
+</body>
+</html>

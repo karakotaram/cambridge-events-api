@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cambridge Events - Neon Grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #1a1a2e;
+  --surface-light: #252542;
+  --blue: #3b82f6;
+  --green: #22c55e;
+  --pink: #ec4899;
+  --purple: #8b5cf6;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --border: rgba(255,255,255,0.06);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Header */
+.header {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex; align-items: center; gap: 20px;
+}
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; font-size: 22px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+}
+.search-wrap {
+  flex: 1; max-width: 480px; position: relative;
+}
+.search-wrap input {
+  width: 100%; padding: 10px 16px 10px 40px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text); font-size: 14px;
+  font-family: 'Inter', sans-serif; outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.search-wrap input::placeholder { color: var(--text-dim); }
+.search-wrap input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 20px rgba(59,130,246,0.25);
+}
+.search-wrap svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; color: var(--text-dim); pointer-events: none;
+}
+
+/* Container */
+.container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+/* Stats strip */
+.stats-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  padding: 28px 0;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+  display: flex; flex-direction: column; gap: 4px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.stat-card:hover {
+  border-color: var(--blue);
+  box-shadow: 0 0 24px rgba(59,130,246,0.12);
+}
+.stat-label {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-dim); font-family: 'JetBrains Mono', monospace;
+}
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px; font-weight: 700;
+}
+.stat-value.blue { color: var(--blue); text-shadow: 0 0 20px rgba(59,130,246,0.4); }
+.stat-value.green { color: var(--green); text-shadow: 0 0 20px rgba(34,197,94,0.4); }
+.stat-value.pink { color: var(--pink); text-shadow: 0 0 20px rgba(236,72,153,0.4); }
+.stat-value.purple { color: var(--purple); text-shadow: 0 0 20px rgba(139,92,246,0.4); }
+
+/* Section titles */
+.section-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px; font-weight: 600;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+}
+.section-title .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Trending carousel */
+.trending-section { padding-bottom: 32px; }
+.carousel {
+  display: flex; gap: 16px; overflow-x: auto;
+  scroll-snap-type: x mandatory; padding-bottom: 8px;
+  scrollbar-width: thin; scrollbar-color: var(--surface-light) transparent;
+}
+.carousel::-webkit-scrollbar { height: 6px; }
+.carousel::-webkit-scrollbar-thumb { background: var(--surface-light); border-radius: 3px; }
+.carousel-card {
+  min-width: 300px; flex-shrink: 0; scroll-snap-align: start;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden; cursor: pointer;
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+.carousel-card:hover {
+  border-color: var(--purple);
+  box-shadow: 0 0 30px rgba(139,92,246,0.15);
+  transform: translateY(-4px);
+}
+.carousel-img {
+  width: 100%; height: 170px; object-fit: cover;
+  position: relative;
+}
+.carousel-img-wrap {
+  position: relative; overflow: hidden;
+}
+.carousel-img-wrap::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 60%;
+  background: linear-gradient(to top, var(--surface), transparent);
+}
+.carousel-body { padding: 14px 16px; }
+.carousel-body h3 {
+  font-family: 'Space Grotesk', sans-serif; font-size: 15px;
+  font-weight: 600; margin-bottom: 6px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.carousel-meta {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--text-dim); display: flex; align-items: center; gap: 8px;
+}
+
+/* Category grid */
+.cat-section { padding-bottom: 32px; }
+.cat-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+}
+.cat-tile {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 16px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+}
+.cat-tile::before {
+  content: ''; position: absolute; inset: 0; opacity: 0;
+  transition: opacity 0.3s; border-radius: 12px;
+}
+.cat-tile:hover::before { opacity: 1; }
+.cat-tile:hover { border-color: transparent; transform: translateY(-2px); }
+.cat-tile.active { border-color: var(--blue); box-shadow: 0 0 16px rgba(59,130,246,0.2); }
+.cat-icon {
+  font-size: 22px; width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px; flex-shrink: 0; position: relative; z-index: 1;
+}
+.cat-info { position: relative; z-index: 1; }
+.cat-name { font-size: 13px; font-weight: 600; }
+.cat-count {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Category colors */
+.cat-tile[data-cat="music"]::before { background: linear-gradient(135deg, rgba(59,130,246,0.12), transparent); }
+.cat-tile[data-cat="music"] .cat-icon { background: rgba(59,130,246,0.15); }
+.cat-tile[data-cat="arts and culture"]::before { background: linear-gradient(135deg, rgba(139,92,246,0.12), transparent); }
+.cat-tile[data-cat="arts and culture"] .cat-icon { background: rgba(139,92,246,0.15); }
+.cat-tile[data-cat="food and drink"]::before { background: linear-gradient(135deg, rgba(236,72,153,0.12), transparent); }
+.cat-tile[data-cat="food and drink"] .cat-icon { background: rgba(236,72,153,0.15); }
+.cat-tile[data-cat="theater"]::before { background: linear-gradient(135deg, rgba(234,179,8,0.12), transparent); }
+.cat-tile[data-cat="theater"] .cat-icon { background: rgba(234,179,8,0.15); }
+.cat-tile[data-cat="lectures"]::before { background: linear-gradient(135deg, rgba(34,197,94,0.12), transparent); }
+.cat-tile[data-cat="lectures"] .cat-icon { background: rgba(34,197,94,0.15); }
+.cat-tile[data-cat="sports"]::before { background: linear-gradient(135deg, rgba(249,115,22,0.12), transparent); }
+.cat-tile[data-cat="sports"] .cat-icon { background: rgba(249,115,22,0.15); }
+.cat-tile[data-cat="community"]::before { background: linear-gradient(135deg, rgba(6,182,212,0.12), transparent); }
+.cat-tile[data-cat="community"] .cat-icon { background: rgba(6,182,212,0.15); }
+.cat-tile[data-cat="other"]::before { background: linear-gradient(135deg, rgba(148,163,184,0.12), transparent); }
+.cat-tile[data-cat="other"] .cat-icon { background: rgba(148,163,184,0.15); }
+
+/* Event grid */
+.events-section { padding-bottom: 40px; }
+.event-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+}
+.event-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden; cursor: pointer;
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+.event-card:hover {
+  transform: translateY(-4px);
+}
+.event-img-wrap {
+  position: relative; height: 160px; overflow: hidden;
+  background: var(--surface-light);
+}
+.event-img-wrap img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.event-img-wrap::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(to top, var(--surface), transparent);
+}
+.event-badge {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+  padding: 3px 8px; border-radius: 6px;
+  background: rgba(10,10,15,0.75); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.cat-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  margin-right: 6px; vertical-align: middle;
+}
+.event-body { padding: 14px 16px 16px; }
+.event-body h3 {
+  font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600;
+  margin-bottom: 8px; line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.event-venue {
+  font-size: 13px; color: var(--text-dim); margin-bottom: 6px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.event-datetime {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim);
+}
+
+/* Category dot colors + glow */
+.cat-dot.music { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+.cat-dot.arts-and-culture { background: var(--purple); box-shadow: 0 0 8px var(--purple); }
+.cat-dot.food-and-drink { background: var(--pink); box-shadow: 0 0 8px var(--pink); }
+.cat-dot.theater { background: #eab308; box-shadow: 0 0 8px #eab308; }
+.cat-dot.lectures { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.cat-dot.sports { background: #f97316; box-shadow: 0 0 8px #f97316; }
+.cat-dot.community { background: #06b6d4; box-shadow: 0 0 8px #06b6d4; }
+.cat-dot.other { background: var(--text-dim); box-shadow: 0 0 8px var(--text-dim); }
+
+/* Hover glow per category */
+.event-card[data-cat="music"]:hover { border-color: var(--blue); box-shadow: 0 0 24px rgba(59,130,246,0.15); }
+.event-card[data-cat="arts and culture"]:hover { border-color: var(--purple); box-shadow: 0 0 24px rgba(139,92,246,0.15); }
+.event-card[data-cat="food and drink"]:hover { border-color: var(--pink); box-shadow: 0 0 24px rgba(236,72,153,0.15); }
+.event-card[data-cat="theater"]:hover { border-color: #eab308; box-shadow: 0 0 24px rgba(234,179,8,0.15); }
+.event-card[data-cat="lectures"]:hover { border-color: var(--green); box-shadow: 0 0 24px rgba(34,197,94,0.15); }
+.event-card[data-cat="sports"]:hover { border-color: #f97316; box-shadow: 0 0 24px rgba(249,115,22,0.15); }
+.event-card[data-cat="community"]:hover { border-color: #06b6d4; box-shadow: 0 0 24px rgba(6,182,212,0.15); }
+.event-card[data-cat="other"]:hover { border-color: var(--text-dim); box-shadow: 0 0 24px rgba(148,163,184,0.1); }
+
+/* Detail overlay */
+.overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(10,10,15,0.7);
+  backdrop-filter: blur(20px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.overlay.active { opacity: 1; pointer-events: all; }
+.detail-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; max-width: 600px; width: 90%;
+  max-height: 85vh; overflow-y: auto; position: relative;
+  transform: translateY(20px); transition: transform 0.3s;
+}
+.overlay.active .detail-panel { transform: translateY(0); }
+.detail-close {
+  position: absolute; top: 14px; right: 14px; z-index: 5;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(10,10,15,0.6); border: 1px solid var(--border);
+  color: var(--text); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.detail-close:hover { background: rgba(255,255,255,0.1); }
+.detail-img {
+  width: 100%; height: 240px; object-fit: cover; border-radius: 18px 18px 0 0;
+}
+.detail-body { padding: 24px; }
+.detail-body h2 {
+  font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700;
+  margin-bottom: 12px;
+}
+.detail-meta {
+  display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+}
+.detail-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  padding: 4px 10px; border-radius: 6px;
+  background: rgba(255,255,255,0.06); color: var(--text-dim);
+}
+.detail-desc {
+  font-size: 14px; color: var(--text-dim); line-height: 1.7;
+  margin-bottom: 20px;
+}
+.detail-link {
+  display: inline-block; padding: 10px 20px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: #fff; text-decoration: none; font-weight: 600; font-size: 14px;
+  transition: box-shadow 0.3s;
+}
+.detail-link:hover { box-shadow: 0 0 24px rgba(59,130,246,0.35); }
+.detail-loading {
+  padding: 60px; text-align: center; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+}
+
+/* Terminal chat */
+.chat-section {
+  border-top: 1px solid var(--border);
+  padding: 32px 0 48px;
+}
+.terminal {
+  background: #0d0d14; border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden; max-width: 800px; margin: 0 auto;
+}
+.terminal-bar {
+  display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+  background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border);
+}
+.terminal-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.terminal-dot.r { background: #ff5f57; }
+.terminal-dot.y { background: #febc2e; }
+.terminal-dot.g { background: #28c840; }
+.terminal-bar span {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--text-dim); margin-left: 8px;
+}
+.terminal-body {
+  padding: 16px; min-height: 180px; max-height: 320px;
+  overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+}
+.terminal-body::-webkit-scrollbar { width: 6px; }
+.terminal-body::-webkit-scrollbar-thumb { background: var(--surface-light); border-radius: 3px; }
+.chat-line { margin-bottom: 10px; line-height: 1.6; }
+.chat-line.user { color: var(--green); }
+.chat-line.bot { color: var(--text-dim); }
+.chat-line .prompt { color: var(--green); font-weight: 700; }
+.chat-input-wrap {
+  display: flex; align-items: center; padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+.chat-input-wrap .prompt-symbol {
+  color: var(--green); font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; font-size: 14px; margin-right: 10px;
+}
+.chat-input-wrap input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--green); font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; caret-color: var(--green);
+}
+.chat-input-wrap input::placeholder { color: rgba(34,197,94,0.35); }
+
+/* Loading */
+.loading-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+}
+.skeleton {
+  background: var(--surface); border-radius: 14px; overflow: hidden;
+}
+.skeleton-img {
+  height: 160px; background: linear-gradient(90deg, var(--surface) 25%, var(--surface-light) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-body { padding: 16px; }
+.skeleton-line {
+  height: 12px; border-radius: 6px; margin-bottom: 10px;
+  background: linear-gradient(90deg, var(--surface-light) 25%, #2a2a4a 50%, var(--surface-light) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-line.short { width: 60%; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* Neon dot loading */
+.neon-loading {
+  display: flex; align-items: center; justify-content: center; gap: 8px; padding: 40px;
+}
+.neon-loading span {
+  width: 10px; height: 10px; border-radius: 50%;
+  animation: neon-pulse 1.2s ease-in-out infinite;
+}
+.neon-loading span:nth-child(1) { background: var(--blue); box-shadow: 0 0 12px var(--blue); animation-delay: 0s; }
+.neon-loading span:nth-child(2) { background: var(--purple); box-shadow: 0 0 12px var(--purple); animation-delay: 0.2s; }
+.neon-loading span:nth-child(3) { background: var(--pink); box-shadow: 0 0 12px var(--pink); animation-delay: 0.4s; }
+@keyframes neon-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.4); opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .stats-strip { grid-template-columns: repeat(2, 1fr); }
+  .cat-grid { grid-template-columns: repeat(2, 1fr); }
+  .event-grid, .loading-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .header { flex-wrap: wrap; padding: 12px 16px; }
+  .search-wrap { max-width: 100%; order: 3; flex-basis: 100%; }
+  .container { padding: 0 16px; }
+  .stats-strip { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-value { font-size: 24px; }
+  .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .event-grid, .loading-grid { grid-template-columns: 1fr; }
+  .carousel-card { min-width: 260px; }
+  .detail-panel { width: 95%; max-height: 90vh; }
+  .detail-img { height: 180px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="logo">Cambridge Events</div>
+  <div class="search-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
+    </svg>
+    <input type="text" id="searchInput" placeholder="Search events, venues, categories..." />
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Stats Strip -->
+  <div class="stats-strip">
+    <div class="stat-card">
+      <div class="stat-label">Total Events</div>
+      <div class="stat-value blue" id="statTotal">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Events Today</div>
+      <div class="stat-value green" id="statToday">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Free Events</div>
+      <div class="stat-value pink" id="statFree">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Categories</div>
+      <div class="stat-value purple" id="statCats">--</div>
+    </div>
+  </div>
+
+  <!-- Trending Now -->
+  <div class="trending-section">
+    <div class="section-title"><span class="dot"></span> Trending Now</div>
+    <div class="carousel" id="carousel">
+      <div class="neon-loading"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <!-- Category Grid -->
+  <div class="cat-section">
+    <div class="section-title">Categories</div>
+    <div class="cat-grid" id="catGrid"></div>
+  </div>
+
+  <!-- Events Grid -->
+  <div class="events-section">
+    <div class="section-title" id="eventsTitle">All Events</div>
+    <div id="eventsContainer">
+      <div class="loading-grid">
+        <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Terminal -->
+  <div class="chat-section">
+    <div class="section-title">Ask the AI</div>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="terminal-dot r"></span>
+        <span class="terminal-dot y"></span>
+        <span class="terminal-dot g"></span>
+        <span>cambridge-events-chat</span>
+      </div>
+      <div class="terminal-body" id="chatBody">
+        <div class="chat-line bot">Welcome. Ask me anything about Cambridge events.</div>
+      </div>
+      <div class="chat-input-wrap">
+        <span class="prompt-symbol">&gt;</span>
+        <input type="text" id="chatInput" placeholder="What's happening this weekend?" />
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Detail Overlay -->
+<div class="overlay" id="overlay">
+  <div class="detail-panel" id="detailPanel"></div>
+</div>
+
+<script>
+const API = 'https://web-production-00281.up.railway.app';
+let allEvents = [];
+let activeCategory = null;
+let searchTimeout = null;
+
+const CATEGORY_META = {
+  'music':            { icon: '\u{1F3B5}', color: '#3b82f6' },
+  'arts and culture': { icon: '\u{1F3A8}', color: '#8b5cf6' },
+  'food and drink':   { icon: '\u{1F37D}\uFE0F', color: '#ec4899' },
+  'theater':          { icon: '\u{1F3AD}', color: '#eab308' },
+  'lectures':         { icon: '\u{1F393}', color: '#22c55e' },
+  'sports':           { icon: '\u26BD',    color: '#f97316' },
+  'community':        { icon: '\u{1F91D}', color: '#06b6d4' },
+  'other':            { icon: '\u2728',    color: '#94a3b8' }
+};
+
+function catDotClass(cat) {
+  return (cat || 'other').replace(/\s+/g, '-');
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const opts = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+  return d.toLocaleDateString('en-US', opts);
+}
+
+function isToday(iso) {
+  if (!iso) return false;
+  const d = new Date(iso);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+}
+
+function isFree(cost) {
+  if (!cost) return false;
+  const c = cost.toLowerCase();
+  return c === 'free' || c === '$0' || c === '0' || c.includes('free');
+}
+
+// --- Render stats ---
+function renderStats(events) {
+  document.getElementById('statTotal').textContent = events.length;
+  document.getElementById('statToday').textContent = events.filter(e => isToday(e.start_datetime)).length;
+  document.getElementById('statFree').textContent = events.filter(e => isFree(e.cost)).length;
+  const cats = new Set(events.map(e => e.category));
+  document.getElementById('statCats').textContent = cats.size;
+}
+
+// --- Render carousel ---
+function renderCarousel(events) {
+  const el = document.getElementById('carousel');
+  const featured = events.slice(0, 6);
+  el.innerHTML = featured.map(e => `
+    <div class="carousel-card" onclick="openDetail('${e.id}')">
+      <div class="carousel-img-wrap">
+        ${e.image_url ? `<img class="carousel-img" src="${e.image_url}" alt="" loading="lazy" onerror="this.style.display='none'"/>` : `<div class="carousel-img" style="background:var(--surface-light)"></div>`}
+      </div>
+      <div class="carousel-body">
+        <h3>${esc(e.title)}</h3>
+        <div class="carousel-meta">
+          <span class="cat-dot ${catDotClass(e.category)}"></span>
+          <span>${formatDate(e.start_datetime)}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// --- Render category grid ---
+function renderCategoryGrid(events) {
+  const counts = {};
+  events.forEach(e => { counts[e.category] = (counts[e.category] || 0) + 1; });
+  const el = document.getElementById('catGrid');
+  el.innerHTML = Object.entries(CATEGORY_META).map(([cat, meta]) => `
+    <div class="cat-tile${activeCategory === cat ? ' active' : ''}" data-cat="${cat}" onclick="toggleCategory('${cat}')">
+      <div class="cat-icon">${meta.icon}</div>
+      <div class="cat-info">
+        <div class="cat-name">${cat.charAt(0).toUpperCase() + cat.slice(1)}</div>
+        <div class="cat-count">${counts[cat] || 0} events</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// --- Render events grid ---
+function renderEvents(events) {
+  const container = document.getElementById('eventsContainer');
+  if (!events.length) {
+    container.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:40px;font-family:JetBrains Mono,monospace;font-size:13px;">No events found.</p>';
+    return;
+  }
+  container.innerHTML = `<div class="event-grid">${events.map(e => `
+    <div class="event-card" data-cat="${e.category}" onclick="openDetail('${e.id}')">
+      <div class="event-img-wrap">
+        ${e.image_url ? `<img src="${e.image_url}" alt="" loading="lazy" onerror="this.parentElement.style.background='var(--surface-light)';this.style.display='none'"/>` : ''}
+        ${e.cost ? `<div class="event-badge">${esc(e.cost)}</div>` : ''}
+      </div>
+      <div class="event-body">
+        <h3><span class="cat-dot ${catDotClass(e.category)}"></span>${esc(e.title)}</h3>
+        <div class="event-venue">${esc(e.venue_name || '')}</div>
+        <div class="event-datetime">${formatDate(e.start_datetime)}</div>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// --- Category filter ---
+function toggleCategory(cat) {
+  activeCategory = activeCategory === cat ? null : cat;
+  renderCategoryGrid(allEvents);
+  const title = document.getElementById('eventsTitle');
+  if (activeCategory) {
+    title.textContent = activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
+    renderEvents(allEvents.filter(e => e.category === activeCategory));
+  } else {
+    title.textContent = 'All Events';
+    renderEvents(allEvents);
+  }
+}
+
+// --- Detail overlay ---
+async function openDetail(id) {
+  const overlay = document.getElementById('overlay');
+  const panel = document.getElementById('detailPanel');
+  overlay.classList.add('active');
+  panel.innerHTML = '<div class="detail-loading">Loading<span class="neon-loading" style="display:inline-flex;padding:0 0 0 12px;"><span></span><span></span><span></span></span></div>';
+  try {
+    const res = await fetch(`${API}/events/${id}`);
+    const e = await res.json();
+    panel.innerHTML = `
+      <button class="detail-close" onclick="closeDetail()">&times;</button>
+      ${e.image_url ? `<img class="detail-img" src="${e.image_url}" alt="" onerror="this.style.display='none'"/>` : ''}
+      <div class="detail-body">
+        <h2>${esc(e.title)}</h2>
+        <div class="detail-meta">
+          <span class="detail-tag"><span class="cat-dot ${catDotClass(e.category)}"></span>${esc(e.category)}</span>
+          <span class="detail-tag">${formatDate(e.start_datetime)}</span>
+          ${e.venue_name ? `<span class="detail-tag">${esc(e.venue_name)}</span>` : ''}
+          ${e.cost ? `<span class="detail-tag">${esc(e.cost)}</span>` : ''}
+          ${e.family_friendly ? '<span class="detail-tag">Family Friendly</span>' : ''}
+        </div>
+        <div class="detail-desc">${esc(e.description || '')}</div>
+        <a class="detail-link" href="${e.source_url}" target="_blank" rel="noopener">View Source</a>
+      </div>
+    `;
+  } catch (err) {
+    panel.innerHTML = `<button class="detail-close" onclick="closeDetail()">&times;</button><div class="detail-loading">Failed to load event details.</div>`;
+  }
+}
+
+function closeDetail() {
+  document.getElementById('overlay').classList.remove('active');
+}
+
+document.getElementById('overlay').addEventListener('click', e => {
+  if (e.target.id === 'overlay') closeDetail();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+// --- Search ---
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  const q = searchInput.value.trim();
+  if (!q) {
+    activeCategory = null;
+    document.getElementById('eventsTitle').textContent = 'All Events';
+    renderCategoryGrid(allEvents);
+    renderEvents(allEvents);
+    return;
+  }
+  searchTimeout = setTimeout(async () => {
+    document.getElementById('eventsTitle').textContent = `Search: "${esc(q)}"`;
+    document.getElementById('eventsContainer').innerHTML = '<div class="neon-loading"><span></span><span></span><span></span></div>';
+    try {
+      const res = await fetch(`${API}/events/search?q=${encodeURIComponent(q)}`);
+      const results = await res.json();
+      renderEvents(results);
+    } catch {
+      document.getElementById('eventsContainer').innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:40px;">Search failed.</p>';
+    }
+  }, 400);
+});
+
+// --- Chat ---
+const chatInput = document.getElementById('chatInput');
+const chatBody = document.getElementById('chatBody');
+let conversationHistory = [];
+
+chatInput.addEventListener('keydown', async (e) => {
+  if (e.key !== 'Enter') return;
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+  chatInput.value = '';
+
+  chatBody.innerHTML += `<div class="chat-line user"><span class="prompt">&gt; </span>${esc(msg)}</div>`;
+  chatBody.innerHTML += `<div class="chat-line bot" id="chatPending">Thinking<span class="neon-loading" style="display:inline-flex;padding:0 0 0 8px;vertical-align:middle;"><span></span><span></span><span></span></span></div>`;
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  try {
+    const res = await fetch(`${API}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, conversation_history: conversationHistory })
+    });
+    const data = await res.json();
+    const pending = document.getElementById('chatPending');
+    if (pending) pending.remove();
+
+    chatBody.innerHTML += `<div class="chat-line bot">${esc(data.response)}</div>`;
+    conversationHistory.push({ role: 'user', content: msg });
+    conversationHistory.push({ role: 'assistant', content: data.response });
+    if (conversationHistory.length > 10) conversationHistory = conversationHistory.slice(-10);
+  } catch {
+    const pending = document.getElementById('chatPending');
+    if (pending) pending.remove();
+    chatBody.innerHTML += `<div class="chat-line bot" style="color:#ef4444;">Error connecting to chat service.</div>`;
+  }
+  chatBody.scrollTop = chatBody.scrollHeight;
+});
+
+// --- Init ---
+(async function init() {
+  try {
+    const res = await fetch(`${API}/events/slim?upcoming_only=true&ranked=true&limit=100`);
+    allEvents = await res.json();
+    renderStats(allEvents);
+    renderCarousel(allEvents);
+    renderCategoryGrid(allEvents);
+    renderEvents(allEvents);
+  } catch (err) {
+    document.getElementById('eventsContainer').innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px;font-family:JetBrains Mono,monospace;">Failed to load events. Please try again later.</p>';
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>

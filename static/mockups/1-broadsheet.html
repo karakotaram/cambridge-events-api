@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Broadsheet &mdash; Cambridge Events</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #faf9f6;
+    --navy: #1a1a2e;
+    --red: #e63946;
+    --rule: #c4c0b6;
+    --muted: #6b6560;
+    --card-bg: #fff;
+  }
+
+  body {
+    background: var(--cream);
+    color: var(--navy);
+    font-family: 'Source Sans 3', 'Helvetica Neue', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- HEADER ---------- */
+  header {
+    text-align: center;
+    padding: 2.5rem 1rem 1.5rem;
+    border-bottom: 3px double var(--navy);
+  }
+  header .dateline {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+  }
+  header h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 900;
+    font-size: clamp(2.6rem, 6vw, 4.5rem);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+  header h1 span { color: var(--red); }
+  header .tagline {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--muted);
+    margin-top: 0.35rem;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 2rem;
+    margin-top: 1.5rem;
+  }
+  @media (max-width: 860px) {
+    .main-grid { grid-template-columns: 1fr; }
+    aside { order: -1; }
+  }
+
+  hr.editorial {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 2rem 0 1.5rem;
+  }
+
+  /* ---------- SECTION HEADINGS ---------- */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    border-bottom: 2px solid var(--navy);
+    padding-bottom: 0.3rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* ---------- FEATURED MASONRY ---------- */
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .featured-card {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    min-height: 260px;
+    background: var(--navy);
+    transition: transform 0.2s;
+  }
+  .featured-card:hover { transform: translateY(-3px); }
+  .featured-card img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute; inset: 0;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+  }
+  .featured-card:hover img { opacity: 0.45; }
+  .featured-card .overlay {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.25rem;
+    color: #fff;
+  }
+  .featured-card .cat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.3rem;
+    font-variant: small-caps;
+  }
+  .featured-card .overlay h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+  }
+  .featured-card .overlay .meta {
+    font-size: 0.82rem;
+    opacity: 0.85;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  aside { position: sticky; top: 1rem; align-self: start; }
+  aside .sidebar-section { margin-bottom: 1.5rem; }
+  aside .sidebar-section h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .search-box {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus { border-color: var(--navy); }
+  .search-hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  .category-filters label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-transform: capitalize;
+  }
+  .category-filters input[type="checkbox"] { accent-color: var(--red); }
+
+  /* ---------- EVENT LIST ---------- */
+  .event-list { display: flex; flex-direction: column; gap: 1rem; }
+
+  .event-card {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 1rem;
+    cursor: pointer;
+    padding: 0.75rem;
+    background: var(--card-bg);
+    border: 1px solid transparent;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .event-card:hover {
+    border-color: var(--rule);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .event-card.no-image { grid-template-columns: 1fr; }
+  .event-card .thumb {
+    width: 140px; height: 100px;
+    object-fit: cover;
+    background: #e0ddd6;
+  }
+  .event-card .text .cat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-variant: small-caps;
+  }
+  .event-card .text h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0.15rem 0 0.2rem;
+  }
+  .event-card .text .meta {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 520px) {
+    .event-card { grid-template-columns: 90px 1fr; }
+    .event-card .thumb { width: 90px; height: 72px; }
+  }
+
+  /* ---------- EXPANDED DETAIL ---------- */
+  .event-detail {
+    background: var(--card-bg);
+    border: 1px solid var(--rule);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    animation: slideDown 0.25s ease;
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .event-detail .detail-header {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .event-detail .detail-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .event-detail .close-btn {
+    background: none; border: none; font-size: 1.4rem; cursor: pointer;
+    color: var(--muted); padding: 0.25rem;
+  }
+  .event-detail .close-btn:hover { color: var(--navy); }
+  .event-detail .detail-meta {
+    font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem;
+    line-height: 1.8;
+  }
+  .event-detail .detail-meta strong { color: var(--navy); }
+  .event-detail .detail-desc {
+    font-size: 1rem; line-height: 1.7; margin-bottom: 1.25rem;
+  }
+  .event-detail .detail-link {
+    display: inline-block;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--red);
+    text-decoration: none;
+    border-bottom: 1px solid var(--red);
+    padding-bottom: 1px;
+  }
+  .event-detail .detail-link:hover { color: var(--navy); border-color: var(--navy); }
+  .event-detail .detail-image {
+    width: 100%; max-height: 360px; object-fit: cover; margin-bottom: 1rem;
+  }
+
+  /* ---------- CHAT / LETTERS ---------- */
+  .letters-section {
+    border-top: 3px double var(--navy);
+    margin-top: 2.5rem;
+    padding: 2rem 0 3rem;
+  }
+  .letters-section .section-title { margin-bottom: 0.5rem; }
+  .letters-section .section-subtitle {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+  }
+  .chat-log {
+    max-height: 360px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+  }
+  .chat-msg {
+    margin-bottom: 1rem;
+    max-width: 85%;
+    line-height: 1.55;
+    font-size: 0.95rem;
+  }
+  .chat-msg.user {
+    margin-left: auto;
+    text-align: right;
+  }
+  .chat-msg .chat-role {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 0.15rem;
+  }
+  .chat-msg.user .chat-role { color: var(--red); }
+  .chat-msg .chat-body {
+    background: var(--card-bg);
+    border: 1px solid var(--rule);
+    padding: 0.7rem 1rem;
+    display: inline-block;
+    text-align: left;
+  }
+  .chat-msg.user .chat-body {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+  .chat-input-row {
+    display: flex; gap: 0.5rem;
+  }
+  .chat-input {
+    flex: 1;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--rule);
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.95rem;
+    background: #fff;
+    outline: none;
+  }
+  .chat-input:focus { border-color: var(--navy); }
+  .chat-send {
+    padding: 0.6rem 1.25rem;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .chat-send:hover { background: var(--red); }
+  .chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ---------- LOADING ---------- */
+  .loader {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .loader::after {
+    content: '';
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid var(--rule);
+    border-top-color: var(--navy);
+    border-radius: 50%;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="dateline" id="dateline"></div>
+  <h1>Cambridge <span>Events</span></h1>
+  <p class="tagline">The definitive guide to what's happening in Cambridge &amp; Somerville</p>
+</header>
+
+<div class="container">
+
+  <!-- FEATURED -->
+  <hr class="editorial">
+  <h2 class="section-title">Editor's Picks</h2>
+  <div id="featured" class="featured-grid">
+    <div class="loader">Loading featured events</div>
+  </div>
+
+  <hr class="editorial">
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+    <main>
+      <h2 class="section-title">All Upcoming Events</h2>
+      <div id="event-detail-slot"></div>
+      <div id="event-list" class="event-list">
+        <div class="loader">Loading events</div>
+      </div>
+    </main>
+
+    <aside>
+      <div class="sidebar-section">
+        <h4>Search</h4>
+        <input type="text" class="search-box" id="search-input" placeholder="Jazz, theater, Harvard...">
+        <p class="search-hint">Press Enter to search</p>
+      </div>
+      <div class="sidebar-section">
+        <h4>Categories</h4>
+        <div class="category-filters" id="category-filters"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- LETTERS / CHAT -->
+  <section class="letters-section">
+    <h2 class="section-title">Letters to the Editor</h2>
+    <p class="section-subtitle">Ask our correspondent for event recommendations, tips, or guidance.</p>
+    <div class="chat-log" id="chat-log"></div>
+    <div class="chat-input-row">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Dear Editor, what's happening this weekend...">
+      <button class="chat-send" id="chat-send">Send</button>
+    </div>
+  </section>
+</div>
+
+<footer>
+  &copy; 2026 The Broadsheet &mdash; Cambridge Events. All rights reserved.
+</footer>
+
+<script>
+(function () {
+  const API = 'https://web-production-00281.up.railway.app';
+  const CATEGORIES = ['music','arts and culture','food and drink','theater','lectures','sports','community','other'];
+  const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" fill="#e0ddd6"><rect width="400" height="260"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Georgia" font-size="18" fill="#a09a90">No Image</text></svg>'
+  );
+
+  let allEvents = [];
+  let activeCategories = new Set(CATEGORIES);
+  let expandedEventId = null;
+  let conversationHistory = [];
+
+  // -- Dateline --
+  const now = new Date();
+  document.getElementById('dateline').textContent = now.toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  // -- Helpers --
+  function formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+  function formatTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+  function escHtml(s) {
+    if (!s) return '';
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function imgSrc(url) {
+    return url || PLACEHOLDER_IMG;
+  }
+  function handleImgError(img) {
+    img.onerror = null;
+    img.src = PLACEHOLDER_IMG;
+  }
+
+  // -- Category Filters --
+  function buildFilters() {
+    const container = document.getElementById('category-filters');
+    container.innerHTML = CATEGORIES.map(c => `
+      <label>
+        <input type="checkbox" value="${c}" checked>
+        ${c}
+      </label>
+    `).join('');
+    container.addEventListener('change', () => {
+      activeCategories = new Set(
+        Array.from(container.querySelectorAll('input:checked')).map(i => i.value)
+      );
+      renderList();
+    });
+  }
+
+  // -- Featured --
+  function renderFeatured(events) {
+    const container = document.getElementById('featured');
+    const featured = events.filter(e => e.image_url).slice(0, 4);
+    if (!featured.length) {
+      container.innerHTML = '<p style="color:var(--muted);font-style:italic;">No featured events with images available.</p>';
+      return;
+    }
+    container.innerHTML = featured.map(e => `
+      <div class="featured-card" data-id="${e.id}">
+        <img src="${escHtml(e.image_url)}" alt="" onerror="this.style.display='none'">
+        <div class="overlay">
+          <div class="cat-label">${escHtml(e.category)}</div>
+          <h3>${escHtml(e.title)}</h3>
+          <div class="meta">${formatDate(e.start_datetime)} &middot; ${escHtml(e.venue_name || e.city)}</div>
+        </div>
+      </div>
+    `).join('');
+    container.querySelectorAll('.featured-card').forEach(card => {
+      card.addEventListener('click', () => openDetail(card.dataset.id));
+    });
+  }
+
+  // -- Event List --
+  function renderList() {
+    const container = document.getElementById('event-list');
+    const filtered = allEvents.filter(e => activeCategories.has(e.category));
+    if (!filtered.length) {
+      container.innerHTML = '<p style="color:var(--muted);font-style:italic;padding:1rem 0;">No events match the current filters.</p>';
+      return;
+    }
+    container.innerHTML = filtered.map(e => {
+      const hasImg = !!e.image_url;
+      return `
+        <div class="event-card${hasImg ? '' : ' no-image'}" data-id="${e.id}">
+          ${hasImg ? `<img class="thumb" src="${escHtml(e.image_url)}" alt="" onerror="handleImgError(this)">` : ''}
+          <div class="text">
+            <div class="cat-label">${escHtml(e.category)}</div>
+            <h3>${escHtml(e.title)}</h3>
+            <div class="meta">
+              ${formatDate(e.start_datetime)} &middot; ${formatTime(e.start_datetime)}
+              ${e.venue_name ? ' &middot; ' + escHtml(e.venue_name) : ''}
+              ${e.cost ? ' &middot; ' + escHtml(e.cost) : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    container.querySelectorAll('.event-card').forEach(card => {
+      card.addEventListener('click', () => openDetail(card.dataset.id));
+    });
+  }
+
+  // -- Detail --
+  async function openDetail(id) {
+    const slot = document.getElementById('event-detail-slot');
+    if (expandedEventId === id) {
+      slot.innerHTML = '';
+      expandedEventId = null;
+      return;
+    }
+    expandedEventId = id;
+    slot.innerHTML = '<div class="loader">Loading details</div>';
+    slot.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try {
+      const res = await fetch(`${API}/events/${id}`);
+      if (!res.ok) throw new Error('Not found');
+      const ev = await res.json();
+      const hasImg = !!ev.image_url;
+      slot.innerHTML = `
+        <div class="event-detail">
+          <div class="detail-header">
+            <h2>${escHtml(ev.title)}</h2>
+            <button class="close-btn" id="close-detail">&times;</button>
+          </div>
+          ${hasImg ? `<img class="detail-image" src="${escHtml(ev.image_url)}" alt="" onerror="this.style.display='none'">` : ''}
+          <div class="detail-meta">
+            <strong>Date:</strong> ${formatDate(ev.start_datetime)}, ${formatTime(ev.start_datetime)}
+            ${ev.end_datetime ? ' &ndash; ' + formatTime(ev.end_datetime) : ''}<br>
+            ${ev.venue_name ? '<strong>Venue:</strong> ' + escHtml(ev.venue_name) + '<br>' : ''}
+            ${ev.city ? '<strong>City:</strong> ' + escHtml(ev.city) + '<br>' : ''}
+            ${ev.cost ? '<strong>Admission:</strong> ' + escHtml(ev.cost) + '<br>' : ''}
+            <strong>Category:</strong> <span style="text-transform:capitalize">${escHtml(ev.category)}</span>
+            ${ev.family_friendly ? ' &middot; Family Friendly' : ''}
+          </div>
+          <div class="detail-desc">${escHtml(ev.description || 'No description available.')}</div>
+          <a class="detail-link" href="${escHtml(ev.source_url)}" target="_blank" rel="noopener">Read more at source &rarr;</a>
+        </div>
+      `;
+      document.getElementById('close-detail').addEventListener('click', () => {
+        slot.innerHTML = '';
+        expandedEventId = null;
+      });
+    } catch (err) {
+      slot.innerHTML = '<p style="color:var(--red);padding:1rem 0;">Could not load event details.</p>';
+    }
+  }
+
+  // -- Search --
+  const searchInput = document.getElementById('search-input');
+  let searchTimeout = null;
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      doSearch(searchInput.value.trim());
+    }
+  });
+
+  async function doSearch(query) {
+    if (!query) {
+      renderFeatured(allEvents);
+      renderList();
+      return;
+    }
+    const listContainer = document.getElementById('event-list');
+    listContainer.innerHTML = '<div class="loader">Searching</div>';
+    document.getElementById('featured').innerHTML = '';
+    try {
+      const res = await fetch(`${API}/events/search?q=${encodeURIComponent(query)}`);
+      const results = await res.json();
+      allEvents = results;
+      renderList();
+    } catch (err) {
+      listContainer.innerHTML = '<p style="color:var(--red);padding:1rem 0;">Search failed. Please try again.</p>';
+    }
+  }
+
+  // -- Chat --
+  const chatLog = document.getElementById('chat-log');
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+
+  function appendChat(role, text) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + role;
+    div.innerHTML = `
+      <div class="chat-role">${role === 'user' ? 'You' : 'The Editor'}</div>
+      <div class="chat-body">${escHtml(text)}</div>
+    `;
+    chatLog.appendChild(div);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  async function sendChat() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    chatInput.value = '';
+    appendChat('user', text);
+    chatSend.disabled = true;
+
+    try {
+      const res = await fetch(`${API}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, conversation_history: conversationHistory })
+      });
+      const data = await res.json();
+      const reply = data.response || 'I apologize, I have no response at this time.';
+      conversationHistory.push({ role: 'user', content: text });
+      conversationHistory.push({ role: 'assistant', content: reply });
+      appendChat('editor', reply);
+    } catch (err) {
+      appendChat('editor', 'My sincerest apologies -- the telegraph lines appear to be down. Please try again shortly.');
+    }
+    chatSend.disabled = false;
+    chatInput.focus();
+  }
+
+  chatSend.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); sendChat(); }
+  });
+
+  // -- Init --
+  buildFilters();
+
+  (async function loadEvents() {
+    try {
+      const res = await fetch(`${API}/events/slim?upcoming_only=true&ranked=true&limit=100`);
+      allEvents = await res.json();
+      renderFeatured(allEvents);
+      renderList();
+    } catch (err) {
+      document.getElementById('featured').innerHTML = '<p style="color:var(--red);">Failed to load events.</p>';
+      document.getElementById('event-list').innerHTML = '<p style="color:var(--red);">Failed to load events. Please refresh.</p>';
+    }
+  })();
+
+  // expose for inline onerror
+  window.handleImgError = handleImgError;
+})();
+</script>
+</body>
+</html>

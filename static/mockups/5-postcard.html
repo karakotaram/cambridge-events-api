@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cambridge Events - Community Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Karla:wght@400;500;600&family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --parchment: #f5f0e8;
+  --brick: #b45309;
+  --forest: #166534;
+  --mustard: #ca8a04;
+  --brown: #78350f;
+  --cork-light: #d4a96a;
+  --cork-mid: #c49a5c;
+  --cork-dark: #b08844;
+  --paper-white: #fefcf7;
+  --paper-shadow: rgba(120, 53, 15, 0.15);
+}
+
+body {
+  font-family: 'Karla', sans-serif;
+  color: #3d2b1f;
+  min-height: 100vh;
+  /* Cork board texture via CSS gradients */
+  background-color: var(--cork-mid);
+  background-image:
+    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(180,140,80,0.08) 2px, rgba(180,140,80,0.08) 4px),
+    repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(120,80,30,0.06) 3px, rgba(120,80,30,0.06) 5px),
+    radial-gradient(ellipse 3px 3px at 20% 30%, rgba(90,60,20,0.12), transparent),
+    radial-gradient(ellipse 2px 4px at 70% 60%, rgba(90,60,20,0.10), transparent),
+    radial-gradient(ellipse 4px 2px at 40% 80%, rgba(90,60,20,0.08), transparent),
+    linear-gradient(135deg, #c9985a 0%, #d4a96a 25%, #ba8c48 50%, #d0a060 75%, #c49a5c 100%);
+}
+
+/* ── Header ─────────────────────────────── */
+.site-header {
+  text-align: center;
+  padding: 2.5rem 1rem 1rem;
+  position: relative;
+}
+
+.site-header h1 {
+  font-family: 'Lora', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--brown);
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+  letter-spacing: 0.02em;
+}
+
+.site-header .subtitle {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  color: var(--brick);
+  margin-top: 0.15rem;
+  transform: rotate(-1deg);
+  display: inline-block;
+}
+
+/* ── Search ─────────────────────────────── */
+.search-wrap {
+  max-width: 440px;
+  margin: 1.5rem auto 0.5rem;
+  transform: rotate(-1.2deg);
+  background: #fffde0;
+  padding: 1rem 1.2rem;
+  box-shadow: 2px 3px 8px var(--paper-shadow);
+  position: relative;
+}
+
+.search-wrap::before {
+  content: '';
+  position: absolute;
+  top: -6px; left: 50%; transform: translateX(-50%);
+  width: 28px; height: 28px;
+  background: radial-gradient(circle at 40% 35%, #e84040 0%, #c0302f 60%, #8b1a1a 100%);
+  border-radius: 50%;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.25), inset 0 -1px 2px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.3);
+  z-index: 2;
+}
+
+.search-wrap input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  color: var(--brown);
+  outline: none;
+}
+
+.search-wrap input::placeholder {
+  color: #a08060;
+}
+
+/* ── Category Tabs (Manila Folders) ─────── */
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  max-width: 1200px;
+  margin: 1.5rem auto 0;
+  padding: 0 1rem;
+  justify-content: center;
+}
+
+.cat-tab {
+  font-family: 'Karla', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 1rem 0.35rem;
+  background: var(--parchment);
+  border: 1px solid #c8b89a;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  color: #7a6040;
+  position: relative;
+  top: 1px;
+  transition: background 0.15s, color 0.15s;
+  margin-right: -1px;
+}
+
+.cat-tab:hover { background: #ede6d6; color: var(--brown); }
+
+.cat-tab.active {
+  background: var(--paper-white);
+  color: var(--brown);
+  border-color: #b8a888;
+  z-index: 1;
+  box-shadow: 0 -2px 4px rgba(120,53,15,0.08);
+}
+
+/* ── Board Area ─────────────────────────── */
+.board {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+/* ── Events Grid ────────────────────────── */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.8rem;
+}
+
+@media (max-width: 960px)  { .events-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .events-grid { grid-template-columns: 1fr; gap: 1.4rem; } }
+
+/* ── Event Card ─────────────────────────── */
+.event-card {
+  --rotation: 0deg;
+  background: var(--paper-white);
+  padding: 1.6rem 1.3rem 1.2rem;
+  position: relative;
+  box-shadow: 2px 3px 10px var(--paper-shadow), 0 1px 2px rgba(120,53,15,0.08);
+  transform: rotate(var(--rotation));
+  transition: transform 0.35s ease, box-shadow 0.3s ease, max-height 0.4s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.event-card:nth-child(6n+1) { --rotation: -1.4deg; }
+.event-card:nth-child(6n+2) { --rotation: 1.1deg; }
+.event-card:nth-child(6n+3) { --rotation: -0.6deg; }
+.event-card:nth-child(6n+4) { --rotation: 1.8deg; }
+.event-card:nth-child(6n+5) { --rotation: -1.9deg; }
+.event-card:nth-child(6n+6) { --rotation: 0.7deg; }
+
+.event-card:hover {
+  box-shadow: 3px 5px 16px rgba(120,53,15,0.22);
+  z-index: 2;
+}
+
+.event-card.expanded {
+  transform: rotate(0deg);
+  box-shadow: 4px 6px 24px rgba(120,53,15,0.28);
+  z-index: 10;
+}
+
+/* Pushpin */
+.event-card::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px; height: 22px;
+  background: radial-gradient(circle at 40% 35%, #e84040 0%, #c0302f 60%, #8b1a1a 100%);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 -1px 2px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.35);
+  z-index: 3;
+}
+
+/* Polaroid-style image */
+.card-image-wrap {
+  background: #fff;
+  padding: 6px 6px 20px;
+  box-shadow: 1px 2px 6px rgba(0,0,0,0.12);
+  margin-bottom: 0.9rem;
+  transform: rotate(1deg);
+}
+
+.card-image-wrap img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Rubber-stamp badges */
+.stamp-badge {
+  font-family: 'Karla', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  display: inline-block;
+  transform: rotate(-2deg);
+  margin-right: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+
+.stamp-category {
+  border: 2px solid var(--brick);
+  color: var(--brick);
+}
+
+.stamp-free {
+  border: 2px solid var(--forest);
+  color: var(--forest);
+  font-weight: 700;
+}
+
+.stamp-family {
+  border: 2px solid var(--mustard);
+  color: var(--mustard);
+}
+
+.card-title {
+  font-family: 'Lora', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--brown);
+  margin: 0.5rem 0 0.3rem;
+  line-height: 1.3;
+}
+
+.card-date {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--brick);
+}
+
+.card-venue {
+  font-size: 0.82rem;
+  color: #7a6040;
+  margin-top: 0.15rem;
+}
+
+/* Expanded detail section */
+.card-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.event-card.expanded .card-detail {
+  max-height: 600px;
+  opacity: 1;
+}
+
+.card-detail-inner {
+  padding-top: 0.8rem;
+  margin-top: 0.8rem;
+  border-top: 1px dashed #c8b89a;
+}
+
+.card-description {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #4a3520;
+  margin-bottom: 0.7rem;
+}
+
+.card-link {
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  color: var(--forest);
+  text-decoration: underline;
+  text-decoration-style: wavy;
+}
+
+.card-link:hover { color: var(--brick); }
+
+.card-cost {
+  font-size: 0.85rem;
+  color: #7a6040;
+  margin-top: 0.3rem;
+}
+
+/* ── Loading ────────────────────────────── */
+.loading-state {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.loading-state .spinner {
+  width: 40px; height: 40px;
+  border: 4px solid #d4a96a;
+  border-top-color: var(--brick);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-state p {
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem;
+  color: var(--brown);
+}
+
+.no-results {
+  text-align: center;
+  padding: 3rem 1rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  color: var(--brown);
+}
+
+/* ── Ask a Local (Chat) ─────────────────── */
+.chat-section {
+  max-width: 700px;
+  margin: 2rem auto 3rem;
+  padding: 0 1rem;
+}
+
+.chat-heading {
+  font-family: 'Caveat', cursive;
+  font-size: 1.8rem;
+  color: var(--brown);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.chat-notebook {
+  background: #fff;
+  border: 1px solid #c8b89a;
+  box-shadow: 2px 3px 10px var(--paper-shadow);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Red margin line */
+.chat-notebook::before {
+  content: '';
+  position: absolute;
+  left: 52px;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: #e8a0a0;
+  z-index: 1;
+}
+
+.chat-messages {
+  min-height: 160px;
+  max-height: 350px;
+  overflow-y: auto;
+  padding: 1rem 1rem 1rem 66px;
+  /* Notebook lines */
+  background-image: repeating-linear-gradient(
+    transparent, transparent 27px, #c8dce8 27px, #c8dce8 28px
+  );
+  background-size: 100% 28px;
+  background-position: 0 14px;
+}
+
+.chat-msg {
+  margin-bottom: 0.7rem;
+  line-height: 28px;
+}
+
+.chat-msg.user-msg {
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  color: #2244aa;
+}
+
+.chat-msg.bot-msg {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--brown);
+}
+
+.chat-msg .msg-label {
+  font-weight: 700;
+  font-size: 0.75rem;
+  font-family: 'Karla', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: -0.1rem;
+}
+
+.chat-msg.user-msg .msg-label { color: #4466cc; }
+.chat-msg.bot-msg .msg-label { color: var(--brick); }
+
+.chat-input-row {
+  display: flex;
+  border-top: 1px solid #c8b89a;
+  background: #faf6ee;
+}
+
+.chat-input-row input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.8rem 1rem 0.8rem 66px;
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  color: #2244aa;
+  outline: none;
+}
+
+.chat-input-row input::placeholder { color: #a0906a; }
+
+.chat-input-row button {
+  background: var(--forest);
+  color: #fff;
+  border: none;
+  padding: 0.8rem 1.3rem;
+  font-family: 'Karla', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: background 0.15s;
+}
+
+.chat-input-row button:hover { background: #14532d; }
+.chat-input-row button:disabled { background: #a0a090; cursor: default; }
+
+/* ── Utilities ──────────────────────────── */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); border: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <h1>Cambridge Events</h1>
+  <span class="subtitle">what's happening around town</span>
+
+  <div class="search-wrap">
+    <label class="sr-only" for="search-input">Search events</label>
+    <input type="text" id="search-input" placeholder="Search for events, venues, music...">
+  </div>
+</header>
+
+<!-- Category Tabs -->
+<nav class="category-tabs" id="category-tabs">
+  <button class="cat-tab active" data-cat="all">All</button>
+  <button class="cat-tab" data-cat="music">Music</button>
+  <button class="cat-tab" data-cat="arts and culture">Arts</button>
+  <button class="cat-tab" data-cat="theater">Theater</button>
+  <button class="cat-tab" data-cat="lectures">Lectures</button>
+  <button class="cat-tab" data-cat="food and drink">Food</button>
+  <button class="cat-tab" data-cat="sports">Sports</button>
+  <button class="cat-tab" data-cat="community">Community</button>
+  <button class="cat-tab" data-cat="other">Other</button>
+</nav>
+
+<!-- Board -->
+<main class="board">
+  <div id="events-container">
+    <div class="loading-state" id="loading">
+      <div class="spinner"></div>
+      <p>pinning events to the board...</p>
+    </div>
+  </div>
+</main>
+
+<!-- Chat Section -->
+<section class="chat-section">
+  <h2 class="chat-heading">Ask a Local</h2>
+  <div class="chat-notebook">
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-msg bot-msg">
+        <span class="msg-label">Local</span>
+        Hey! Ask me anything about events in Cambridge and Somerville.
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="What's happening this weekend?">
+      <button id="chat-send">Send</button>
+    </div>
+  </div>
+</section>
+
+<script>
+const API = 'https://web-production-00281.up.railway.app';
+
+let allEvents = [];
+let activeCategory = 'all';
+let expandedId = null;
+let searchTimeout = null;
+
+// ── Format helpers ───────────────────────
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const opts = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+  return d.toLocaleDateString('en-US', opts);
+}
+
+function isFree(cost) {
+  if (!cost) return false;
+  const c = cost.toLowerCase();
+  return c === 'free' || c === '$0' || c === '0' || c.includes('free');
+}
+
+function escHtml(str) {
+  const el = document.createElement('span');
+  el.textContent = str || '';
+  return el.innerHTML;
+}
+
+// ── Render ───────────────────────────────
+function renderEvents(events) {
+  const container = document.getElementById('events-container');
+
+  if (!events.length) {
+    container.innerHTML = '<div class="no-results">No events found... try another search!</div>';
+    return;
+  }
+
+  let html = '<div class="events-grid">';
+  events.forEach(ev => {
+    const free = isFree(ev.cost);
+    const expanded = expandedId === ev.id;
+
+    html += `<article class="event-card${expanded ? ' expanded' : ''}" data-id="${ev.id}" onclick="toggleCard('${ev.id}')">`;
+
+    // Image (polaroid)
+    if (ev.image_url) {
+      html += `<div class="card-image-wrap"><img src="${escHtml(ev.image_url)}" alt="" loading="lazy"></div>`;
+    }
+
+    // Badges
+    html += '<div class="card-badges">';
+    html += `<span class="stamp-badge stamp-category">${escHtml(ev.category)}</span>`;
+    if (free) html += '<span class="stamp-badge stamp-free">Free</span>';
+    if (ev.family_friendly) html += '<span class="stamp-badge stamp-family">Family</span>';
+    html += '</div>';
+
+    // Title
+    html += `<h3 class="card-title">${escHtml(ev.title)}</h3>`;
+
+    // Date (handwritten)
+    html += `<div class="card-date">${fmtDate(ev.start_datetime)}</div>`;
+
+    // Venue
+    if (ev.venue_name) {
+      html += `<div class="card-venue">${escHtml(ev.venue_name)}</div>`;
+    }
+
+    // Detail panel (expanded)
+    html += '<div class="card-detail"><div class="card-detail-inner" id="detail-' + ev.id + '">';
+    if (expanded) {
+      // Will be filled by fetchDetail
+    }
+    html += '</div></div>';
+
+    html += '</article>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// ── Toggle card expansion ────────────────
+async function toggleCard(id) {
+  if (expandedId === id) {
+    expandedId = null;
+    renderFiltered();
+    return;
+  }
+
+  expandedId = id;
+  renderFiltered();
+
+  // Fetch full detail
+  const detailEl = document.getElementById('detail-' + id);
+  if (!detailEl) return;
+  detailEl.innerHTML = '<p class="card-description" style="color:#a08060;">loading details...</p>';
+
+  try {
+    const res = await fetch(`${API}/events/${id}`);
+    const ev = await res.json();
+
+    let inner = '';
+    if (ev.description) {
+      inner += `<p class="card-description">${escHtml(ev.description)}</p>`;
+    }
+    if (ev.cost) {
+      inner += `<p class="card-cost">Cost: ${escHtml(ev.cost)}</p>`;
+    }
+    if (ev.source_url) {
+      inner += `<a class="card-link" href="${escHtml(ev.source_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">more info &rarr;</a>`;
+    }
+    detailEl.innerHTML = inner || '<p class="card-description">No additional details available.</p>';
+  } catch {
+    detailEl.innerHTML = '<p class="card-description" style="color:#b45309;">Could not load details.</p>';
+  }
+}
+
+// ── Filter ───────────────────────────────
+function renderFiltered() {
+  let filtered = allEvents;
+  if (activeCategory !== 'all') {
+    filtered = filtered.filter(e => e.category === activeCategory);
+  }
+  renderEvents(filtered);
+}
+
+// ── Category tabs ────────────────────────
+document.getElementById('category-tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.cat-tab');
+  if (!btn) return;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  activeCategory = btn.dataset.cat;
+  expandedId = null;
+  renderFiltered();
+});
+
+// ── Search ───────────────────────────────
+document.getElementById('search-input').addEventListener('input', e => {
+  clearTimeout(searchTimeout);
+  const q = e.target.value.trim();
+
+  if (!q) {
+    searchTimeout = setTimeout(() => loadEvents(), 300);
+    return;
+  }
+
+  searchTimeout = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API}/events/search?q=${encodeURIComponent(q)}`);
+      const results = await res.json();
+      allEvents = results;
+      activeCategory = 'all';
+      document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('[data-cat="all"]').classList.add('active');
+      expandedId = null;
+      renderFiltered();
+    } catch {
+      // Silently fall back
+    }
+  }, 400);
+});
+
+// ── Chat ─────────────────────────────────
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const chatSend = document.getElementById('chat-send');
+let conversationHistory = [];
+
+function appendChat(role, text) {
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + (role === 'user' ? 'user-msg' : 'bot-msg');
+  div.innerHTML = `<span class="msg-label">${role === 'user' ? 'You' : 'Local'}</span>${escHtml(text)}`;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function sendChat() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  appendChat('user', text);
+  chatInput.value = '';
+  chatSend.disabled = true;
+
+  conversationHistory.push({ role: 'user', content: text });
+
+  try {
+    const res = await fetch(`${API}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, conversation_history: conversationHistory })
+    });
+    const data = await res.json();
+    const reply = data.response || 'Hmm, not sure about that one.';
+    appendChat('bot', reply);
+    conversationHistory.push({ role: 'assistant', content: reply });
+  } catch {
+    appendChat('bot', 'Sorry, I had trouble connecting. Try again?');
+  }
+
+  chatSend.disabled = false;
+  chatInput.focus();
+}
+
+chatSend.addEventListener('click', sendChat);
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+
+// ── Init ─────────────────────────────────
+async function loadEvents() {
+  try {
+    const res = await fetch(`${API}/events/slim?upcoming_only=true&ranked=true&limit=100`);
+    allEvents = await res.json();
+    expandedId = null;
+    renderFiltered();
+  } catch {
+    document.getElementById('events-container').innerHTML =
+      '<div class="no-results">Could not load events. Please try again later.</div>';
+  }
+}
+
+loadEvents();
+</script>
+</body>
+</html>
