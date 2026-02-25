@@ -86,6 +86,7 @@ class EventSlim(BaseModel):
     source_name: Optional[str] = None
     cost: Optional[str] = None
     score: Optional[float] = None
+    featured: bool = False
 
 
 class TrackRequest(BaseModel):
@@ -121,6 +122,7 @@ import pathlib
 BASE_DIR = pathlib.Path(__file__).parent.parent.parent
 DATA_DIR = BASE_DIR / "data"
 EVENTS_FILE = DATA_DIR / "events.json"
+FEATURED_FILE = DATA_DIR / "featured.json"
 STATIC_DIR = BASE_DIR / "static"
 
 # Register onboarding router
@@ -129,6 +131,32 @@ app.include_router(onboarding_router)
 # Mount static files (mockups, onboarding, admin pages)
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+
+
+def load_featured() -> list:
+    """Load featured events list (title+source_name pairs)"""
+    if not FEATURED_FILE.exists():
+        return []
+    try:
+        with open(FEATURED_FILE, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def save_featured(featured: list):
+    """Save featured events list"""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    with open(FEATURED_FILE, 'w') as f:
+        json.dump(featured, f, indent=2)
+
+
+def _is_featured(event, featured_list: list) -> bool:
+    """Check if an event matches any featured entry by title+source_name"""
+    for entry in featured_list:
+        if event.title == entry.get("title") and event.source_name == entry.get("source_name"):
+            return True
+    return False
 
 
 def load_events(use_cache: bool = True) -> List[Event]:
@@ -147,7 +175,13 @@ def load_events(use_cache: bool = True) -> List[Event]:
     try:
         with open(EVENTS_FILE, 'r') as f:
             data = json.load(f)
-            events = [Event(**event) for event in data]
+            featured_list = load_featured()
+            events = []
+            for event_data in data:
+                event = Event(**event_data)
+                if _is_featured(event, featured_list):
+                    event.featured = True
+                events.append(event)
 
             # Update cache
             _events_cache["events"] = events
@@ -782,6 +816,55 @@ async def get_event_ics(event_id: str):
             )
 
     raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+
+
+# --- Featured events management ---
+
+@app.get("/featured")
+async def get_featured():
+    """Get the current featured events list"""
+    return load_featured()
+
+
+@app.post("/events/{event_id}/feature")
+async def feature_event(event_id: str):
+    """Mark an event as an Editor's Pick by its current ID"""
+    global _events_cache
+    events = load_events()
+    event = next((e for e in events if e.id == event_id), None)
+    if not event:
+        raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+
+    featured = load_featured()
+    # Check if already featured
+    for entry in featured:
+        if entry["title"] == event.title and entry["source_name"] == event.source_name:
+            return {"status": "already_featured", "title": event.title}
+
+    featured.append({"title": event.title, "source_name": event.source_name})
+    save_featured(featured)
+    # Bust cache so next load picks up the change
+    _events_cache["events"] = None
+    return {"status": "featured", "title": event.title, "source_name": event.source_name}
+
+
+@app.delete("/events/{event_id}/feature")
+async def unfeature_event(event_id: str):
+    """Remove an event from Editor's Picks"""
+    global _events_cache
+    events = load_events()
+    event = next((e for e in events if e.id == event_id), None)
+    if not event:
+        raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+
+    featured = load_featured()
+    featured = [
+        entry for entry in featured
+        if not (entry["title"] == event.title and entry["source_name"] == event.source_name)
+    ]
+    save_featured(featured)
+    _events_cache["events"] = None
+    return {"status": "unfeatured", "title": event.title}
 
 
 @app.get("/categories")

@@ -61,6 +61,7 @@ class Event(BaseModel):
     website_url: Optional[str] = Field(None, description="Event website")
     image_url: Optional[str] = Field(None, description="Event image URL")
     recurring_pattern: Optional[dict] = Field(None, description="Recurrence information")
+    featured: bool = Field(default=False, description="Editor's pick / featured event")
 
     class Config:
         use_enum_values = True
