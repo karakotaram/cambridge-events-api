@@ -1397,6 +1397,17 @@ async def get_admin_page():
     raise HTTPException(status_code=404, detail="Admin page not found")
 
 
+@app.get("/admin/featured", include_in_schema=False)
+async def get_featured_admin_page():
+    """Serve the Editor's Picks admin page"""
+    from fastapi.responses import HTMLResponse
+    featured_file = STATIC_DIR / "admin" / "featured.html"
+    if featured_file.exists():
+        with open(featured_file, 'r') as f:
+            return HTMLResponse(content=f.read())
+    raise HTTPException(status_code=404, detail="Featured admin page not found")
+
+
 def _run_migrations():
     """Add new columns to existing tables if they don't exist."""
     from src.db.database import engine

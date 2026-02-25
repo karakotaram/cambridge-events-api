@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor's Picks | Admin Dashboard</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --primary-dark: #153052;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --warning: #e67e22;
+            --danger: #e74c3c;
+            --text: #333;
+            --text-light: #666;
+            --bg: #f5f5f5;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --light-tint: #edf2f7;
+            --gold: #d4a017;
+            --gold-light: #fef9e7;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0 20px;
+        }
+
+        header h1 {
+            color: var(--primary);
+            font-size: 26px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        nav a {
+            color: var(--primary);
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        nav a:hover { background: var(--light-tint); }
+        nav a.active { background: var(--primary); color: white; }
+
+        .card {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .card h2 {
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: var(--primary);
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: var(--primary-dark); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-sm { padding: 6px 14px; font-size: 13px; }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--border); }
+        .btn-outline:hover { background: var(--light-tint); }
+
+        /* Featured picks cards */
+        .picks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .pick-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--gold-light);
+        }
+
+        .pick-star {
+            color: var(--gold);
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .pick-info { flex: 1; min-width: 0; }
+
+        .pick-title {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pick-meta {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .pick-remove {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--danger);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .pick-remove:hover {
+            background: #fee;
+            border-color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .filters input, .filters select {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .filters input { flex: 1; min-width: 200px; }
+        .filters input:focus, .filters select:focus { border-color: var(--primary); }
+
+        /* Event table */
+        .event-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .event-table th {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 2px solid var(--border);
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .event-table td {
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .event-table tr:hover { background: var(--light-tint); }
+
+        .star-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+            transition: transform 0.15s;
+        }
+
+        .star-btn:hover { transform: scale(1.2); }
+        .star-btn.featured { color: var(--gold); }
+        .star-btn.unfeatured { color: #ccc; }
+
+        .cat-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--light-tint);
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        .title-cell {
+            max-width: 280px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .venue-cell {
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .date-cell {
+            white-space: nowrap;
+            font-size: 13px;
+        }
+
+        /* Pagination */
+        .table-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* Loading */
+        .spinner-sm {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-msg {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 14px;
+            display: none;
+        }
+
+        .loading-msg.visible { display: block; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        footer a { color: var(--primary); text-decoration: none; }
+
+        @media (max-width: 600px) {
+            .container { padding: 12px; }
+            .picks-grid { grid-template-columns: 1fr; }
+            .event-table { font-size: 12px; }
+            .event-table th, .event-table td { padding: 6px 4px; }
+            .title-cell { max-width: 160px; }
+            .venue-cell { max-width: 80px; }
+            .filters input { min-width: 140px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Editor's Picks</h1>
+            <p>Curate featured events for the homepage</p>
+        </header>
+
+        <nav>
+            <a href="/admin">Users & Digests</a>
+            <a href="/admin/featured" class="active">Editor's Picks</a>
+        </nav>
+
+        <!-- Current Picks -->
+        <div class="card" id="picks-card">
+            <h2>Current Editor's Picks</h2>
+            <div class="loading-msg" id="picks-loading"><div class="spinner-sm"></div>Loading picks...</div>
+            <div id="picks-container">
+                <div class="empty-state">No Editor's Picks selected</div>
+            </div>
+        </div>
+
+        <!-- All Events -->
+        <div class="card">
+            <h2>All Events</h2>
+            <div class="filters">
+                <input type="text" id="search-input" placeholder="Search by title..." oninput="onSearch()">
+                <select id="category-filter" onchange="onFilter()">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div class="loading-msg" id="events-loading"><div class="spinner-sm"></div>Loading events...</div>
+            <table class="event-table" id="event-table" style="display:none">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Venue</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="event-tbody"></tbody>
+            </table>
+            <div class="table-nav" id="table-nav" style="display:none">
+                <span id="page-info"></span>
+                <div>
+                    <button class="btn btn-sm btn-outline" id="prev-btn" onclick="prevPage()" disabled>Prev</button>
+                    <button class="btn btn-sm btn-outline" id="next-btn" onclick="nextPage()">Next</button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <a href="/">Home</a> | <a href="/admin">Admin</a> | <a href="/events">Events API</a>
+        </footer>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // State
+        let allEvents = [];
+        let featuredSet = new Map(); // key: "title|||source_name" -> featured entry
+        let filteredEvents = [];
+        let page = 0;
+        const PAGE_SIZE = 50;
+
+        function featuredKey(title, sourceName) {
+            return title + '|||' + (sourceName || '');
+        }
+
+        // --- Load data ---
+        async function init() {
+            show('picks-loading');
+            show('events-loading');
+
+            try {
+                const [featuredRes, eventsRes] = await Promise.all([
+                    fetch('/featured'),
+                    fetch('/events/slim?limit=5000&ranked=true&upcoming_only=true')
+                ]);
+
+                const featuredData = await featuredRes.json();
+                const eventsData = await eventsRes.json();
+
+                // Build featured lookup
+                featuredSet.clear();
+                for (const entry of featuredData) {
+                    featuredSet.set(featuredKey(entry.title, entry.source_name), entry);
+                }
+
+                allEvents = eventsData;
+
+                // Populate category filter
+                const categories = new Set();
+                for (const ev of allEvents) {
+                    if (ev.category) categories.add(ev.category);
+                }
+                const select = document.getElementById('category-filter');
+                for (const cat of [...categories].sort()) {
+                    const opt = document.createElement('option');
+                    opt.value = cat;
+                    opt.textContent = cat.replace(/_/g, ' ');
+                    select.appendChild(opt);
+                }
+
+                hide('picks-loading');
+                hide('events-loading');
+
+                renderPicks();
+                applyFilters();
+            } catch (e) {
+                hide('picks-loading');
+                hide('events-loading');
+                showToast('Failed to load data: ' + e.message, 'error');
+            }
+        }
+
+        function isFeatured(ev) {
+            return featuredSet.has(featuredKey(ev.title, ev.source_name));
+        }
+
+        // --- Render current picks ---
+        function renderPicks() {
+            const container = document.getElementById('picks-container');
+            const picks = allEvents.filter(ev => isFeatured(ev));
+
+            if (picks.length === 0) {
+                container.innerHTML = '<div class="empty-state">No Editor\'s Picks selected</div>';
+                return;
+            }
+
+            container.innerHTML = '<div class="picks-grid">' + picks.map(ev => {
+                const dt = new Date(ev.start_datetime);
+                const dateStr = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const cat = (ev.category || '').replace(/_/g, ' ');
+                const venue = ev.source_name || '';
+
+                return `
+                    <div class="pick-card">
+                        <span class="pick-star">&#9733;</span>
+                        <div class="pick-info">
+                            <div class="pick-title" title="${esc(ev.title)}">${esc(ev.title)}</div>
+                            <div class="pick-meta">${esc(venue)} &middot; ${cat} &middot; ${dateStr}</div>
+                        </div>
+                        <button class="pick-remove" onclick="toggleFeatured('${ev.id}', false)" title="Remove">&times;</button>
+                    </div>
+                `;
+            }).join('') + '</div>';
+        }
+
+        // --- Render event table ---
+        function renderTable() {
+            const start = page * PAGE_SIZE;
+            const slice = filteredEvents.slice(start, start + PAGE_SIZE);
+
+            if (slice.length === 0 && filteredEvents.length === 0) {
+                document.getElementById('event-table').style.display = 'none';
+                document.getElementById('table-nav').style.display = 'none';
+                return;
+            }
+
+            const tbody = document.getElementById('event-tbody');
+            tbody.innerHTML = slice.map(ev => {
+                const dt = new Date(ev.start_datetime);
+                const dateStr = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                const cat = (ev.category || '').replace(/_/g, ' ');
+                const venue = ev.source_name || '';
+                const featured = isFeatured(ev);
+                const starClass = featured ? 'featured' : 'unfeatured';
+                const starChar = featured ? '&#9733;' : '&#9734;';
+
+                return `
+                    <tr>
+                        <td><button class="star-btn ${starClass}" onclick="toggleFeatured('${ev.id}', ${!featured})">${starChar}</button></td>
+                        <td class="title-cell" title="${esc(ev.title)}">${esc(ev.title)}</td>
+                        <td><span class="cat-badge">${cat}</span></td>
+                        <td class="venue-cell" title="${esc(venue)}">${esc(venue)}</td>
+                        <td class="date-cell">${dateStr} ${timeStr}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('event-table').style.display = '';
+
+            // Pagination info
+            const totalPages = Math.ceil(filteredEvents.length / PAGE_SIZE);
+            const currentPage = page + 1;
+            document.getElementById('page-info').textContent =
+                `Page ${currentPage} of ${totalPages} (${filteredEvents.length} events)`;
+            document.getElementById('prev-btn').disabled = page === 0;
+            document.getElementById('next-btn').disabled = start + PAGE_SIZE >= filteredEvents.length;
+            document.getElementById('table-nav').style.display = '';
+        }
+
+        // --- Filters ---
+        function applyFilters() {
+            const query = document.getElementById('search-input').value.trim().toLowerCase();
+            const category = document.getElementById('category-filter').value;
+
+            filteredEvents = allEvents.filter(ev => {
+                if (query && !(ev.title || '').toLowerCase().includes(query)) return false;
+                if (category && ev.category !== category) return false;
+                return true;
+            });
+
+            page = 0;
+            renderTable();
+        }
+
+        function onSearch() { applyFilters(); }
+        function onFilter() { applyFilters(); }
+
+        function prevPage() {
+            if (page > 0) { page--; renderTable(); }
+        }
+
+        function nextPage() {
+            if ((page + 1) * PAGE_SIZE < filteredEvents.length) { page++; renderTable(); }
+        }
+
+        // --- Toggle featured ---
+        async function toggleFeatured(eventId, shouldFeature) {
+            const method = shouldFeature ? 'POST' : 'DELETE';
+
+            try {
+                const resp = await fetch(`/events/${eventId}/feature`, { method });
+                if (!resp.ok) {
+                    const data = await resp.json().catch(() => ({ detail: resp.statusText }));
+                    throw new Error(data.detail || `HTTP ${resp.status}`);
+                }
+
+                const result = await resp.json();
+                const ev = allEvents.find(e => e.id === eventId);
+
+                if (shouldFeature && ev) {
+                    featuredSet.set(featuredKey(ev.title, ev.source_name), {
+                        title: ev.title,
+                        source_name: ev.source_name
+                    });
+                    showToast('Added: ' + ev.title, 'success');
+                } else if (ev) {
+                    featuredSet.delete(featuredKey(ev.title, ev.source_name));
+                    showToast('Removed: ' + ev.title, 'success');
+                }
+
+                renderPicks();
+                renderTable();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // --- Helpers ---
+        function esc(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function show(id) { document.getElementById(id).classList.add('visible'); }
+        function hide(id) { document.getElementById(id).classList.remove('visible'); }
+
+        let toastTimer;
+        function showToast(msg, type) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'toast ' + type + ' visible';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { el.classList.remove('visible'); }, 3000);
+        }
+
+        // Boot
+        init();
+    </script>
+</body>
+</html>
