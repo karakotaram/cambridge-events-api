@@ -642,6 +642,7 @@ async def get_events_slim(
     events = events[offset:offset + limit]
 
     # Convert to slim format
+    featured_list = load_featured()
     slim_events = []
     for e in events:
         slim = EventSlim(
@@ -659,7 +660,7 @@ async def get_events_slim(
             source_url=e.source_url,
             source_name=e.source_name,
             cost=e.cost,
-            featured=getattr(e, 'featured', False)
+            featured=_is_featured(e, featured_list)
         )
         # Include score in response if ranked
         if ranked and e.id in event_scores:
