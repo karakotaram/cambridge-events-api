@@ -980,7 +980,7 @@
 
         async function loadAllEvents() {
             try {
-                const resp = await fetch('/events?limit=500');
+                const resp = await fetch('/events?limit=5000');
                 const data = await resp.json();
                 allEvents = data.events || data || [];
             } catch (e) {
