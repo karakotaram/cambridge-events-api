@@ -136,7 +136,7 @@ def send_email(
     to_email: str,
     subject: str,
     html_body: str,
-    from_email: str = "Cambridge Events <onboarding@resend.dev>"
+    from_email: str = "Cambridge Events <hello@cambridgecalendar.com>"
 ) -> Optional[str]:
     """
     Send an email via Resend.
