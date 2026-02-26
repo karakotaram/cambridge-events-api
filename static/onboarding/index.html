@@ -3,127 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Personalized Event Recommendations | Cambridge-Somerville Events</title>
+    <title>Get Personalized Event Recommendations | Cambridge Events</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #1a365d;
-            --primary-dark: #153052;
-            --secondary: #3498db;
-            --success: #27ae60;
-            --text: #333;
-            --text-light: #666;
-            --bg: #f5f5f5;
-            --white: #ffffff;
-            --border: #e2e8f0;
+            --background: hsl(40, 33%, 97%);
+            --foreground: hsl(240, 27%, 14%);
+            --card: hsl(0, 0%, 100%);
+            --primary: hsl(355, 76%, 56%);
+            --muted: hsl(40, 20%, 94%);
+            --muted-fg: hsl(15, 5%, 40%);
+            --border: hsl(40, 8%, 77%);
+            --success: hsl(145, 65%, 45%);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
-            color: var(--text);
-            background-color: var(--bg);
+            color: var(--foreground);
+            background-color: var(--background);
             min-height: 100vh;
         }
 
         .container {
-            max-width: 640px;
+            max-width: 660px;
             margin: 0 auto;
             padding: 20px;
         }
 
+        /* ---- Masthead (matches Index.tsx header) ---- */
         header {
             text-align: center;
-            padding: 40px 0 30px;
+            padding: 40px 16px 32px;
+            border-bottom: 3px double var(--foreground);
+        }
+
+        header .dateline {
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--muted-fg);
+            margin-bottom: 4px;
         }
 
         header h1 {
-            color: var(--primary);
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 900;
+            font-size: 44px;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            color: var(--foreground);
         }
 
-        header p {
-            color: var(--text-light);
-            font-size: 16px;
+        header h1 span { color: var(--primary); }
+
+        header .tagline {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-style: italic;
+            font-size: 15px;
+            color: var(--muted-fg);
+            margin-top: 4px;
         }
 
+        /* ---- Card ---- */
         .card {
-            background: var(--white);
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 30px;
-            margin-bottom: 20px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 32px;
+            margin-top: 32px;
         }
 
-        /* Progress bar */
+        /* ---- Progress bar ---- */
         .progress-bar {
             display: flex;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 30px;
+            margin-bottom: 28px;
         }
 
         .progress-step {
             width: 80px;
-            height: 6px;
+            height: 4px;
             background: var(--border);
-            border-radius: 3px;
             transition: background 0.3s;
         }
 
-        .progress-step.active { background: var(--primary); }
+        .progress-step.active { background: var(--foreground); }
         .progress-step.completed { background: var(--success); }
 
-        /* Step containers */
+        /* ---- Steps ---- */
         .step { display: none; }
         .step.active { display: block; }
 
         .step h2 {
-            font-size: 22px;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--foreground);
+            border-bottom: 2px solid var(--foreground);
+            padding-bottom: 4px;
             margin-bottom: 8px;
-            color: var(--text);
         }
 
         .step-subtitle {
             font-size: 15px;
-            color: var(--text-light);
+            color: var(--muted-fg);
             margin-bottom: 20px;
         }
 
-        /* Event cards grid */
+        /* ---- Event cards ---- */
         .event-grid {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .event-card {
             display: flex;
             gap: 14px;
             padding: 14px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
+            border: 1px solid var(--border);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
             align-items: center;
+            background: var(--card);
         }
 
         .event-card:hover {
-            border-color: var(--primary);
-            background: #f7fafd;
+            border-color: var(--foreground);
+            background: var(--muted);
         }
 
         .event-card.liked {
             border-color: var(--success);
-            background: #f0fff4;
+            background: hsl(145, 40%, 96%);
         }
 
         .event-card-img {
             width: 64px;
             height: 64px;
-            border-radius: 8px;
             object-fit: cover;
             background: var(--border);
             flex-shrink: 0;
@@ -135,9 +158,10 @@
         }
 
         .event-card-title {
-            font-weight: 600;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 700;
             font-size: 15px;
-            color: var(--text);
+            color: var(--foreground);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -145,13 +169,13 @@
 
         .event-card-meta {
             font-size: 13px;
-            color: var(--text-light);
+            color: var(--muted-fg);
             margin-top: 2px;
         }
 
         .event-card-desc {
             font-size: 13px;
-            color: var(--text-light);
+            color: var(--muted-fg);
             margin-top: 4px;
         }
 
@@ -168,7 +192,7 @@
         }
 
         .desc-toggle {
-            color: var(--secondary);
+            color: var(--primary);
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
@@ -178,11 +202,9 @@
 
         .desc-toggle.visible { display: inline; }
 
-        /* Category fallback images */
         .event-card-img-fallback {
             width: 64px;
             height: 64px;
-            border-radius: 8px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -200,40 +222,39 @@
         .badge {
             display: inline-block;
             padding: 1px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .badge-cat {
-            background: var(--primary);
+            background: var(--foreground);
             color: white;
-            text-transform: capitalize;
         }
 
         .badge-cost {
-            background: var(--border);
-            color: var(--text);
+            border: 1px solid var(--border);
+            color: var(--muted-fg);
         }
 
         .badge-ff {
-            background: #c6f6d5;
-            color: #276749;
+            background: hsl(145, 40%, 92%);
+            color: hsl(145, 50%, 28%);
         }
 
         .thumb-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
+            width: 40px;
+            height: 40px;
             border: 2px solid var(--border);
             background: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 20px;
             cursor: pointer;
             flex-shrink: 0;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
 
         .event-card.liked .thumb-btn {
@@ -242,149 +263,189 @@
             color: white;
         }
 
-        /* Navigation */
+        /* ---- Navigation ---- */
         .nav-buttons {
             display: flex;
             justify-content: space-between;
             margin-top: 24px;
-            gap: 15px;
+            gap: 12px;
         }
 
         button {
-            padding: 14px 28px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 12px 28px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
             border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .btn-next {
-            background: var(--primary);
+            background: var(--foreground);
             color: white;
             flex: 1;
         }
 
-        .btn-next:hover { background: var(--primary-dark); }
+        .btn-next:hover { opacity: 0.85; }
 
-        /* Email step */
-        .email-input {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            font-size: 16px;
-            margin-top: 10px;
-            outline: none;
-            transition: border-color 0.2s;
+        .btn-back {
+            background: white;
+            color: var(--foreground);
+            border: 1px solid var(--border);
         }
 
-        .email-input:focus { border-color: var(--primary); }
+        .btn-back:hover {
+            border-color: var(--foreground);
+        }
+
+        /* ---- Email step ---- */
+        .email-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 16px;
+            margin-top: 12px;
+            outline: none;
+            transition: border-color 0.15s;
+            background: white;
+            color: var(--foreground);
+        }
+
+        .email-input:focus { border-color: var(--foreground); }
 
         .liked-summary {
-            background: #edf2f7;
-            border-left: 4px solid var(--primary);
-            padding: 14px;
-            border-radius: 0 8px 8px 0;
+            background: var(--muted);
+            border-left: 3px solid var(--foreground);
+            padding: 12px 14px;
             margin-bottom: 20px;
-            font-size: 15px;
+            font-size: 14px;
+            color: var(--foreground);
         }
 
         .privacy-note {
             font-size: 13px;
-            color: var(--text-light);
-            margin-top: 15px;
+            color: var(--muted-fg);
+            margin-top: 14px;
             text-align: center;
+            font-style: italic;
         }
 
         .error-message {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c00;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
+            background: hsl(0, 80%, 96%);
+            border: 1px solid hsl(0, 60%, 80%);
+            color: hsl(0, 70%, 40%);
+            padding: 12px;
+            margin-top: 12px;
             display: none;
+            font-size: 14px;
         }
 
         .error-message.visible { display: block; }
 
-        /* Result step */
+        /* ---- Result step ---- */
         .success-icon {
-            width: 80px;
-            height: 80px;
+            width: 72px;
+            height: 72px;
             background: var(--success);
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
-            font-size: 40px;
+            font-size: 36px;
             color: white;
         }
 
         .result-cta {
-            margin-top: 30px;
+            margin-top: 28px;
             padding-top: 20px;
             border-top: 1px solid var(--border);
             text-align: center;
         }
 
-        .browse-button {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            padding: 14px 28px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: background 0.2s;
+        .result-cta p {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-style: italic;
+            color: var(--muted-fg);
+            margin-bottom: 16px;
         }
 
-        .browse-button:hover { background: var(--primary-dark); }
+        .browse-button {
+            display: inline-block;
+            background: var(--foreground);
+            color: white;
+            padding: 12px 28px;
+            text-decoration: none;
+            font-family: 'Source Sans 3', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: opacity 0.15s;
+        }
 
-        /* Loading */
+        .browse-button:hover { opacity: 0.85; }
+
+        /* ---- Loading ---- */
         .loading { display: none; text-align: center; padding: 40px; }
         .loading.active { display: block; }
 
+        .loading p {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-style: italic;
+            color: var(--muted-fg);
+        }
+
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--border);
-            border-top-color: var(--primary);
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--foreground);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            margin: 0 auto 16px;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ---- Footer ---- */
         footer {
             text-align: center;
-            padding: 30px;
-            color: var(--text-light);
-            font-size: 14px;
+            padding: 24px 16px;
+            margin-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        footer p {
+            font-size: 12px;
+            color: var(--muted-fg);
         }
 
         footer a {
-            color: var(--primary);
+            color: var(--foreground);
             text-decoration: none;
+            font-weight: 600;
         }
+
+        footer a:hover { color: var(--primary); }
 
         @media (max-width: 480px) {
             .container { padding: 15px; }
-            header h1 { font-size: 24px; }
+            header h1 { font-size: 32px; }
             .card { padding: 20px; }
-            .event-card-img { width: 52px; height: 52px; }
+            .event-card-img, .event-card-img-fallback { width: 52px; height: 52px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Cambridge-Somerville Events</h1>
-            <p>Get personalized event recommendations delivered weekly</p>
+            <p class="dateline" id="dateline"></p>
+            <h1>Cambridge <span>Events</span></h1>
+            <p class="tagline">Get personalized recommendations delivered weekly</p>
         </header>
 
         <div class="card">
@@ -406,12 +467,12 @@
             <!-- Step 2: Email -->
             <div class="step" id="step-email">
                 <div class="liked-summary" id="liked-summary"></div>
-                <h2>Where should we send your recommendations?</h2>
+                <h2>Where should we send your picks?</h2>
                 <input type="email" class="email-input" id="email-input" placeholder="your@email.com" required>
                 <div class="error-message" id="email-error"></div>
                 <p class="privacy-note">We'll send you a weekly digest. Unsubscribe anytime.</p>
                 <div class="nav-buttons">
-                    <button style="background:white;color:var(--text);border:2px solid var(--border);" onclick="goBackToEvents()">Back</button>
+                    <button class="btn-back" onclick="goBackToEvents()">Back</button>
                     <button class="btn-next" onclick="submitForm()">Get My Events</button>
                 </div>
             </div>
@@ -419,28 +480,31 @@
             <!-- Loading -->
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p>Setting up your personalized recommendations...</p>
+                <p>Setting up your personalized recommendations&hellip;</p>
             </div>
 
             <!-- Result -->
             <div class="step" id="step-result" style="text-align:center;">
                 <div class="success-icon">&#10003;</div>
-                <h2>You're all set!</h2>
-                <p style="color:var(--text-light);margin-top:10px;" id="result-message"></p>
+                <h2 style="border:none;text-align:center;">You're all set!</h2>
+                <p style="color:var(--muted-fg);margin-top:10px;font-style:italic;" id="result-message"></p>
                 <div class="result-cta">
                     <p>Your first weekly digest is on its way!</p>
-                    <a href="https://cambridge-event-compass.lovable.app/" class="browse-button">Browse All Events Now</a>
+                    <a href="https://cambridge-event-compass.lovable.app/" class="browse-button">Browse All Events</a>
                 </div>
             </div>
         </div>
 
         <footer>
-            <p>Discover the best events in Cambridge & Somerville</p>
-            <p><a href="/">Home</a> | <a href="https://cambridge-event-compass.lovable.app/">All Events</a></p>
+            <p>&copy; 2026 The Broadsheet &mdash; Cambridge Events. All rights reserved.</p>
         </footer>
     </div>
 
     <script>
+        // Set dateline
+        document.getElementById('dateline').textContent =
+            new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
         // State
         let sampleEvents = [];
         const likedIds = new Set();
@@ -460,19 +524,19 @@
                 sampleEvents = data.events || [];
                 renderEvents();
             } catch (e) {
-                eventGrid.innerHTML = '<p style="text-align:center;color:var(--text-light);">Failed to load events. Please refresh.</p>';
+                eventGrid.innerHTML = '<p style="text-align:center;color:var(--muted-fg);font-style:italic;">Failed to load events. Please refresh.</p>';
             }
         }
 
         const CATEGORY_FALLBACKS = {
-            'music':            { emoji: '🎵', bg: '#e8f4fd' },
-            'arts and culture': { emoji: '🎨', bg: '#fef3e2' },
-            'food and drink':   { emoji: '🍽️', bg: '#fef9e7' },
-            'theater':          { emoji: '🎭', bg: '#f5e6f0' },
-            'lectures':         { emoji: '🎓', bg: '#edf2f7' },
-            'sports':           { emoji: '⚽', bg: '#e8fde8' },
-            'community':        { emoji: '🤝', bg: '#e8f8f5' },
-            'other':            { emoji: '📅', bg: '#f0f0f0' },
+            'music':            { emoji: '\u{1F3B5}', bg: '#e8f4fd' },
+            'arts and culture': { emoji: '\u{1F3A8}', bg: '#fef3e2' },
+            'food and drink':   { emoji: '\u{1F37D}\uFE0F', bg: '#fef9e7' },
+            'theater':          { emoji: '\u{1F3AD}', bg: '#f5e6f0' },
+            'lectures':         { emoji: '\u{1F393}', bg: '#edf2f7' },
+            'sports':           { emoji: '\u26BD',    bg: '#e8fde8' },
+            'community':        { emoji: '\u{1F91D}', bg: '#e8f8f5' },
+            'other':            { emoji: '\u{1F4C5}', bg: '#f0f0f0' },
         };
 
         function getFallbackImg(category) {
