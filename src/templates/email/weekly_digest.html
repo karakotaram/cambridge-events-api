@@ -6,13 +6,14 @@
     <title>Your Weekly Cambridge Events</title>
     <style>
         body {
-            font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
             color: #1f1f3a;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f9f8f5;
+            font-size: 14px;
         }
         .container {
             background-color: #ffffff;
@@ -25,7 +26,7 @@
             border-bottom: 3px double #1f1f3a;
         }
         .dateline {
-            font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -33,7 +34,7 @@
             margin: 0 0 6px;
         }
         .masthead h1 {
-            font-family: Georgia, 'Times New Roman', serif;
+            font-family: 'Playfair Display', Georgia, serif;
             font-weight: 900;
             font-size: 32px;
             letter-spacing: -0.5px;
@@ -44,7 +45,7 @@
             color: #d63447;
         }
         .masthead .tagline {
-            font-family: Georgia, 'Times New Roman', serif;
+            font-family: 'Playfair Display', Georgia, serif;
             font-style: italic;
             font-size: 14px;
             color: #6b6560;
@@ -58,11 +59,11 @@
             border-left: 3px solid #1f1f3a;
             padding: 14px 16px;
             margin-bottom: 24px;
-            font-size: 15px;
+            font-size: 14px;
             color: #1f1f3a;
         }
         .intro strong {
-            font-family: Georgia, 'Times New Roman', serif;
+            font-family: 'Playfair Display', Georgia, serif;
         }
         /* Summary list */
         .summary {
@@ -71,7 +72,7 @@
             border-bottom: 1px solid #c7c5c1;
         }
         .summary-heading {
-            font-family: Georgia, 'Times New Roman', serif;
+            font-family: 'Playfair Display', Georgia, serif;
             font-weight: 700;
             font-size: 16px;
             color: #1f1f3a;
@@ -100,7 +101,7 @@
             font-size: 12px;
         }
         .section-heading {
-            font-family: Georgia, 'Times New Roman', serif;
+            font-family: 'Playfair Display', Georgia, serif;
             font-weight: 700;
             font-size: 20px;
             color: #1f1f3a;
@@ -113,17 +114,11 @@
             margin-bottom: 16px;
             overflow: hidden;
         }
-        .event-image {
-            width: 100%;
-            height: 80px;
-            object-fit: cover;
-            display: block;
-        }
         .event-content {
             padding: 16px;
         }
         .event-title {
-            font-family: Georgia, 'Times New Roman', serif;
+            font-family: 'Playfair Display', Georgia, serif;
             font-size: 18px;
             font-weight: 700;
             margin: 0 0 6px;
@@ -137,7 +132,7 @@
             color: #d63447;
         }
         .event-meta {
-            font-size: 13px;
+            font-size: 14px;
             color: #6b6560;
             margin-bottom: 8px;
         }
@@ -147,7 +142,7 @@
         }
         .event-description {
             font-size: 14px;
-            color: #444;
+            color: #1f1f3a;
             margin: 0 0 10px;
             line-height: 1.5;
         }
@@ -169,10 +164,11 @@
             color: white;
             padding: 8px 18px;
             text-decoration: none;
-            font-weight: 700;
-            font-size: 13px;
+            font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             margin-top: 8px;
         }
         .cta-button:hover {
@@ -190,7 +186,7 @@
             text-decoration: underline;
         }
         .footer .copyright {
-            font-family: Georgia, 'Times New Roman', serif;
+            font-family: 'Playfair Display', Georgia, serif;
             font-style: italic;
             margin-top: 8px;
         }
@@ -231,9 +227,6 @@
 
             {% for event in events %}
             <div class="event">
-                {% if event.image_url %}
-                <img src="{{ event.image_url }}" alt="{{ event.title }}" class="event-image">
-                {% endif %}
                 <div class="event-content">
                     <h3 class="event-title">
                         <a href="{{ event.link }}">{{ event.title }}</a>
