@@ -413,28 +413,47 @@ async def preview_user_digest(
             recommender=recommender,
         )
 
-        events_out = []
-        for ev, score in recommended:
-            cat = ev.category.value if hasattr(ev.category, "value") else str(ev.category) if ev.category else "other"
-            events_out.append({
-                "id": ev.id,
-                "title": ev.title,
-                "start_datetime": ev.start_datetime.isoformat(),
-                "venue_name": ev.venue_name or ev.source_name,
-                "category": cat,
-                "cost": ev.cost,
-                "score": round(score, 4),
-                "image_url": ev.image_url,
-            })
-
-        # Check for override
+        # Check for override first
         override = db.query(DigestOverride).filter(DigestOverride.user_id == user_uuid).first()
         override_data = None
-        if override:
+
+        if override and override.event_ids:
             override_data = {
                 "event_ids": override.event_ids,
                 "created_at": override.created_at.isoformat() if override.created_at else None,
             }
+            # Return override events as the main event list
+            events_map = {e.id: e for e in events}
+            events_out = []
+            for eid in override.event_ids:
+                ev = events_map.get(eid)
+                if ev:
+                    cat = ev.category.value if hasattr(ev.category, "value") else str(ev.category) if ev.category else "other"
+                    events_out.append({
+                        "id": ev.id,
+                        "title": ev.title,
+                        "start_datetime": ev.start_datetime.isoformat(),
+                        "venue_name": ev.venue_name or ev.source_name,
+                        "category": cat,
+                        "cost": ev.cost,
+                        "score": 1.0,
+                        "image_url": ev.image_url,
+                    })
+        else:
+            # No override — show algorithm recommendations
+            events_out = []
+            for ev, score in recommended:
+                cat = ev.category.value if hasattr(ev.category, "value") else str(ev.category) if ev.category else "other"
+                events_out.append({
+                    "id": ev.id,
+                    "title": ev.title,
+                    "start_datetime": ev.start_datetime.isoformat(),
+                    "venue_name": ev.venue_name or ev.source_name,
+                    "category": cat,
+                    "cost": ev.cost,
+                    "score": round(score, 4),
+                    "image_url": ev.image_url,
+                })
 
         return {
             "user_email": user.email,
