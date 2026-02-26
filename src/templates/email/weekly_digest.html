@@ -227,6 +227,9 @@
 
             {% for event in events %}
             <div class="event">
+                {% if event.image_url %}
+                <img src="{{ event.image_url }}" alt="{{ event.title }}" width="568" height="120" style="width:100%;height:120px;object-fit:cover;display:block;">
+                {% endif %}
                 <div class="event-content">
                     <h3 class="event-title">
                         <a href="{{ event.link }}">{{ event.title }}</a>
