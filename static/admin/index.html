@@ -1035,20 +1035,33 @@
 
         // --- Override Save/Clear ---
         async function saveOverride() {
-            if (!selectedUserId) return;
+            if (!selectedUserId) {
+                console.error('saveOverride: no selectedUserId');
+                showError('override-error', 'No user selected.');
+                return;
+            }
             if (digestEvents.length === 0) {
                 showError('override-error', 'No events to save.');
                 return;
             }
 
             const eventIds = digestEvents.map(e => e.id);
+            console.log('saveOverride:', eventIds.length, 'events for user', selectedUserId);
+
+            const btn = document.querySelector('#override-actions .btn-success');
+            const origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            hideMsg('override-success');
+            hideMsg('override-error');
 
             try {
-                await apiFetch(`/admin/user/${selectedUserId}/override-digest`, {
+                const result = await apiFetch(`/admin/user/${selectedUserId}/override-digest`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ event_ids: eventIds }),
                 });
+                console.log('saveOverride result:', result);
 
                 hasOverride = true;
                 document.getElementById('override-banner-area').innerHTML = `
@@ -1059,7 +1072,11 @@
                 `;
                 showSuccess('override-success', `Override saved with ${eventIds.length} events.`);
             } catch (e) {
-                showError('override-error', e.message);
+                console.error('saveOverride error:', e);
+                showError('override-error', e.message || 'Unknown error saving override');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = origText;
             }
         }
 
@@ -1141,8 +1158,9 @@
             hideMsg('action-error');
 
             try {
-                const data = await apiFetch(`/admin/send-test-email?email=${encodeURIComponent(user.email)}`);
-                showSuccess('action-success', `Test email sent! ${data.events_sent} events. Log: ${data.email_log_id}`);
+                const data = await apiFetch(`/admin/send-test-email?email=${encodeURIComponent(user.email)}`, { method: 'POST' });
+                const overrideNote = data.used_override ? ' (using override)' : ' (algorithm picks)';
+                showSuccess('action-success', `Test email sent! ${data.events_sent} events${overrideNote}.`);
             } catch (e) {
                 showError('action-error', e.message);
             } finally {

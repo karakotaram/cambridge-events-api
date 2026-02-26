@@ -555,7 +555,7 @@ async def send_test_email(
     verified: bool = Depends(verify_admin_key),
     db: Session = Depends(get_db)
 ):
-    """Send a test email to a specific user."""
+    """Send a test email to a specific user. Uses override events if one exists."""
     import traceback
 
     try:
@@ -567,33 +567,47 @@ async def send_test_email(
             raise HTTPException(status_code=404, detail=f"User not found: {email}")
 
         events = _load_events()
+        events_map = {e.id: e for e in events}
 
-        # Get user preferences
-        prefs_row = db.query(UserPreferences).filter(UserPreferences.user_id == user.id).first()
-        prefs = {}
-        if prefs_row:
-            prefs = {
-                "category_weights": prefs_row.category_weights or {},
-                "timing_weights": prefs_row.timing_weights or {},
-                "venue_weights": prefs_row.venue_weights or {},
-                "price_sensitivity": prefs_row.price_sensitivity if prefs_row.price_sensitivity is not None else 0.5,
-                "prefers_family_friendly": prefs_row.prefers_family_friendly or False,
-            }
+        # Check for override first
+        override = db.query(DigestOverride).filter(DigestOverride.user_id == user.id).first()
+        recommended = []
+        used_override = False
 
-        # Train LightFM for test email
-        recommender = None
-        try:
-            from src.jobs.weekly_email import train_lightfm_model
-            recommender = train_lightfm_model(db, events)
-        except Exception as e:
-            print(f"[TestEmail] LightFM training skipped: {e}")
+        if override and override.event_ids:
+            for eid in override.event_ids:
+                event = events_map.get(eid)
+                if event:
+                    recommended.append((event, 1.0))
+            if recommended:
+                used_override = True
 
-        from src.services.recommendation import get_weekly_digest_events
-        recommended = get_weekly_digest_events(
-            events, prefs,
-            user_uuid=str(user.id),
-            recommender=recommender,
-        )
+        # Fall back to algorithm if no override
+        if not recommended:
+            prefs_row = db.query(UserPreferences).filter(UserPreferences.user_id == user.id).first()
+            prefs = {}
+            if prefs_row:
+                prefs = {
+                    "category_weights": prefs_row.category_weights or {},
+                    "timing_weights": prefs_row.timing_weights or {},
+                    "venue_weights": prefs_row.venue_weights or {},
+                    "price_sensitivity": prefs_row.price_sensitivity if prefs_row.price_sensitivity is not None else 0.5,
+                    "prefers_family_friendly": prefs_row.prefers_family_friendly or False,
+                }
+
+            recommender = None
+            try:
+                from src.jobs.weekly_email import train_lightfm_model
+                recommender = train_lightfm_model(db, events)
+            except Exception as e:
+                print(f"[TestEmail] LightFM training skipped: {e}")
+
+            from src.services.recommendation import get_weekly_digest_events
+            recommended = get_weekly_digest_events(
+                events, prefs,
+                user_uuid=str(user.id),
+                recommender=recommender,
+            )
 
         if not recommended:
             raise HTTPException(status_code=400, detail="No events to recommend")
@@ -602,7 +616,12 @@ async def send_test_email(
         email_log_id = send_weekly_digest(user, recommended, db)
 
         if email_log_id:
-            return {"success": True, "email_log_id": email_log_id, "events_sent": len(recommended)}
+            return {
+                "success": True,
+                "email_log_id": email_log_id,
+                "events_sent": len(recommended),
+                "used_override": used_override,
+            }
         else:
             raise HTTPException(status_code=500, detail="Failed to send email")
 
