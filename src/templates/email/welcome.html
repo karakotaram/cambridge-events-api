@@ -6,120 +6,166 @@
     <title>Welcome to Cambridge Events</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: #1f1f3a;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #f9f8f5;
         }
         .container {
             background-color: #ffffff;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #c7c5c1;
+            padding: 0;
         }
-        .header {
+        .masthead {
             text-align: center;
-            margin-bottom: 30px;
+            padding: 32px 24px 20px;
+            border-bottom: 3px double #1f1f3a;
         }
-        .header h1 {
-            color: #1a365d;
+        .dateline {
+            font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #6b6560;
+            margin: 0 0 6px;
+        }
+        .masthead h1 {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-weight: 900;
+            font-size: 32px;
+            letter-spacing: -0.5px;
             margin: 0;
-            font-size: 28px;
+            color: #1f1f3a;
+        }
+        .masthead h1 span {
+            color: #d63447;
+        }
+        .body-content {
+            padding: 24px;
+        }
+        .welcome-heading {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-weight: 700;
+            font-size: 22px;
+            color: #1f1f3a;
+            border-bottom: 2px solid #1f1f3a;
+            padding-bottom: 4px;
+            margin: 0 0 16px;
         }
         .description {
-            background-color: #edf2f7;
-            border-left: 4px solid #1a365d;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 0 8px 8px 0;
-        }
-        .what-next {
-            margin-top: 30px;
+            background-color: #f4f3f0;
+            border-left: 3px solid #1f1f3a;
+            padding: 16px;
+            margin: 0 0 24px;
+            font-size: 15px;
         }
         .what-next h2 {
-            color: #333;
-            font-size: 20px;
-            margin-bottom: 15px;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-weight: 700;
+            font-size: 18px;
+            color: #1f1f3a;
+            margin: 0 0 12px;
         }
         .what-next ul {
             padding-left: 20px;
+            margin: 0;
         }
         .what-next li {
             margin-bottom: 10px;
+            font-size: 15px;
+        }
+        .what-next li strong {
+            color: #1f1f3a;
         }
         .cta-section {
             text-align: center;
-            margin: 30px 0;
+            margin: 28px 0 0;
             padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
+            border-top: 1px solid #c7c5c1;
+        }
+        .cta-section p {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-style: italic;
+            color: #6b6560;
+            margin: 0 0 14px;
+            font-size: 15px;
         }
         .cta-button {
             display: inline-block;
-            background-color: #1a365d;
+            background-color: #1f1f3a;
             color: white;
-            padding: 15px 30px;
+            padding: 12px 28px;
             text-decoration: none;
-            border-radius: 5px;
-            font-weight: 600;
-            font-size: 16px;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .cta-button:hover {
-            background-color: #153052;
+            opacity: 0.85;
         }
         .footer {
             text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+            padding: 20px 24px;
+            border-top: 1px solid #c7c5c1;
             font-size: 12px;
-            color: #999;
+            color: #6b6560;
         }
         .footer a {
-            color: #999;
+            color: #6b6560;
+            text-decoration: underline;
+        }
+        .footer .copyright {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-style: italic;
+            margin-top: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Welcome to Cambridge Events!</h1>
-            <p style="color: #666;">Your personalized event digest is on its way</p>
+        <div class="masthead">
+            <p class="dateline">Welcome</p>
+            <h1>Cambridge <span>Events</span></h1>
         </div>
 
-        <div class="description">
-            <p style="margin: 0;">
-                {% if liked_count > 0 %}
-                Based on the {{ liked_count }} events you liked, we'll send you personalized weekly recommendations tailored to your interests.
-                {% else %}
-                We'll send you personalized weekly recommendations for the best events in Cambridge and Somerville.
-                {% endif %}
-            </p>
-        </div>
+        <div class="body-content">
+            <h2 class="welcome-heading">You're subscribed!</h2>
 
-        <div class="what-next">
-            <h2>What happens next?</h2>
-            <ul>
-                <li><strong>Weekly Digest:</strong> Every week, you'll receive a personalized email with 5-7 events handpicked just for you.</li>
-                <li><strong>Smart Matching:</strong> Our recommendations learn from your preferences to show you the most relevant events in Cambridge and Somerville.</li>
-                <li><strong>One Click Away:</strong> Find something interesting? Just click through to get all the details and sign up.</li>
-            </ul>
-        </div>
+            <div class="description">
+                <p style="margin: 0;">
+                    {% if liked_count > 0 %}
+                    Based on the {{ liked_count }} events you liked, we'll send you personalized weekly recommendations tailored to your interests.
+                    {% else %}
+                    We'll send you personalized weekly recommendations for the best events in Cambridge and Somerville.
+                    {% endif %}
+                </p>
+            </div>
 
-        <div class="cta-section">
-            <p style="margin: 0 0 15px; color: #666;">Can't wait for the first digest?</p>
-            <a href="https://cambridge-event-compass.lovable.app/{% if user_id %}?user_id={{ user_id }}{% endif %}" class="cta-button">Browse All Events Now</a>
+            <div class="what-next">
+                <h2>What happens next?</h2>
+                <ul>
+                    <li><strong>Weekly Digest:</strong> Every week, you'll receive a personalized email with 5&ndash;7 events handpicked for you.</li>
+                    <li><strong>Smart Matching:</strong> Our recommendations learn from your preferences to surface the most relevant events.</li>
+                    <li><strong>One Click Away:</strong> Find something interesting? Click through to get all the details.</li>
+                </ul>
+            </div>
+
+            <div class="cta-section">
+                <p>Can't wait for the first digest?</p>
+                <a href="https://cambridgecalendar.com/{% if user_id %}?user_id={{ user_id }}{% endif %}" class="cta-button">Browse All Events</a>
+            </div>
         </div>
 
         <div class="footer">
             <p>
-                You're receiving this because you signed up for Cambridge-Somerville Events.<br>
+                You're receiving this because you signed up at cambridgecalendar.com.<br>
                 <a href="{{ unsubscribe_url }}">Unsubscribe</a>
             </p>
-            <p>&copy; {{ current_year }} Cambridge-Somerville Events</p>
+            <p class="copyright">&copy; {{ current_year }} The Broadsheet &mdash; Cambridge Events</p>
         </div>
     </div>
 </body>
