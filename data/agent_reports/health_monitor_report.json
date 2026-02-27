@@ -1,29 +1,22 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-26T07:40:51.573565",
-  "total_events": 2470,
-  "total_sources": 25,
+  "timestamp": "2026-02-27T07:34:12.522856",
+  "total_events": 2543,
+  "total_sources": 26,
   "history_runs": 6,
   "alerts": [
     {
       "source": "Grolier Poetry Book Shop",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 15.4,
-      "message": "0 events (avg: 15) - scraper may be broken"
-    },
-    {
-      "source": "Multicultural Arts Center",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 2.8,
-      "message": "Source disappeared from data (avg: 3)"
+      "average": 15.5,
+      "message": "0 events (avg: 16) - scraper may be broken"
     }
   ],
-  "diagnosis": "Here are the most likely reasons a web scraper would suddenly return 0 events:\n* Website structure change: The venue's website may have changed its HTML structure, breaking the scraper.\n* New anti-scraping measures: The website may have implemented anti-scraping techniques, such as CAPTCHAs or rate limiting.\n* Changed event listing format: The format of the event listings may have changed, making it difficult for the scraper to parse.\n* Website downtime or maintenance: The website may be temporarily down or under maintenance, returning empty or error responses.",
+  "diagnosis": "Here are 3-4 common causes for a web scraper to suddenly return 0 events:\n* Website structure change: The venue's website may have changed its layout, class names, or HTML structure, breaking the scraper.\n* New anti-scraping measures: The website may have implemented anti-scraping techniques, such as CAPTCHAs or rate limiting, to block the scraper.\n* Changes in event listing format: The format of event listings on the website may have changed, making it difficult for the scraper to parse the data.\n* Server-side rendering: The website may have switched to server-side rendering, making it harder for the scraper to access the event data.",
   "summary": {
     "critical": 1,
     "warning": 0,
-    "missing": 1
+    "missing": 0
   }
 }
