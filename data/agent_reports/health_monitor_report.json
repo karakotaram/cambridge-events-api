@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-27T07:34:12.522856",
-  "total_events": 2543,
+  "timestamp": "2026-02-28T07:21:54.545902",
+  "total_events": 2573,
   "total_sources": 26,
   "history_runs": 6,
   "alerts": [
@@ -9,14 +9,21 @@
       "source": "Grolier Poetry Book Shop",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 15.5,
+      "average": 15.7,
       "message": "0 events (avg: 16) - scraper may be broken"
+    },
+    {
+      "source": "Multicultural Arts Center",
+      "severity": "WARNING",
+      "current": 1,
+      "average": 3.8,
+      "message": "1 events vs avg 4 (26%)"
     }
   ],
-  "diagnosis": "Here are 3-4 common causes for a web scraper to suddenly return 0 events:\n* Website structure change: The venue's website may have changed its layout, class names, or HTML structure, breaking the scraper.\n* New anti-scraping measures: The website may have implemented anti-scraping techniques, such as CAPTCHAs or rate limiting, to block the scraper.\n* Changes in event listing format: The format of event listings on the website may have changed, making it difficult for the scraper to parse the data.\n* Server-side rendering: The website may have switched to server-side rendering, making it harder for the scraper to access the event data.",
+  "diagnosis": "Here are the most likely reasons a web scraper would suddenly return 0 events:\n* Website structure change: The venue's website layout or HTML structure has changed, breaking the scraper's parsing logic.\n* JavaScript rendering issue: The scraper doesn't execute JavaScript, but the website relies on it to load events, resulting in empty data.\n* Anti-scraping measures: The website has implemented anti-scraping techniques, such as rate limiting or CAPTCHAs, to block the scraper.\n* Data source change: The venue's events are now sourced from a different URL, API, or calendar system, which the scraper is not configured to access.",
   "summary": {
     "critical": 1,
-    "warning": 0,
+    "warning": 1,
     "missing": 0
   }
 }
