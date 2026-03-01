@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-02-28T07:21:54.545902",
-  "total_events": 2573,
+  "timestamp": "2026-03-01T07:26:22.167568",
+  "total_events": 2520,
   "total_sources": 26,
   "history_runs": 6,
   "alerts": [
@@ -9,7 +9,7 @@
       "source": "Grolier Poetry Book Shop",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 15.7,
+      "average": 16.0,
       "message": "0 events (avg: 16) - scraper may be broken"
     },
     {
@@ -20,7 +20,7 @@
       "message": "1 events vs avg 4 (26%)"
     }
   ],
-  "diagnosis": "Here are the most likely reasons a web scraper would suddenly return 0 events:\n* Website structure change: The venue's website layout or HTML structure has changed, breaking the scraper's parsing logic.\n* JavaScript rendering issue: The scraper doesn't execute JavaScript, but the website relies on it to load events, resulting in empty data.\n* Anti-scraping measures: The website has implemented anti-scraping techniques, such as rate limiting or CAPTCHAs, to block the scraper.\n* Data source change: The venue's events are now sourced from a different URL, API, or calendar system, which the scraper is not configured to access.",
+  "diagnosis": "Here are the most likely reasons a web scraper would suddenly return 0 events:\n* Website structure change: The venue's website may have changed its layout, making it difficult for the scraper to locate the event data.\n* New anti-scraping measures: The website may have implemented new measures to prevent web scraping, such as CAPTCHAs or rate limiting.\n* Changes in event listing format: The format of the event listings may have changed, making it hard for the scraper to parse the data correctly.\n* Server-side rendering: The website may have switched to server-side rendering, making it difficult for the scraper to access the event data.",
   "summary": {
     "critical": 1,
     "warning": 1,
