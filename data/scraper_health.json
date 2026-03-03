@@ -1,36 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2026-02-26T07:40:51.573565",
-      "counts": {
-        "The Dance Complex": 14,
-        "BostonShows.org": 1065,
-        "Harvard Athletics": 15,
-        "City of Cambridge": 865,
-        "Lamplighter Brewing": 13,
-        "The Comedy Studio": 30,
-        "First Parish in Cambridge": 5,
-        "Harvard Art Museums": 67,
-        "Brattle Theatre": 58,
-        "The Mad Monkfish": 10,
-        "Mount Auburn Cemetery": 10,
-        "Harvard GSD": 16,
-        "The Sinclair": 7,
-        "The Lily Pad": 29,
-        "The Middle East": 20,
-        "Portico Brewing": 26,
-        "Porter Square Books": 23,
-        "Arts at the Armory": 5,
-        "Central Square Theater": 61,
-        "Sanders Theatre": 10,
-        "American Repertory Theater": 37,
-        "Boston Swing Central": 4,
-        "Aeronaut Brewing": 7,
-        "Somerville Theatre": 10,
-        "User Submitted": 63
-      }
-    },
-    {
       "timestamp": "2026-02-27T07:34:12.522856",
       "counts": {
         "BostonShows.org": 1104,
@@ -145,6 +115,36 @@
         "Porter Square Books": 21,
         "Arts at the Armory": 7,
         "Central Square Theater": 52,
+        "Sanders Theatre": 8,
+        "American Repertory Theater": 37,
+        "Boston Swing Central": 4,
+        "Aeronaut Brewing": 7,
+        "Somerville Theatre": 10,
+        "User Submitted": 64
+      }
+    },
+    {
+      "timestamp": "2026-03-03T07:36:07.003399",
+      "counts": {
+        "BostonShows.org": 1069,
+        "Harvard Athletics": 9,
+        "City of Cambridge": 948,
+        "Lamplighter Brewing": 29,
+        "The Comedy Studio": 30,
+        "The Dance Complex": 15,
+        "First Parish in Cambridge": 3,
+        "Harvard Art Museums": 63,
+        "Brattle Theatre": 67,
+        "The Mad Monkfish": 10,
+        "Mount Auburn Cemetery": 10,
+        "Harvard GSD": 18,
+        "The Sinclair": 7,
+        "The Lily Pad": 29,
+        "The Middle East": 20,
+        "Portico Brewing": 23,
+        "Porter Square Books": 21,
+        "Arts at the Armory": 7,
+        "Central Square Theater": 27,
         "Sanders Theatre": 8,
         "American Repertory Theater": 37,
         "Boston Swing Central": 4,
