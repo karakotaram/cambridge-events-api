@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-03-05T07:36:16.931010",
-  "total_events": 2596,
+  "timestamp": "2026-03-06T07:36:08.786078",
+  "total_events": 2589,
   "total_sources_registered": 38,
   "total_sources_with_events": 25,
   "healthy": [
@@ -17,12 +17,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 13,
+      "event_count": 8,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1096,
+      "event_count": 1064,
       "days_since_scrape": 0
     },
     {
@@ -32,12 +32,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 69,
+      "event_count": 72,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 76,
+      "event_count": 91,
       "days_since_scrape": 0
     },
     {
@@ -52,12 +52,12 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 9,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 969,
+      "event_count": 982,
       "days_since_scrape": 0
     },
     {
@@ -103,7 +103,7 @@
     {
       "source": "User Submitted",
       "event_count": 67,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [
@@ -111,28 +111,28 @@
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 4,
-      "days_stale": 15,
+      "days_stale": 16,
       "latest_scraped": "2026-02-17T19:39:32.130263",
       "threshold_days": 14,
-      "issue": "Last scraped 15 days ago (threshold: 14)"
+      "issue": "Last scraped 16 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 7,
-      "days_stale": 15,
+      "days_stale": 16,
       "latest_scraped": "2026-02-17T19:39:32.156419",
       "threshold_days": 14,
-      "issue": "Last scraped 15 days ago (threshold: 14)"
+      "issue": "Last scraped 16 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 10,
-      "days_stale": 15,
+      "days_stale": 16,
       "latest_scraped": "2026-02-17T19:39:32.156518",
       "threshold_days": 14,
-      "issue": "Last scraped 15 days ago (threshold: 14)"
+      "issue": "Last scraped 16 days ago (threshold: 14)"
     }
   ],
   "missing": [
@@ -215,11 +215,11 @@
   "unregistered": [
     {
       "source": "Harvard GSD",
-      "event_count": 16
+      "event_count": 15
     },
     {
       "source": "The Sinclair",
-      "event_count": 6
+      "event_count": 5
     }
   ],
   "summary": {
