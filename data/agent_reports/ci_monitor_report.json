@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-03-09T07:45:54.954954",
-  "total_events": 2589,
+  "timestamp": "2026-03-10T07:34:04.586043",
+  "total_events": 2600,
   "total_sources_registered": 38,
   "total_sources_with_events": 25,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 23,
+      "event_count": 29,
       "days_since_scrape": 0
     },
     {
@@ -17,12 +17,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 13,
+      "event_count": 15,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1137,
+      "event_count": 1113,
       "days_since_scrape": 0
     },
     {
@@ -37,7 +37,7 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 83,
+      "event_count": 81,
       "days_since_scrape": 0
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 925,
+      "event_count": 954,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 21,
+      "event_count": 22,
       "days_since_scrape": 0
     },
     {
@@ -106,37 +106,37 @@
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 4,
-      "days_stale": 19,
+      "days_stale": 20,
       "latest_scraped": "2026-02-17T19:39:32.130263",
       "threshold_days": 14,
-      "issue": "Last scraped 19 days ago (threshold: 14)"
+      "issue": "Last scraped 20 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 7,
-      "days_stale": 19,
+      "days_stale": 20,
       "latest_scraped": "2026-02-17T19:39:32.156419",
       "threshold_days": 14,
-      "issue": "Last scraped 19 days ago (threshold: 14)"
+      "issue": "Last scraped 20 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 10,
-      "days_stale": 19,
+      "days_stale": 20,
       "latest_scraped": "2026-02-17T19:39:32.156518",
       "threshold_days": 14,
-      "issue": "Last scraped 19 days ago (threshold: 14)"
+      "issue": "Last scraped 20 days ago (threshold: 14)"
     },
     {
       "source": "User Submitted",
       "ci": true,
       "event_count": 67,
-      "days_stale": 4,
+      "days_stale": 5,
       "latest_scraped": "2026-03-04T08:50:11.085069",
       "threshold_days": 3,
-      "issue": "Last scraped 4 days ago (threshold: 3)"
+      "issue": "Last scraped 5 days ago (threshold: 3)"
     }
   ],
   "missing": [
@@ -219,7 +219,7 @@
   "unregistered": [
     {
       "source": "Harvard GSD",
-      "event_count": 15
+      "event_count": 14
     },
     {
       "source": "The Sinclair",
