@@ -1,37 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2026-03-08T07:27:40.312737",
-      "counts": {
-        "BostonShows.org": 1083,
-        "City of Cambridge": 925,
-        "Lamplighter Brewing": 27,
-        "The Comedy Studio": 30,
-        "The Dance Complex": 13,
-        "First Parish in Cambridge": 3,
-        "Harvard Art Museums": 70,
-        "Brattle Theatre": 87,
-        "Multicultural Arts Center": 1,
-        "The Mad Monkfish": 10,
-        "Mount Auburn Cemetery": 10,
-        "Harvard Athletics": 4,
-        "Harvard GSD": 15,
-        "The Sinclair": 8,
-        "The Lily Pad": 30,
-        "The Middle East": 20,
-        "Portico Brewing": 22,
-        "Porter Square Books": 21,
-        "Arts at the Armory": 9,
-        "Central Square Theater": 27,
-        "Sanders Theatre": 8,
-        "American Repertory Theater": 37,
-        "Boston Swing Central": 4,
-        "Aeronaut Brewing": 7,
-        "Somerville Theatre": 10,
-        "User Submitted": 67
-      }
-    },
-    {
       "timestamp": "2026-03-09T07:45:53.089550",
       "counts": {
         "The Dance Complex": 13,
@@ -141,6 +110,35 @@
         "Portico Brewing": 22,
         "Porter Square Books": 21,
         "Arts at the Armory": 8,
+        "Central Square Theater": 27,
+        "Sanders Theatre": 8,
+        "American Repertory Theater": 37,
+        "Boston Swing Central": 4,
+        "Aeronaut Brewing": 7,
+        "Somerville Theatre": 10,
+        "User Submitted": 71
+      }
+    },
+    {
+      "timestamp": "2026-03-13T07:41:59.651475",
+      "counts": {
+        "BostonShows.org": 1126,
+        "City of Cambridge": 994,
+        "Lamplighter Brewing": 29,
+        "The Comedy Studio": 30,
+        "The Dance Complex": 6,
+        "First Parish in Cambridge": 4,
+        "Harvard Art Museums": 67,
+        "Brattle Theatre": 76,
+        "Multicultural Arts Center": 1,
+        "The Mad Monkfish": 10,
+        "Mount Auburn Cemetery": 10,
+        "Harvard GSD": 11,
+        "The Sinclair": 6,
+        "The Lily Pad": 30,
+        "The Middle East": 20,
+        "Portico Brewing": 22,
+        "Porter Square Books": 21,
         "Central Square Theater": 27,
         "Sanders Theatre": 8,
         "American Repertory Theater": 37,
