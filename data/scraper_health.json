@@ -1,36 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2026-03-09T07:45:53.089550",
-      "counts": {
-        "The Dance Complex": 13,
-        "BostonShows.org": 1137,
-        "City of Cambridge": 925,
-        "Lamplighter Brewing": 23,
-        "The Comedy Studio": 30,
-        "First Parish in Cambridge": 2,
-        "Harvard Art Museums": 68,
-        "Brattle Theatre": 83,
-        "Multicultural Arts Center": 6,
-        "The Mad Monkfish": 10,
-        "Mount Auburn Cemetery": 10,
-        "Harvard GSD": 15,
-        "The Sinclair": 7,
-        "The Lily Pad": 30,
-        "The Middle East": 20,
-        "Portico Brewing": 21,
-        "Porter Square Books": 21,
-        "Arts at the Armory": 8,
-        "Central Square Theater": 27,
-        "Sanders Theatre": 8,
-        "American Repertory Theater": 37,
-        "Boston Swing Central": 4,
-        "Aeronaut Brewing": 7,
-        "Somerville Theatre": 10,
-        "User Submitted": 67
-      }
-    },
-    {
       "timestamp": "2026-03-10T07:34:02.966707",
       "counts": {
         "BostonShows.org": 1113,
@@ -146,6 +116,35 @@
         "Aeronaut Brewing": 7,
         "Somerville Theatre": 10,
         "User Submitted": 71
+      }
+    },
+    {
+      "timestamp": "2026-03-14T07:36:51.903715",
+      "counts": {
+        "The Dance Complex": 20,
+        "BostonShows.org": 1131,
+        "City of Cambridge": 1002,
+        "Lamplighter Brewing": 27,
+        "The Comedy Studio": 30,
+        "First Parish in Cambridge": 4,
+        "Harvard Art Museums": 66,
+        "Brattle Theatre": 74,
+        "The Mad Monkfish": 10,
+        "Mount Auburn Cemetery": 10,
+        "Harvard Athletics": 2,
+        "Harvard GSD": 11,
+        "The Sinclair": 7,
+        "The Lily Pad": 30,
+        "The Middle East": 20,
+        "Portico Brewing": 21,
+        "Porter Square Books": 21,
+        "Central Square Theater": 27,
+        "Sanders Theatre": 8,
+        "American Repertory Theater": 37,
+        "Boston Swing Central": 4,
+        "Aeronaut Brewing": 7,
+        "Somerville Theatre": 10,
+        "User Submitted": 75
       }
     }
   ]
