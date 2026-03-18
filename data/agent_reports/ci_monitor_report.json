@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-03-17T07:45:22.987771",
-  "total_events": 2537,
+  "timestamp": "2026-03-18T07:49:12.052466",
+  "total_events": 2582,
   "total_sources_registered": 38,
-  "total_sources_with_events": 26,
+  "total_sources_with_events": 24,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 15,
+      "event_count": 16,
       "days_since_scrape": 0
     },
     {
@@ -17,12 +17,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 12,
+      "event_count": 13,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1073,
+      "event_count": 1080,
       "days_since_scrape": 0
     },
     {
@@ -32,17 +32,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 62,
+      "event_count": 61,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 87,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Multicultural Arts Center",
-      "event_count": 4,
+      "event_count": 85,
       "days_since_scrape": 0
     },
     {
@@ -57,12 +52,12 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 3,
+      "event_count": 5,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 935,
+      "event_count": 983,
       "days_since_scrape": 0
     },
     {
@@ -77,17 +72,12 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 22,
+      "event_count": 23,
       "days_since_scrape": 0
     },
     {
       "source": "Porter Square Books",
       "event_count": 21,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Arts at the Armory",
-      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -97,18 +87,13 @@
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 10,
+      "event_count": 11,
       "days_since_scrape": 0
     },
     {
       "source": "American Repertory Theater",
       "event_count": 37,
       "days_since_scrape": 0
-    },
-    {
-      "source": "User Submitted",
-      "event_count": 75,
-      "days_since_scrape": 3
     }
   ],
   "stale": [
@@ -116,28 +101,37 @@
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 4,
-      "days_stale": 27,
+      "days_stale": 28,
       "latest_scraped": "2026-02-17T19:39:32.130263",
       "threshold_days": 14,
-      "issue": "Last scraped 27 days ago (threshold: 14)"
+      "issue": "Last scraped 28 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 7,
-      "days_stale": 27,
+      "days_stale": 28,
       "latest_scraped": "2026-02-17T19:39:32.156419",
       "threshold_days": 14,
-      "issue": "Last scraped 27 days ago (threshold: 14)"
+      "issue": "Last scraped 28 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 10,
-      "days_stale": 27,
+      "days_stale": 28,
       "latest_scraped": "2026-02-17T19:39:32.156518",
       "threshold_days": 14,
-      "issue": "Last scraped 27 days ago (threshold: 14)"
+      "issue": "Last scraped 28 days ago (threshold: 14)"
+    },
+    {
+      "source": "User Submitted",
+      "ci": true,
+      "event_count": 75,
+      "days_stale": 4,
+      "latest_scraped": "2026-03-13T08:51:39.706183",
+      "threshold_days": 3,
+      "issue": "Last scraped 4 days ago (threshold: 3)"
     }
   ],
   "missing": [
@@ -157,7 +151,17 @@
       "issue": "No events in data"
     },
     {
+      "source": "Multicultural Arts Center",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
       "source": "The Rockwell",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
+      "source": "Arts at the Armory",
       "ci": true,
       "issue": "No events in data"
     },
@@ -223,9 +227,9 @@
     }
   ],
   "summary": {
-    "healthy": 21,
-    "stale": 3,
-    "missing": 14,
+    "healthy": 18,
+    "stale": 4,
+    "missing": 16,
     "unregistered": 2
   }
 }
