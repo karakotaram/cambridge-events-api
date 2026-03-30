@@ -1,16 +1,18 @@
 """Scraper for The Rockwell events in Somerville"""
+import html
 import logging
-import re
-import json
 from datetime import datetime
 from typing import List, Optional
 import requests
-from bs4 import BeautifulSoup
 
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
+
+API_URL = "https://therockwell.org/wp-json/tribe/events/v1/events"
+PER_PAGE = 50
+MAX_PAGES = 5
 
 
 class RockwellScraper(BaseScraper):
@@ -19,129 +21,108 @@ class RockwellScraper(BaseScraper):
     def __init__(self):
         super().__init__(
             source_name="The Rockwell",
-            source_url="https://www.therockwell.org/calendar/",
-            use_selenium=False
+            source_url="https://therockwell.org/calendar/",
+            use_selenium=False,
         )
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from The Rockwell calendar"""
-        events = []
-        seen_urls = set()
+        """Scrape events from The Rockwell via Tribe Events REST API"""
+        events: List[EventCreate] = []
+        seen_ids: set = set()
 
-        try:
-            response = requests.get(
-                self.source_url,
-                timeout=30,
-                headers=self.get_browser_headers()
-            )
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
-
-            # Try to extract JSON-LD data first (most reliable)
-            json_ld_events = self._extract_json_ld_events(soup)
-            if json_ld_events:
-                events.extend(json_ld_events)
-                logger.info(f"Extracted {len(json_ld_events)} events from JSON-LD")
-
-            # Also parse HTML for any events not in JSON-LD
-            html_events = self._parse_html_events(soup, seen_urls)
-
-            # Add HTML events that aren't duplicates
-            for event in html_events:
-                if event.source_url not in seen_urls:
-                    events.append(event)
-                    seen_urls.add(event.source_url)
-
-        except Exception as e:
-            logger.error(f"Error scraping The Rockwell: {e}")
-
-        logger.info(f"Scraped {len(events)} total events from The Rockwell")
-        return events
-
-    def _extract_json_ld_events(self, soup: BeautifulSoup) -> List[EventCreate]:
-        """Extract events from JSON-LD structured data"""
-        events = []
-
-        for script in soup.find_all('script', type='application/ld+json'):
+        page = 1
+        while page <= MAX_PAGES:
             try:
-                data = json.loads(script.string)
+                resp = requests.get(
+                    API_URL,
+                    params={
+                        "per_page": PER_PAGE,
+                        "start_date": "now",
+                        "status": "publish",
+                        "page": page,
+                    },
+                    timeout=30,
+                    headers=self.get_browser_headers(),
+                )
+                resp.raise_for_status()
+                data = resp.json()
+            except Exception as e:
+                logger.error(f"Error fetching Rockwell API page {page}: {e}")
+                break
 
-                # Handle both single events and arrays
-                if isinstance(data, list):
-                    for item in data:
-                        if item.get('@type') == 'Event':
-                            event = self._parse_json_ld_event(item)
-                            if event:
-                                events.append(event)
-                elif data.get('@type') == 'Event':
-                    event = self._parse_json_ld_event(data)
-                    if event:
-                        events.append(event)
+            api_events = data.get("events", [])
+            if not api_events:
+                break
 
-            except (json.JSONDecodeError, TypeError) as e:
-                logger.debug(f"Error parsing JSON-LD: {e}")
-                continue
+            for item in api_events:
+                event = self._parse_event(item)
+                if event and item.get("id") not in seen_ids:
+                    events.append(event)
+                    seen_ids.add(item.get("id"))
 
+            total_pages = data.get("total_pages", 1)
+            if page >= total_pages:
+                break
+            page += 1
+
+        logger.info(f"Scraped {len(events)} events from The Rockwell API")
         return events
 
-    def _parse_json_ld_event(self, data: dict) -> Optional[EventCreate]:
-        """Parse a single JSON-LD event object"""
+    def _parse_event(self, item: dict) -> Optional[EventCreate]:
+        """Parse a single event from the Tribe Events API response"""
         try:
-            title = data.get('name', '').strip()
+            title = html.unescape(self.clean_text(item.get("title", "")))
             if not title:
                 return None
 
-            # Parse dates
-            start_str = data.get('startDate')
+            # Parse start datetime
+            start_str = item.get("start_date")
             if not start_str:
                 return None
+            start_datetime = datetime.fromisoformat(start_str)
 
-            start_datetime = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+            # Description — prefer excerpt (shorter), fall back to full description
+            description = self.clean_text(
+                _strip_html(item.get("excerpt", ""))
+                or _strip_html(item.get("description", ""))
+                or f"{title} at The Rockwell"
+            )
 
-            # Get description
-            description = data.get('description', '')
-            if not description:
-                description = f"{title} at The Rockwell"
+            # Event URL
+            url = item.get("url") or self.source_url
 
-            # Get URL
-            url = data.get('url', self.source_url)
+            # Image
+            image_url = None
+            image = item.get("image")
+            if isinstance(image, dict):
+                image_url = image.get("url")
+            elif isinstance(image, str) and image.startswith("http"):
+                image_url = image
 
-            # Get location
-            location = data.get('location', {})
-            venue_name = "The Rockwell"
-            if isinstance(location, dict):
-                venue_name = location.get('name', 'The Rockwell')
+            # Cost
+            cost = item.get("cost")
 
-            # Get price
-            cost = None
-            offers = data.get('offers')
-            if offers:
-                if isinstance(offers, list) and offers:
-                    price = offers[0].get('price')
-                    if price:
-                        cost = f"${price}"
-                elif isinstance(offers, dict):
-                    price = offers.get('price')
-                    if price:
-                        cost = f"${price}"
+            # Category
+            categories = item.get("categories", [])
+            category = self._detect_category(title, description, categories)
 
-            # Get image
-            image_url = data.get('image')
-            if isinstance(image_url, list) and image_url:
-                image_url = image_url[0]
-
-            # Detect category
-            category = self._detect_category(title, description)
+            # Venue info — use API venue if present, else default
+            venue = item.get("venue", {}) or {}
+            venue_name = venue.get("venue") or venue.get("name") or "The Rockwell"
+            address = venue.get("address") or "255 Elm Street"
+            city = venue.get("city") or "Somerville"
+            state = venue.get("state") or venue.get("province") or "MA"
+            zip_code = venue.get("zip") or "02144"
 
             return EventCreate(
                 title=title[:200],
-                description=self.clean_text(description)[:2000],
+                description=description[:2000],
                 start_datetime=start_datetime,
                 venue_name=venue_name,
-                street_address="255 Elm Street",
-                city="Somerville",
-                state="MA",
-                zip_code="02144",
+                street_address=address,
+                city=city,
+                state=state,
+                zip_code=zip_code,
                 category=category,
                 cost=cost,
                 source_name=self.source_name,
@@ -150,108 +131,49 @@ class RockwellScraper(BaseScraper):
             )
 
         except Exception as e:
-            logger.debug(f"Error parsing JSON-LD event: {e}")
+            logger.debug(f"Error parsing Rockwell event: {e}")
             return None
 
-    def _parse_html_events(self, soup: BeautifulSoup, seen_urls: set) -> List[EventCreate]:
-        """Parse events from HTML structure"""
-        events = []
+    def _detect_category(
+        self, title: str, description: str, api_categories: list
+    ) -> EventCategory:
+        """Detect event category from title, description, and API categories"""
+        # Check API category names first
+        cat_names = {c.get("name", "").lower() for c in api_categories if isinstance(c, dict)}
 
-        # Find event links in the calendar
-        event_links = soup.find_all('a', href=re.compile(r'/event/'))
+        if cat_names & {"music", "concert", "live music"}:
+            return EventCategory.MUSIC
+        if cat_names & {"theater", "theatre", "staged reading", "performance"}:
+            return EventCategory.THEATER
+        if cat_names & {"comedy", "stand-up", "improv"}:
+            return EventCategory.THEATER
+        if cat_names & {"film", "screening", "movie"}:
+            return EventCategory.ARTS_CULTURE
+        if cat_names & {"food", "drink", "tasting"}:
+            return EventCategory.FOOD_DRINK
+        if cat_names & {"community", "trivia", "game", "bingo"}:
+            return EventCategory.COMMUNITY
 
-        for link in event_links:
-            try:
-                url = link.get('href', '')
-                if not url or url in seen_urls:
-                    continue
-
-                # Make absolute URL
-                if not url.startswith('http'):
-                    url = f"https://www.therockwell.org{url}"
-
-                title = self.clean_text(link.get_text())
-                if not title or len(title) < 3:
-                    continue
-
-                seen_urls.add(url)
-
-                # Try to get more details from the event page
-                event = self._scrape_event_page(url, title)
-                if event:
-                    events.append(event)
-
-            except Exception as e:
-                logger.debug(f"Error parsing HTML event: {e}")
-                continue
-
-        return events
-
-    def _scrape_event_page(self, url: str, title: str) -> Optional[EventCreate]:
-        """Scrape individual event page for details"""
-        try:
-            response = requests.get(url, timeout=30, headers=self.get_browser_headers())
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
-
-            # Check for JSON-LD on event page
-            for script in soup.find_all('script', type='application/ld+json'):
-                try:
-                    data = json.loads(script.string)
-                    if isinstance(data, dict) and data.get('@type') == 'Event':
-                        event = self._parse_json_ld_event(data)
-                        if event:
-                            return event
-                except:
-                    continue
-
-            # Fallback to HTML parsing
-            # Find date/time
-            date_elem = soup.find('span', class_=re.compile(r'tribe-event-date'))
-            time_elem = soup.find('span', class_=re.compile(r'tribe-event-time'))
-
-            # Default to today if no date found
-            start_datetime = datetime.now().replace(hour=19, minute=0, second=0, microsecond=0)
-
-            # Find description
-            desc_elem = soup.find('div', class_=re.compile(r'tribe-events-content|entry-content'))
-            description = self.clean_text(desc_elem.get_text()) if desc_elem else f"{title} at The Rockwell"
-
-            category = self._detect_category(title, description)
-
-            return EventCreate(
-                title=title[:200],
-                description=description[:2000],
-                start_datetime=start_datetime,
-                venue_name="The Rockwell",
-                street_address="255 Elm Street",
-                city="Somerville",
-                state="MA",
-                zip_code="02144",
-                category=category,
-                source_name=self.source_name,
-                source_url=url,
-            )
-
-        except Exception as e:
-            logger.debug(f"Error scraping event page {url}: {e}")
-            return None
-
-    def _detect_category(self, title: str, description: str) -> EventCategory:
-        """Detect event category from title and description"""
+        # Fall back to text matching
         text = f"{title} {description}".lower()
 
-        if any(word in text for word in ['comedy', 'standup', 'stand-up', 'improv', 'comedian', 'funny']):
+        if any(w in text for w in ["comedy", "standup", "stand-up", "improv", "comedian"]):
             return EventCategory.THEATER
-        elif any(word in text for word in ['concert', 'music', 'band', 'singer', 'dj', 'live music', 'jazz', 'rock']):
+        if any(w in text for w in ["concert", "music", "band", "singer", "dj", "jazz", "rock"]):
             return EventCategory.MUSIC
-        elif any(word in text for word in ['trivia', 'game', 'bingo', 'quiz']):
+        if any(w in text for w in ["trivia", "game", "bingo", "quiz"]):
             return EventCategory.COMMUNITY
-        elif any(word in text for word in ['drag', 'cabaret', 'burlesque', 'show', 'performance']):
+        if any(w in text for w in ["drag", "cabaret", "burlesque", "show", "performance"]):
             return EventCategory.THEATER
-        elif any(word in text for word in ['film', 'movie', 'screening']):
+        if any(w in text for w in ["film", "movie", "screening"]):
             return EventCategory.ARTS_CULTURE
-        elif any(word in text for word in ['food', 'drink', 'tasting', 'brunch']):
-            return EventCategory.FOOD_DRINK
 
         return EventCategory.OTHER
+
+
+def _strip_html(text: str) -> str:
+    """Remove HTML tags from a string"""
+    if not text:
+        return ""
+    from bs4 import BeautifulSoup
+    return BeautifulSoup(text, "html.parser").get_text(separator=" ").strip()
