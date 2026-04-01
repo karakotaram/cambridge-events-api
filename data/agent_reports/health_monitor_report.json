@@ -1,22 +1,14 @@
 {
   "status": "ok",
-  "timestamp": "2026-03-31T08:11:22.271394",
-  "total_events": 2569,
+  "timestamp": "2026-04-01T08:19:45.767030",
+  "total_events": 2607,
   "total_sources": 27,
   "history_runs": 6,
-  "alerts": [
-    {
-      "source": "Multicultural Arts Center",
-      "severity": "WARNING",
-      "current": 1,
-      "average": 2.7,
-      "message": "1 events vs avg 3 (38%)"
-    }
-  ],
+  "alerts": [],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 1,
+    "warning": 0,
     "missing": 0
   }
 }

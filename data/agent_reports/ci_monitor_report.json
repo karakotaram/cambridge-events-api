@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-03-31T08:11:22.389997",
-  "total_events": 2569,
+  "timestamp": "2026-04-01T08:19:45.926664",
+  "total_events": 2607,
   "total_sources_registered": 38,
   "total_sources_with_events": 27,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 27,
+      "event_count": 24,
       "days_since_scrape": 0
     },
     {
@@ -22,7 +22,7 @@
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1034,
+      "event_count": 1037,
       "days_since_scrape": 0
     },
     {
@@ -37,17 +37,17 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 55,
+      "event_count": 54,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 1,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 71,
+      "event_count": 99,
       "days_since_scrape": 0
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "source": "Mount Auburn Cemetery",
-      "event_count": 8,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -67,7 +67,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 948,
+      "event_count": 946,
       "days_since_scrape": 0
     },
     {
@@ -82,12 +82,12 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 27,
+      "event_count": 28,
       "days_since_scrape": 0
     },
     {
       "source": "Porter Square Books",
-      "event_count": 21,
+      "event_count": 23,
       "days_since_scrape": 0
     },
     {
@@ -97,7 +97,7 @@
     },
     {
       "source": "Central Square Theater",
-      "event_count": 26,
+      "event_count": 30,
       "days_since_scrape": 0
     },
     {
@@ -116,37 +116,37 @@
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 4,
-      "days_stale": 41,
+      "days_stale": 42,
       "latest_scraped": "2026-02-17T19:39:32.130263",
       "threshold_days": 14,
-      "issue": "Last scraped 41 days ago (threshold: 14)"
+      "issue": "Last scraped 42 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 7,
-      "days_stale": 41,
+      "days_stale": 42,
       "latest_scraped": "2026-02-17T19:39:32.156419",
       "threshold_days": 14,
-      "issue": "Last scraped 41 days ago (threshold: 14)"
+      "issue": "Last scraped 42 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 10,
-      "days_stale": 41,
+      "days_stale": 42,
       "latest_scraped": "2026-02-17T19:39:32.156518",
       "threshold_days": 14,
-      "issue": "Last scraped 41 days ago (threshold: 14)"
+      "issue": "Last scraped 42 days ago (threshold: 14)"
     },
     {
       "source": "User Submitted",
       "ci": true,
       "event_count": 64,
-      "days_stale": 32,
+      "days_stale": 33,
       "latest_scraped": "2026-02-26T08:57:40.333440",
       "threshold_days": 3,
-      "issue": "Last scraped 32 days ago (threshold: 3)"
+      "issue": "Last scraped 33 days ago (threshold: 3)"
     }
   ],
   "missing": [
@@ -219,11 +219,11 @@
   "unregistered": [
     {
       "source": "Harvard GSD",
-      "event_count": 12
+      "event_count": 11
     },
     {
       "source": "The Sinclair",
-      "event_count": 12
+      "event_count": 13
     }
   ],
   "summary": {
