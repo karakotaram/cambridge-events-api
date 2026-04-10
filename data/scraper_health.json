@@ -1,38 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2026-04-05T07:50:30.007902",
-      "counts": {
-        "BostonShows.org": 1084,
-        "City of Cambridge": 921,
-        "Lamplighter Brewing": 12,
-        "The Comedy Studio": 30,
-        "The Dance Complex": 11,
-        "First Parish in Cambridge": 2,
-        "Harvard Art Museums": 66,
-        "Brattle Theatre": 46,
-        "Multicultural Arts Center": 6,
-        "The Rockwell": 97,
-        "The Mad Monkfish": 10,
-        "Mount Auburn Cemetery": 10,
-        "Harvard Athletics": 6,
-        "Harvard GSD": 10,
-        "The Sinclair": 13,
-        "The Lily Pad": 30,
-        "The Middle East": 19,
-        "Portico Brewing": 26,
-        "Porter Square Books": 23,
-        "Arts at the Armory": 11,
-        "Central Square Theater": 30,
-        "Sanders Theatre": 10,
-        "American Repertory Theater": 37,
-        "Boston Swing Central": 4,
-        "Aeronaut Brewing": 7,
-        "Somerville Theatre": 10,
-        "User Submitted": 68
-      }
-    },
-    {
       "timestamp": "2026-04-06T08:29:57.791944",
       "counts": {
         "The Dance Complex": 15,
@@ -157,6 +125,38 @@
         "Aeronaut Brewing": 7,
         "Somerville Theatre": 10,
         "User Submitted": 68
+      }
+    },
+    {
+      "timestamp": "2026-04-10T08:25:25.855639",
+      "counts": {
+        "BostonShows.org": 1115,
+        "City of Cambridge": 984,
+        "Lamplighter Brewing": 29,
+        "The Comedy Studio": 30,
+        "The Dance Complex": 5,
+        "First Parish in Cambridge": 2,
+        "Harvard Art Museums": 61,
+        "Brattle Theatre": 69,
+        "Multicultural Arts Center": 2,
+        "The Rockwell": 98,
+        "The Mad Monkfish": 10,
+        "Mount Auburn Cemetery": 10,
+        "Harvard Athletics": 5,
+        "Harvard GSD": 9,
+        "The Sinclair": 12,
+        "The Lily Pad": 30,
+        "The Middle East": 20,
+        "Portico Brewing": 26,
+        "Porter Square Books": 23,
+        "Arts at the Armory": 10,
+        "Central Square Theater": 46,
+        "Sanders Theatre": 9,
+        "American Repertory Theater": 37,
+        "Boston Swing Central": 4,
+        "Aeronaut Brewing": 7,
+        "Somerville Theatre": 10,
+        "User Submitted": 69
       }
     }
   ]
