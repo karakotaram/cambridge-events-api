@@ -1,22 +1,14 @@
 {
   "status": "ok",
-  "timestamp": "2026-04-19T08:01:06.680864",
-  "total_events": 2034,
+  "timestamp": "2026-04-20T08:41:41.465847",
+  "total_events": 1980,
   "total_sources": 27,
   "history_runs": 6,
-  "alerts": [
-    {
-      "source": "City of Cambridge",
-      "severity": "WARNING",
-      "current": 250,
-      "average": 610.3,
-      "message": "250 events vs avg 610 (41%)"
-    }
-  ],
+  "alerts": [],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 1,
+    "warning": 0,
     "missing": 0
   }
 }
