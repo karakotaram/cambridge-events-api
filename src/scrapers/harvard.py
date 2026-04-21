@@ -21,6 +21,16 @@ class HarvardBookStoreScraper(BaseScraper):
             use_selenium=False  # HTML is server-rendered, no need for Selenium
         )
 
+    def get_browser_headers(self) -> dict:
+        # harvard.com blocks the default Chrome UA (403) but accepts Safari.
+        return {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+        }
+
     def fetch_event_description(self, event_url: str) -> str:
         """Fetch the full description from an event detail page"""
         import requests
