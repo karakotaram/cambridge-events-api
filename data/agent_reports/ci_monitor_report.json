@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-04-23T08:25:05.093129",
-  "total_events": 2074,
+  "timestamp": "2026-04-24T08:35:13.859996",
+  "total_events": 2061,
   "total_sources_registered": 38,
   "total_sources_with_events": 28,
   "healthy": [
@@ -13,12 +13,12 @@
     {
       "source": "Harvard Book Store",
       "event_count": 56,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "The Comedy Studio",
@@ -27,12 +27,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 10,
+      "event_count": 3,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1034,
+      "event_count": 1033,
       "days_since_scrape": 0
     },
     {
@@ -42,12 +42,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 50,
+      "event_count": 47,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 65,
+      "event_count": 63,
       "days_since_scrape": 0
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "source": "The Rockwell",
-      "event_count": 99,
+      "event_count": 100,
       "days_since_scrape": 0
     },
     {
@@ -77,7 +77,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 256,
+      "event_count": 253,
       "days_since_scrape": 0
     },
     {
@@ -102,7 +102,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 10,
+      "event_count": 11,
       "days_since_scrape": 0
     },
     {
@@ -123,12 +123,12 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Somerville Theatre",
       "event_count": 11,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     }
   ],
   "stale": [
@@ -136,10 +136,10 @@
       "source": "User Submitted",
       "ci": true,
       "event_count": 79,
-      "days_stale": 4,
+      "days_stale": 5,
       "latest_scraped": "2026-04-18T08:59:01.695340",
       "threshold_days": 3,
-      "issue": "Last scraped 4 days ago (threshold: 3)"
+      "issue": "Last scraped 5 days ago (threshold: 3)"
     }
   ],
   "missing": [
@@ -211,7 +211,7 @@
     },
     {
       "source": "The Sinclair",
-      "event_count": 10
+      "event_count": 11
     }
   ],
   "summary": {
