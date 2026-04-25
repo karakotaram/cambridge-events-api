@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-04-24T08:35:13.859996",
-  "total_events": 2061,
+  "timestamp": "2026-04-25T07:59:44.002129",
+  "total_events": 2114,
   "total_sources_registered": 38,
   "total_sources_with_events": 28,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 9,
+      "event_count": 8,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 56,
-      "days_since_scrape": 2
+      "days_since_scrape": 3
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 2
+      "days_since_scrape": 3
     },
     {
       "source": "The Comedy Studio",
@@ -27,12 +27,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 3,
+      "event_count": 20,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1033,
+      "event_count": 1037,
       "days_since_scrape": 0
     },
     {
@@ -42,12 +42,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 47,
+      "event_count": 46,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 63,
+      "event_count": 69,
       "days_since_scrape": 0
     },
     {
@@ -72,12 +72,12 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 11,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 253,
+      "event_count": 259,
       "days_since_scrape": 0
     },
     {
@@ -92,7 +92,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 20,
+      "event_count": 28,
       "days_since_scrape": 0
     },
     {
@@ -123,25 +123,20 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 2
+      "days_since_scrape": 3
     },
     {
       "source": "Somerville Theatre",
       "event_count": 11,
-      "days_since_scrape": 2
-    }
-  ],
-  "stale": [
+      "days_since_scrape": 3
+    },
     {
       "source": "User Submitted",
-      "ci": true,
-      "event_count": 79,
-      "days_stale": 5,
-      "latest_scraped": "2026-04-18T08:59:01.695340",
-      "threshold_days": 3,
-      "issue": "Last scraped 5 days ago (threshold: 3)"
+      "event_count": 94,
+      "days_since_scrape": 0
     }
   ],
+  "stale": [],
   "missing": [
     {
       "source": "Theatre at First",
@@ -215,8 +210,8 @@
     }
   ],
   "summary": {
-    "healthy": 25,
-    "stale": 1,
+    "healthy": 26,
+    "stale": 0,
     "missing": 12,
     "unregistered": 2
   }
