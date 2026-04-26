@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-04-25T07:59:44.002129",
-  "total_events": 2114,
+  "timestamp": "2026-04-26T08:08:29.903309",
+  "total_events": 2159,
   "total_sources_registered": 38,
-  "total_sources_with_events": 28,
+  "total_sources_with_events": 29,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 8,
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 56,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "The Comedy Studio",
@@ -27,12 +27,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 20,
+      "event_count": 16,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1037,
+      "event_count": 1053,
       "days_since_scrape": 0
     },
     {
@@ -42,22 +42,22 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 46,
+      "event_count": 44,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 69,
+      "event_count": 65,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 2,
+      "event_count": 5,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 100,
+      "event_count": 98,
       "days_since_scrape": 0
     },
     {
@@ -72,17 +72,17 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 10,
+      "event_count": 4,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 259,
+      "event_count": 297,
       "days_since_scrape": 0
     },
     {
       "source": "The Lily Pad",
-      "event_count": 30,
+      "event_count": 29,
       "days_since_scrape": 0
     },
     {
@@ -106,6 +106,11 @@
       "days_since_scrape": 0
     },
     {
+      "source": "Harvard-Radcliffe Dramatic Club",
+      "event_count": 5,
+      "days_since_scrape": 0
+    },
+    {
       "source": "Central Square Theater",
       "event_count": 47,
       "days_since_scrape": 0
@@ -123,16 +128,16 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Somerville Theatre",
       "event_count": 11,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "User Submitted",
-      "event_count": 94,
+      "event_count": 97,
       "days_since_scrape": 0
     }
   ],
@@ -145,11 +150,6 @@
     },
     {
       "source": "Grolier Poetry Book Shop",
-      "ci": true,
-      "issue": "No events in data"
-    },
-    {
-      "source": "Harvard-Radcliffe Dramatic Club",
       "ci": true,
       "issue": "No events in data"
     },
@@ -202,17 +202,17 @@
   "unregistered": [
     {
       "source": "Harvard GSD",
-      "event_count": 4
+      "event_count": 3
     },
     {
       "source": "The Sinclair",
-      "event_count": 11
+      "event_count": 12
     }
   ],
   "summary": {
-    "healthy": 26,
+    "healthy": 27,
     "stale": 0,
-    "missing": 12,
+    "missing": 11,
     "unregistered": 2
   }
 }
