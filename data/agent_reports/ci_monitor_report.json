@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-04-28T08:56:09.008610",
-  "total_events": 2139,
+  "timestamp": "2026-04-29T08:48:42.437276",
+  "total_events": 2181,
   "total_sources_registered": 38,
   "total_sources_with_events": 29,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 19,
+      "event_count": 20,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 56,
-      "days_since_scrape": 6
+      "days_since_scrape": 7
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 6
+      "days_since_scrape": 7
     },
     {
       "source": "The Comedy Studio",
@@ -27,12 +27,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 14,
+      "event_count": 15,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1012,
+      "event_count": 1048,
       "days_since_scrape": 0
     },
     {
@@ -47,17 +47,17 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 85,
+      "event_count": 83,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 1,
+      "event_count": 2,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 98,
+      "event_count": 102,
       "days_since_scrape": 0
     },
     {
@@ -72,12 +72,12 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 2,
+      "event_count": 1,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 297,
+      "event_count": 299,
       "days_since_scrape": 0
     },
     {
@@ -128,17 +128,17 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 6
+      "days_since_scrape": 7
     },
     {
       "source": "Somerville Theatre",
       "event_count": 11,
-      "days_since_scrape": 6
+      "days_since_scrape": 7
     },
     {
       "source": "User Submitted",
       "event_count": 99,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [],
