@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-04-29T08:48:42.437276",
-  "total_events": 2181,
+  "timestamp": "2026-04-30T08:51:58.174305",
+  "total_events": 2191,
   "total_sources_registered": 38,
   "total_sources_with_events": 29,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 20,
+      "event_count": 19,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 56,
-      "days_since_scrape": 7
+      "days_since_scrape": 8
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 7
+      "days_since_scrape": 8
     },
     {
       "source": "The Comedy Studio",
@@ -27,7 +27,7 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 15,
+      "event_count": 13,
       "days_since_scrape": 0
     },
     {
@@ -37,22 +37,22 @@
     },
     {
       "source": "First Parish in Cambridge",
-      "event_count": 2,
+      "event_count": 3,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 42,
+      "event_count": 41,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 83,
+      "event_count": 82,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 2,
+      "event_count": 3,
       "days_since_scrape": 0
     },
     {
@@ -77,12 +77,12 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 299,
+      "event_count": 302,
       "days_since_scrape": 0
     },
     {
       "source": "The Lily Pad",
-      "event_count": 29,
+      "event_count": 28,
       "days_since_scrape": 0
     },
     {
@@ -102,12 +102,12 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 11,
+      "event_count": 14,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard-Radcliffe Dramatic Club",
-      "event_count": 5,
+      "event_count": 4,
       "days_since_scrape": 0
     },
     {
@@ -122,23 +122,23 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 154,
+      "event_count": 163,
       "days_since_scrape": 0
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 7
+      "days_since_scrape": 8
     },
     {
       "source": "Somerville Theatre",
       "event_count": 11,
-      "days_since_scrape": 7
+      "days_since_scrape": 8
     },
     {
       "source": "User Submitted",
-      "event_count": 99,
-      "days_since_scrape": 1
+      "event_count": 100,
+      "days_since_scrape": 0
     }
   ],
   "stale": [],
@@ -206,7 +206,7 @@
     },
     {
       "source": "The Sinclair",
-      "event_count": 11
+      "event_count": 10
     }
   ],
   "summary": {
