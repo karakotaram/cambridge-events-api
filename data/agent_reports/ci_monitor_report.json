@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-05-04T08:59:11.755101",
-  "total_events": 2165,
+  "timestamp": "2026-05-05T08:41:38.557206",
+  "total_events": 2102,
   "total_sources_registered": 38,
-  "total_sources_with_events": 26,
+  "total_sources_with_events": 27,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 15,
+      "event_count": 14,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 56,
-      "days_since_scrape": 12
+      "days_since_scrape": 13
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 12
+      "days_since_scrape": 13
     },
     {
       "source": "The Comedy Studio",
@@ -27,12 +27,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 13,
+      "event_count": 14,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1066,
+      "event_count": 999,
       "days_since_scrape": 0
     },
     {
@@ -47,7 +47,12 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 72,
+      "event_count": 70,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "Multicultural Arts Center",
+      "event_count": 2,
       "days_since_scrape": 0
     },
     {
@@ -67,7 +72,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 302,
+      "event_count": 304,
       "days_since_scrape": 0
     },
     {
@@ -92,7 +97,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 12,
+      "event_count": 13,
       "days_since_scrape": 0
     },
     {
@@ -102,7 +107,7 @@
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 6,
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
@@ -113,17 +118,17 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 12
+      "days_since_scrape": 13
     },
     {
       "source": "Somerville Theatre",
       "event_count": 11,
-      "days_since_scrape": 12
+      "days_since_scrape": 13
     },
     {
       "source": "User Submitted",
       "event_count": 104,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [],
@@ -135,11 +140,6 @@
     },
     {
       "source": "Grolier Poetry Book Shop",
-      "ci": true,
-      "issue": "No events in data"
-    },
-    {
-      "source": "Multicultural Arts Center",
       "ci": true,
       "issue": "No events in data"
     },
@@ -210,9 +210,9 @@
     }
   ],
   "summary": {
-    "healthy": 24,
+    "healthy": 25,
     "stale": 0,
-    "missing": 14,
+    "missing": 13,
     "unregistered": 2
   }
 }
