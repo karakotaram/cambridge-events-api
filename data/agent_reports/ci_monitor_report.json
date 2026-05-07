@@ -1,24 +1,14 @@
 {
   "status": "ok",
-  "timestamp": "2026-05-05T08:41:38.557206",
-  "total_events": 2102,
+  "timestamp": "2026-05-07T09:05:05.274244",
+  "total_events": 2109,
   "total_sources_registered": 38,
-  "total_sources_with_events": 27,
+  "total_sources_with_events": 26,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 14,
+      "event_count": 10,
       "days_since_scrape": 0
-    },
-    {
-      "source": "Harvard Book Store",
-      "event_count": 56,
-      "days_since_scrape": 13
-    },
-    {
-      "source": "Boston Swing Central",
-      "event_count": 3,
-      "days_since_scrape": 13
     },
     {
       "source": "The Comedy Studio",
@@ -27,12 +17,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 14,
+      "event_count": 12,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 999,
+      "event_count": 1003,
       "days_since_scrape": 0
     },
     {
@@ -42,22 +32,17 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 35,
+      "event_count": 37,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 70,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Multicultural Arts Center",
-      "event_count": 2,
+      "event_count": 66,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 102,
+      "event_count": 101,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +57,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 304,
+      "event_count": 313,
       "days_since_scrape": 0
     },
     {
@@ -87,7 +72,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 25,
+      "event_count": 29,
       "days_since_scrape": 0
     },
     {
@@ -97,7 +82,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 13,
+      "event_count": 11,
       "days_since_scrape": 0
     },
     {
@@ -107,31 +92,58 @@
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 7,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 163,
+      "event_count": 164,
       "days_since_scrape": 0
     },
     {
+      "source": "User Submitted",
+      "event_count": 105,
+      "days_since_scrape": 0
+    }
+  ],
+  "stale": [
+    {
+      "source": "Harvard Book Store",
+      "ci": false,
+      "event_count": 56,
+      "days_stale": 15,
+      "latest_scraped": "2026-04-21T14:23:52.497392",
+      "threshold_days": 14,
+      "issue": "Last scraped 15 days ago (threshold: 14)"
+    },
+    {
+      "source": "Boston Swing Central",
+      "ci": false,
+      "event_count": 3,
+      "days_stale": 15,
+      "latest_scraped": "2026-04-21T14:23:52.497443",
+      "threshold_days": 14,
+      "issue": "Last scraped 15 days ago (threshold: 14)"
+    },
+    {
       "source": "Aeronaut Brewing",
+      "ci": false,
       "event_count": 9,
-      "days_since_scrape": 13
+      "days_stale": 15,
+      "latest_scraped": "2026-04-21T14:23:52.497586",
+      "threshold_days": 14,
+      "issue": "Last scraped 15 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
+      "ci": false,
       "event_count": 11,
-      "days_since_scrape": 13
-    },
-    {
-      "source": "User Submitted",
-      "event_count": 104,
-      "days_since_scrape": 1
+      "days_stale": 15,
+      "latest_scraped": "2026-04-21T14:23:52.497744",
+      "threshold_days": 14,
+      "issue": "Last scraped 15 days ago (threshold: 14)"
     }
   ],
-  "stale": [],
   "missing": [
     {
       "source": "Theatre at First",
@@ -140,6 +152,11 @@
     },
     {
       "source": "Grolier Poetry Book Shop",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
+      "source": "Multicultural Arts Center",
       "ci": true,
       "issue": "No events in data"
     },
@@ -202,7 +219,7 @@
   "unregistered": [
     {
       "source": "Harvard GSD",
-      "event_count": 3
+      "event_count": 2
     },
     {
       "source": "The Sinclair",
@@ -210,9 +227,9 @@
     }
   ],
   "summary": {
-    "healthy": 25,
-    "stale": 0,
-    "missing": 13,
+    "healthy": 20,
+    "stale": 4,
+    "missing": 14,
     "unregistered": 2
   }
 }
