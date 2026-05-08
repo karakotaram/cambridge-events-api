@@ -1,16 +1,16 @@
 {
   "status": "ok",
-  "timestamp": "2026-05-07T09:05:05.174395",
-  "total_events": 2109,
-  "total_sources": 26,
+  "timestamp": "2026-05-08T08:12:09.986400",
+  "total_events": 2151,
+  "total_sources": 27,
   "history_runs": 6,
   "alerts": [
     {
-      "source": "Harvard-Radcliffe Dramatic Club",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 2.0,
-      "message": "Source disappeared from data (avg: 2)"
+      "source": "The Dance Complex",
+      "severity": "WARNING",
+      "current": 5,
+      "average": 13.3,
+      "message": "5 events vs avg 13 (38%)"
     },
     {
       "source": "Harvard Athletics",
@@ -20,17 +20,17 @@
       "message": "Source disappeared from data (avg: 1)"
     },
     {
-      "source": "Multicultural Arts Center",
+      "source": "Harvard-Radcliffe Dramatic Club",
       "severity": "MISSING",
       "current": 0,
-      "average": 3.0,
-      "message": "Source disappeared from data (avg: 3)"
+      "average": 1.5,
+      "message": "Source disappeared from data (avg: 2)"
     }
   ],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 0,
-    "missing": 3
+    "warning": 1,
+    "missing": 2
   }
 }
