@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-05-19T10:33:20.501468",
-  "total_events": 2716,
+  "timestamp": "2026-05-20T10:24:04.151794",
+  "total_events": 2714,
   "total_sources_registered": 38,
   "total_sources_with_events": 26,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 13,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
@@ -22,22 +22,22 @@
     },
     {
       "source": "BostonShows.org",
-      "event_count": 932,
+      "event_count": 931,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "First Parish in Cambridge",
+      "event_count": 1,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 33,
+      "event_count": 32,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 122,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Multicultural Arts Center",
-      "event_count": 8,
+      "event_count": 120,
       "days_since_scrape": 0
     },
     {
@@ -52,12 +52,12 @@
     },
     {
       "source": "Mount Auburn Cemetery",
-      "event_count": 9,
+      "event_count": 8,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 978,
+      "event_count": 988,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 21,
+      "event_count": 22,
       "days_since_scrape": 0
     },
     {
@@ -82,7 +82,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 10,
+      "event_count": 12,
       "days_since_scrape": 0
     },
     {
@@ -97,12 +97,12 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 171,
+      "event_count": 170,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
-      "event_count": 119,
+      "event_count": 120,
       "days_since_scrape": 0
     }
   ],
@@ -111,37 +111,37 @@
       "source": "Harvard Book Store",
       "ci": false,
       "event_count": 56,
-      "days_stale": 27,
+      "days_stale": 28,
       "latest_scraped": "2026-04-21T14:23:52.497392",
       "threshold_days": 14,
-      "issue": "Last scraped 27 days ago (threshold: 14)"
+      "issue": "Last scraped 28 days ago (threshold: 14)"
     },
     {
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 3,
-      "days_stale": 27,
+      "days_stale": 28,
       "latest_scraped": "2026-04-21T14:23:52.497443",
       "threshold_days": 14,
-      "issue": "Last scraped 27 days ago (threshold: 14)"
+      "issue": "Last scraped 28 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 9,
-      "days_stale": 27,
+      "days_stale": 28,
       "latest_scraped": "2026-04-21T14:23:52.497586",
       "threshold_days": 14,
-      "issue": "Last scraped 27 days ago (threshold: 14)"
+      "issue": "Last scraped 28 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 11,
-      "days_stale": 27,
+      "days_stale": 28,
       "latest_scraped": "2026-04-21T14:23:52.497744",
       "threshold_days": 14,
-      "issue": "Last scraped 27 days ago (threshold: 14)"
+      "issue": "Last scraped 28 days ago (threshold: 14)"
     }
   ],
   "missing": [
@@ -151,12 +151,12 @@
       "issue": "No events in data"
     },
     {
-      "source": "First Parish in Cambridge",
+      "source": "Grolier Poetry Book Shop",
       "ci": true,
       "issue": "No events in data"
     },
     {
-      "source": "Grolier Poetry Book Shop",
+      "source": "Multicultural Arts Center",
       "ci": true,
       "issue": "No events in data"
     },
