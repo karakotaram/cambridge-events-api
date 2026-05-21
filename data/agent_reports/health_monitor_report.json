@@ -1,22 +1,22 @@
 {
   "status": "ok",
-  "timestamp": "2026-05-20T10:24:04.001917",
-  "total_events": 2714,
-  "total_sources": 26,
+  "timestamp": "2026-05-21T10:31:35.863010",
+  "total_events": 2737,
+  "total_sources": 27,
   "history_runs": 6,
   "alerts": [
     {
       "source": "Multicultural Arts Center",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 4.3,
-      "message": "Source disappeared from data (avg: 4)"
+      "severity": "WARNING",
+      "current": 1,
+      "average": 3.5,
+      "message": "1 events vs avg 4 (29%)"
     }
   ],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 0,
-    "missing": 1
+    "warning": 1,
+    "missing": 0
   }
 }
