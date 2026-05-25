@@ -1,22 +1,36 @@
 {
   "status": "ok",
-  "timestamp": "2026-05-24T09:12:42.894907",
-  "total_events": 2657,
-  "total_sources": 26,
+  "timestamp": "2026-05-25T10:56:00.573346",
+  "total_events": 2630,
+  "total_sources": 25,
   "history_runs": 6,
   "alerts": [
     {
-      "source": "Multicultural Arts Center",
+      "source": "The Dance Complex",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 6.0,
-      "message": "0 events (avg: 6) - scraper may be broken"
+      "average": 12.2,
+      "message": "0 events (avg: 12) - scraper may be broken"
+    },
+    {
+      "source": "Multicultural Arts Center",
+      "severity": "WARNING",
+      "current": 1,
+      "average": 3.7,
+      "message": "1 events vs avg 4 (27%)"
+    },
+    {
+      "source": "First Parish in Cambridge",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 1.0,
+      "message": "Source disappeared from data (avg: 1)"
     }
   ],
-  "diagnosis": "Here are the most likely reasons:\n* Website structure change: The venue's website layout or HTML structure may have changed, breaking the scraper.\n* New anti-scraping measures: The website may have implemented anti-scraping techniques, such as CAPTCHAs or rate limiting.\n* Changed event listing format: The format of the event listings may have changed, making it difficult for the scraper to parse the data.\n* Website downtime or maintenance: The website may be temporarily down or under maintenance, resulting in no events being returned.",
+  "diagnosis": "Here are the most likely reasons:\n* Website structure change: Updated HTML or CSS affecting scraper's parsing.\n* New anti-scraping measures: Implemented bots protection or rate limiting.\n* Event data source change: Switched to external calendar or API.\n* Temporary website issues: Maintenance, downtime, or server errors.",
   "summary": {
     "critical": 1,
-    "warning": 0,
-    "missing": 0
+    "warning": 1,
+    "missing": 1
   }
 }
