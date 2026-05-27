@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-05-25T10:56:02.065891",
-  "total_events": 2630,
+  "timestamp": "2026-05-27T10:42:06.923030",
+  "total_events": 2664,
   "total_sources_registered": 38,
   "total_sources_with_events": 25,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 12,
+      "event_count": 28,
       "days_since_scrape": 0
     },
     {
@@ -16,8 +16,13 @@
       "days_since_scrape": 0
     },
     {
+      "source": "The Dance Complex",
+      "event_count": 14,
+      "days_since_scrape": 0
+    },
+    {
       "source": "BostonShows.org",
-      "event_count": 928,
+      "event_count": 921,
       "days_since_scrape": 0
     },
     {
@@ -27,12 +32,7 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 103,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Multicultural Arts Center",
-      "event_count": 1,
+      "event_count": 98,
       "days_since_scrape": 0
     },
     {
@@ -52,7 +52,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 892,
+      "event_count": 911,
       "days_since_scrape": 0
     },
     {
@@ -67,7 +67,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 26,
+      "event_count": 25,
       "days_since_scrape": 0
     },
     {
@@ -77,7 +77,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 10,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -92,7 +92,7 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 216,
+      "event_count": 215,
       "days_since_scrape": 0
     }
   ],
@@ -101,54 +101,49 @@
       "source": "Harvard Book Store",
       "ci": false,
       "event_count": 56,
-      "days_stale": 33,
+      "days_stale": 35,
       "latest_scraped": "2026-04-21T14:23:52.497392",
       "threshold_days": 14,
-      "issue": "Last scraped 33 days ago (threshold: 14)"
+      "issue": "Last scraped 35 days ago (threshold: 14)"
     },
     {
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 3,
-      "days_stale": 33,
+      "days_stale": 35,
       "latest_scraped": "2026-04-21T14:23:52.497443",
       "threshold_days": 14,
-      "issue": "Last scraped 33 days ago (threshold: 14)"
+      "issue": "Last scraped 35 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 9,
-      "days_stale": 33,
+      "days_stale": 35,
       "latest_scraped": "2026-04-21T14:23:52.497586",
       "threshold_days": 14,
-      "issue": "Last scraped 33 days ago (threshold: 14)"
+      "issue": "Last scraped 35 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 11,
-      "days_stale": 33,
+      "days_stale": 35,
       "latest_scraped": "2026-04-21T14:23:52.497744",
       "threshold_days": 14,
-      "issue": "Last scraped 33 days ago (threshold: 14)"
+      "issue": "Last scraped 35 days ago (threshold: 14)"
     },
     {
       "source": "User Submitted",
       "ci": true,
       "event_count": 120,
-      "days_stale": 5,
+      "days_stale": 7,
       "latest_scraped": "2026-05-19T11:26:58.996817",
       "threshold_days": 3,
-      "issue": "Last scraped 5 days ago (threshold: 3)"
+      "issue": "Last scraped 7 days ago (threshold: 3)"
     }
   ],
   "missing": [
-    {
-      "source": "The Dance Complex",
-      "ci": true,
-      "issue": "No events in data"
-    },
     {
       "source": "Theatre at First",
       "ci": true,
@@ -161,6 +156,11 @@
     },
     {
       "source": "Grolier Poetry Book Shop",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
+      "source": "Multicultural Arts Center",
       "ci": true,
       "issue": "No events in data"
     },
@@ -227,7 +227,7 @@
     },
     {
       "source": "The Sinclair",
-      "event_count": 6
+      "event_count": 7
     }
   ],
   "summary": {
