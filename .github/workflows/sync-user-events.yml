@@ -51,7 +51,16 @@ jobs:
           git add data/events.json
           [ -f user_submitted_audit.html ] && git add user_submitted_audit.html || true
           git commit -m "Sync user-submitted events - $(date +'%Y-%m-%d %H:%M UTC')"
-          git push
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            echo "Push attempt $attempt failed; rebasing on origin/main and retrying..."
+            git pull --rebase origin main
+            sleep $((attempt * 10))
+          done
+          echo "Push failed after 3 attempts" >&2
+          exit 1
 
       - name: No changes detected
         if: steps.git-check.outputs.changed != 'true'
