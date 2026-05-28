@@ -1,9 +1,9 @@
 {
   "status": "ok",
-  "timestamp": "2026-05-27T10:42:06.923030",
-  "total_events": 2664,
+  "timestamp": "2026-05-28T10:53:29.905073",
+  "total_events": 2671,
   "total_sources_registered": 38,
-  "total_sources_with_events": 25,
+  "total_sources_with_events": 27,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
@@ -17,12 +17,17 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 14,
+      "event_count": 11,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
       "event_count": 921,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "First Parish in Cambridge",
+      "event_count": 1,
       "days_since_scrape": 0
     },
     {
@@ -32,12 +37,17 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 98,
+      "event_count": 96,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "Multicultural Arts Center",
+      "event_count": 4,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 38,
+      "event_count": 40,
       "days_since_scrape": 0
     },
     {
@@ -52,7 +62,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 911,
+      "event_count": 923,
       "days_since_scrape": 0
     },
     {
@@ -77,12 +87,12 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 9,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
       "source": "Central Square Theater",
-      "event_count": 37,
+      "event_count": 31,
       "days_since_scrape": 0
     },
     {
@@ -92,7 +102,7 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 215,
+      "event_count": 214,
       "days_since_scrape": 0
     }
   ],
@@ -101,46 +111,46 @@
       "source": "Harvard Book Store",
       "ci": false,
       "event_count": 56,
-      "days_stale": 35,
+      "days_stale": 36,
       "latest_scraped": "2026-04-21T14:23:52.497392",
       "threshold_days": 14,
-      "issue": "Last scraped 35 days ago (threshold: 14)"
+      "issue": "Last scraped 36 days ago (threshold: 14)"
     },
     {
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 3,
-      "days_stale": 35,
+      "days_stale": 36,
       "latest_scraped": "2026-04-21T14:23:52.497443",
       "threshold_days": 14,
-      "issue": "Last scraped 35 days ago (threshold: 14)"
+      "issue": "Last scraped 36 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 9,
-      "days_stale": 35,
+      "days_stale": 36,
       "latest_scraped": "2026-04-21T14:23:52.497586",
       "threshold_days": 14,
-      "issue": "Last scraped 35 days ago (threshold: 14)"
+      "issue": "Last scraped 36 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 11,
-      "days_stale": 35,
+      "days_stale": 36,
       "latest_scraped": "2026-04-21T14:23:52.497744",
       "threshold_days": 14,
-      "issue": "Last scraped 35 days ago (threshold: 14)"
+      "issue": "Last scraped 36 days ago (threshold: 14)"
     },
     {
       "source": "User Submitted",
       "ci": true,
       "event_count": 120,
-      "days_stale": 7,
+      "days_stale": 8,
       "latest_scraped": "2026-05-19T11:26:58.996817",
       "threshold_days": 3,
-      "issue": "Last scraped 7 days ago (threshold: 3)"
+      "issue": "Last scraped 8 days ago (threshold: 3)"
     }
   ],
   "missing": [
@@ -150,17 +160,7 @@
       "issue": "No events in data"
     },
     {
-      "source": "First Parish in Cambridge",
-      "ci": true,
-      "issue": "No events in data"
-    },
-    {
       "source": "Grolier Poetry Book Shop",
-      "ci": true,
-      "issue": "No events in data"
-    },
-    {
-      "source": "Multicultural Arts Center",
       "ci": true,
       "issue": "No events in data"
     },
@@ -223,7 +223,7 @@
   "unregistered": [
     {
       "source": "Harvard GSD",
-      "event_count": 3
+      "event_count": 2
     },
     {
       "source": "The Sinclair",
@@ -231,9 +231,9 @@
     }
   ],
   "summary": {
-    "healthy": 18,
+    "healthy": 20,
     "stale": 5,
-    "missing": 15,
+    "missing": 13,
     "unregistered": 2
   }
 }
