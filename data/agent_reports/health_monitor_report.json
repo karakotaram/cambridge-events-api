@@ -1,14 +1,29 @@
 {
   "status": "ok",
-  "timestamp": "2026-05-28T10:53:29.754982",
-  "total_events": 2671,
+  "timestamp": "2026-05-29T10:40:17.924735",
+  "total_events": 2807,
   "total_sources": 27,
   "history_runs": 6,
-  "alerts": [],
+  "alerts": [
+    {
+      "source": "The Dance Complex",
+      "severity": "WARNING",
+      "current": 5,
+      "average": 12.2,
+      "message": "5 events vs avg 12 (41%)"
+    },
+    {
+      "source": "Harvard GSD",
+      "severity": "WARNING",
+      "current": 1,
+      "average": 2.5,
+      "message": "1 events vs avg 2 (40%)"
+    }
+  ],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 0,
+    "warning": 2,
     "missing": 0
   }
 }
