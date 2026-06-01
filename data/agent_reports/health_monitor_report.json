@@ -1,16 +1,16 @@
 {
   "status": "ok",
-  "timestamp": "2026-05-31T09:46:42.718469",
-  "total_events": 2742,
+  "timestamp": "2026-06-01T12:22:13.405860",
+  "total_events": 2695,
   "total_sources": 26,
   "history_runs": 6,
   "alerts": [
     {
-      "source": "Multicultural Arts Center",
+      "source": "First Parish in Cambridge",
       "severity": "MISSING",
       "current": 0,
-      "average": 3.8,
-      "message": "Source disappeared from data (avg: 4)"
+      "average": 1.0,
+      "message": "Source disappeared from data (avg: 1)"
     }
   ],
   "diagnosis": null,
