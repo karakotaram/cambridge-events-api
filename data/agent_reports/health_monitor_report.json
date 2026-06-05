@@ -1,13 +1,28 @@
 {
   "status": "ok",
-  "timestamp": "2026-06-04T10:42:15.232061",
-  "total_events": 2892,
-  "total_sources": 27,
+  "timestamp": "2026-06-05T10:44:38.146484",
+  "total_events": 2939,
+  "total_sources": 25,
   "history_runs": 6,
-  "alerts": [],
-  "diagnosis": null,
+  "alerts": [
+    {
+      "source": "Multicultural Arts Center",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 6.0,
+      "message": "0 events (avg: 6) - scraper may be broken"
+    },
+    {
+      "source": "Arts at the Armory",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 10.6,
+      "message": "0 events (avg: 11) - scraper may be broken"
+    }
+  ],
+  "diagnosis": "Here are 3-4 common causes for a web scraper to suddenly return 0 events:\n* Website structure change: The venue's website may have changed its layout, class names, or HTML structure.\n* JavaScript rendering: The website may now load events dynamically with JavaScript, which the scraper doesn't execute.\n* Anti-scraping measures: The website may have implemented bot detection or rate limiting, blocking the scraper.\n* Data source change: The venue may be fetching events from a new API or data source that the scraper is not accessing.",
   "summary": {
-    "critical": 0,
+    "critical": 2,
     "warning": 0,
     "missing": 0
   }
