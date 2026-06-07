@@ -1,13 +1,21 @@
 {
   "status": "ok",
-  "timestamp": "2026-06-06T09:18:58.102210",
-  "total_events": 2994,
-  "total_sources": 27,
+  "timestamp": "2026-06-07T10:04:23.416663",
+  "total_events": 2872,
+  "total_sources": 26,
   "history_runs": 6,
-  "alerts": [],
-  "diagnosis": null,
+  "alerts": [
+    {
+      "source": "Arts at the Armory",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 11.0,
+      "message": "0 events (avg: 11) - scraper may be broken"
+    }
+  ],
+  "diagnosis": "Here are the most likely reasons:\n* Website structure change: Updated HTML or CSS affecting scraper's parsing logic.\n* New anti-scraping measures: Implemented protections like CAPTCHAs or rate limiting.\n* Event data source change: Switched to a new API or data provider, altering scraper's data access.\n* Temporary website issues: Outages, maintenance, or technical difficulties blocking scraper's access.",
   "summary": {
-    "critical": 0,
+    "critical": 1,
     "warning": 0,
     "missing": 0
   }
