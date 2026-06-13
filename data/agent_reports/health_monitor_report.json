@@ -1,29 +1,22 @@
 {
   "status": "ok",
-  "timestamp": "2026-06-12T10:41:38.346385",
-  "total_events": 2051,
+  "timestamp": "2026-06-13T09:43:50.749949",
+  "total_events": 2214,
   "total_sources": 27,
   "history_runs": 6,
   "alerts": [
     {
       "source": "City of Cambridge",
       "severity": "WARNING",
-      "current": 178,
-      "average": 748.0,
-      "message": "178 events vs avg 748 (24%)"
-    },
-    {
-      "source": "The Dance Complex",
-      "severity": "WARNING",
-      "current": 4,
-      "average": 9.0,
-      "message": "4 events vs avg 9 (44%)"
+      "current": 313,
+      "average": 638.5,
+      "message": "313 events vs avg 638 (49%)"
     }
   ],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 2,
+    "warning": 1,
     "missing": 0
   }
 }
