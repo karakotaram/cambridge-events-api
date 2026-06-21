@@ -1,22 +1,14 @@
 {
   "status": "ok",
-  "timestamp": "2026-06-20T09:45:22.906576",
-  "total_events": 2137,
+  "timestamp": "2026-06-21T10:15:41.213322",
+  "total_events": 2082,
   "total_sources": 27,
   "history_runs": 6,
-  "alerts": [
-    {
-      "source": "Multicultural Arts Center",
-      "severity": "WARNING",
-      "current": 1,
-      "average": 4.7,
-      "message": "1 events vs avg 5 (21%)"
-    }
-  ],
+  "alerts": [],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 1,
+    "warning": 0,
     "missing": 0
   }
 }
