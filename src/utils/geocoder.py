@@ -1,8 +1,14 @@
 """Venue geocoding utilities with static lookup table"""
 import logging
+import re
 from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
+
+# Fuzzy matching is only allowed for known keys at least this long. Shorter keys
+# (e.g. "once", "toad", "vfw") are too generic to match as substrings safely and
+# are only resolved by an exact match.
+_MIN_FUZZY_KEY_LEN = 5
 
 # Static lookup table for known Cambridge/Somerville venues
 # Coordinates sourced from OpenStreetMap/Google Maps
@@ -180,7 +186,98 @@ VENUE_COORDINATES = {
     "vfw": (42.3960, -71.0992),
     "elks": (42.3960, -71.0992),
     "crystal ballroom at somerville theatre": (42.3960, -71.1221),
+
+    # Civic / cultural venues (added from live event data)
+    "cambridge city hall": (42.3675, -71.1053),
+    "city hall": (42.3675, -71.1053),
+    "city hall annex": (42.3706, -71.1035),
+    "danehy park": (42.3889, -71.1310),
+    "mount auburn cemetery": (42.3712, -71.1447),
+    "mt. auburn cemetery": (42.3712, -71.1447),
+    "longy school of music": (42.3775, -71.1218),
+    "longy": (42.3775, -71.1218),
+    "piper auditorium": (42.3766, -71.1146),  # inside Gund Hall (Harvard GSD)
+    "gund hall": (42.3766, -71.1146),
+    "agassiz theater": (42.3778, -71.1235),
+    "agassiz theatre": (42.3778, -71.1235),
+    "first parish church": (42.3737, -71.1207),
+    "the vilna shul": (42.3596, -71.0678),  # Boston (Beacon Hill)
+    "the vilna": (42.3596, -71.0678),
+    "commonwealth pier": (42.3519, -71.0433),  # Boston (Seaport)
+
+    # Non-Cambridge venues
+    "somerville theater": (42.3960, -71.1221),  # spelling variant
+    "somerville public library": (42.3874, -71.0996),
+    "regent theatre": (42.4155, -71.1558),  # Arlington
+    "the footlight club": (42.3098, -71.1146),  # Jamaica Plain, Boston
 }
+
+# Venues that are NOT in Cambridge. Used to infer `city` when a scraper leaves
+# it blank (otherwise the validator would default everything to "Cambridge").
+# Only non-Cambridge venues need an entry; known venues absent here are treated
+# as Cambridge, and unknown venues fall through to the caller's default.
+VENUE_CITIES = {
+    # Somerville
+    "somerville theatre": "Somerville",
+    "somerville theater": "Somerville",
+    "somerville public library": "Somerville",
+    "the rockwell": "Somerville",
+    "arts at the armory": "Somerville",
+    "the armory": "Somerville",
+    "somerville armory": "Somerville",
+    "highland kitchen": "Somerville",
+    "theatre at first": "Somerville",
+    "theatre@first": "Somerville",
+    "aeronaut brewing": "Somerville",
+    "portico brewing": "Somerville",
+    "the burren": "Somerville",
+    "redbones": "Somerville",
+    "once somerville": "Somerville",
+    "once": "Somerville",
+    "bow market": "Somerville",
+    "remnant brewing": "Somerville",
+    "backbar": "Somerville",
+    "brass union": "Somerville",
+    "boynton yards": "Somerville",
+    "sally o'brien's": "Somerville",
+    "sally o'briens": "Somerville",
+    "an sibin": "Somerville",
+    "the sea hag": "Somerville",
+    "sea hag": "Somerville",
+    "union square": "Somerville",
+    "warehouse xi": "Somerville",
+    "warehouse 11": "Somerville",
+    "lou's": "Somerville",
+    "crystal ballroom": "Somerville",
+    "crystal ballroom at somerville theatre": "Somerville",
+    "thunder road": "Somerville",
+    "veterans memorial hall": "Somerville",
+
+    # Boston / Allston / Brookline / Arlington
+    "new england conservatory": "Boston",
+    "jordan hall": "Boston",
+    "scullers jazz club": "Boston",
+    "aeronaut allston": "Boston",
+    "trident booksellers": "Boston",
+    "good life": "Boston",
+    "the good life": "Boston",
+    "the vilna shul": "Boston",
+    "the vilna": "Boston",
+    "commonwealth pier": "Boston",
+    "the footlight club": "Boston",
+    "museum of science": "Boston",
+    "brookline booksmith": "Brookline",
+    "coolidge corner theatre": "Brookline",
+    "regent theatre": "Arlington",
+}
+
+# Non-Cambridge city names to look for directly inside a venue name / address
+# string when the venue itself isn't in our lookup table. Deliberately excludes
+# "cambridge" so that a "... Cambridge St" address doesn't get mislabeled.
+KNOWN_NEARBY_CITIES = (
+    "somerville", "boston", "arlington", "brookline",
+    "allston", "medford", "watertown", "malden", "belmont",
+)
 
 # Address-based fallback coordinates (for venues without names)
 ADDRESS_COORDINATES = {
@@ -200,6 +297,40 @@ ADDRESS_COORDINATES = {
 }
 
 
+def _match_venue_key(venue_name: Optional[str]) -> Optional[str]:
+    """
+    Resolve a scraped venue name to a key in VENUE_COORDINATES.
+
+    Matching order:
+      1. Exact (case-insensitive) match.
+      2. Whole-word partial match, preferring the longest (most specific) key so
+         that "Middle East Downstairs" wins over "middle east", and short generic
+         keys never match as bare substrings.
+
+    Returns the matched key, or None.
+    """
+    if not venue_name:
+        return None
+
+    key = venue_name.lower().strip()
+    if key in VENUE_COORDINATES:
+        return key
+
+    best_match: Optional[str] = None
+    for known_venue in VENUE_COORDINATES:
+        if len(known_venue) < _MIN_FUZZY_KEY_LEN:
+            continue  # too generic to fuzzy-match
+        # Match on word boundaries in either direction (known phrase inside the
+        # scraped name, or the scraped name inside a longer known phrase).
+        pattern_known = r'\b' + re.escape(known_venue) + r'\b'
+        pattern_key = r'\b' + re.escape(key) + r'\b'
+        if re.search(pattern_known, key) or re.search(pattern_key, known_venue):
+            if best_match is None or len(known_venue) > len(best_match):
+                best_match = known_venue
+
+    return best_match
+
+
 def get_venue_coordinates(
     venue_name: Optional[str] = None,
     street_address: Optional[str] = None
@@ -210,19 +341,11 @@ def get_venue_coordinates(
     Returns:
         Tuple of (latitude, longitude) or (None, None) if not found
     """
-    # Try venue name first
-    if venue_name:
-        key = venue_name.lower().strip()
-        if key in VENUE_COORDINATES:
-            coords = VENUE_COORDINATES[key]
-            logger.debug(f"Found coordinates for venue '{venue_name}': {coords}")
-            return coords
-
-        # Try partial matching for common variations
-        for known_venue, coords in VENUE_COORDINATES.items():
-            if known_venue in key or key in known_venue:
-                logger.debug(f"Partial match for '{venue_name}' -> '{known_venue}': {coords}")
-                return coords
+    matched = _match_venue_key(venue_name)
+    if matched:
+        coords = VENUE_COORDINATES[matched]
+        logger.debug(f"Matched venue '{venue_name}' -> '{matched}': {coords}")
+        return coords
 
     # Try address
     if street_address:
@@ -237,6 +360,35 @@ def get_venue_coordinates(
                 return coords
 
     return None, None
+
+
+def get_venue_city(
+    venue_name: Optional[str] = None,
+    street_address: Optional[str] = None,
+) -> Optional[str]:
+    """
+    Infer the city for a venue so scrapers that leave `city` blank don't all get
+    defaulted to Cambridge.
+
+    Resolution order:
+      1. Known non-Cambridge venue (Somerville, Boston, Arlington, ...).
+      2. A nearby city named explicitly in the venue name / address text.
+      3. Any other known venue -> Cambridge.
+      4. Unknown -> None (let the caller decide the default).
+    """
+    matched = _match_venue_key(venue_name)
+    if matched and matched in VENUE_CITIES:
+        return VENUE_CITIES[matched]
+
+    text = f"{venue_name or ''} {street_address or ''}".lower()
+    for city in KNOWN_NEARBY_CITIES:
+        if re.search(r'\b' + re.escape(city) + r'\b', text):
+            return city.title()
+
+    if matched:
+        return "Cambridge"
+
+    return None
 
 
 def add_coordinates_to_event(event_dict: dict) -> dict:

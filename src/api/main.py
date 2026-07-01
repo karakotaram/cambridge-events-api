@@ -764,6 +764,32 @@ def generate_ics(event: Event) -> str:
         location_parts.append(event.state)
     location = ", ".join(location_parts)
 
+    # Resolve coordinates so Apple Calendar drops a real map pin instead of
+    # geocoding the free-text location (which often resolves to the wrong POI).
+    lat = event.latitude
+    lng = event.longitude
+    if lat is None or lng is None:
+        from src.utils.geocoder import get_venue_coordinates
+        lat, lng = get_venue_coordinates(event.venue_name, event.street_address)
+
+    def escape_ics_param(text: str) -> str:
+        """Sanitize a value for use inside a quoted ICS property parameter."""
+        if not text:
+            return ""
+        return text.replace('"', "").replace("\n", " ").replace("\r", " ")
+
+    geo_lines = ""
+    if lat is not None and lng is not None:
+        geo_title = event.venue_name or location or event.title
+        geo_lines = (
+            f"\nGEO:{lat};{lng}"
+            f"\nX-APPLE-STRUCTURED-LOCATION;VALUE=URI;"
+            f'X-ADDRESS="{escape_ics_param(location)}";'
+            f"X-APPLE-RADIUS=100;"
+            f'X-TITLE="{escape_ics_param(geo_title)}"'
+            f":geo:{lat},{lng}"
+        )
+
     # Calculate end time (default to 2 hours after start if not specified)
     start_dt = event.start_datetime
     if event.end_datetime:
@@ -789,7 +815,7 @@ DTSTART:{format_ics_datetime(start_dt)}
 DTEND:{format_ics_datetime(end_dt)}
 SUMMARY:{escape_ics_text(event.title)}
 DESCRIPTION:{escape_ics_text(description)}
-LOCATION:{escape_ics_text(location)}
+LOCATION:{escape_ics_text(location)}{geo_lines}
 URL:{event.source_url or ""}
 END:VEVENT
 END:VCALENDAR"""

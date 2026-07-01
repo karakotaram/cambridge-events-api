@@ -98,9 +98,12 @@ class EventValidator:
         if event.street_address:
             event.street_address = EventValidator.clean_text(event.street_address)
 
-        # Ensure city/state defaults
+        # Ensure city/state defaults. Infer the city from the venue (so Somerville
+        # and Boston venues aren't silently stamped "Cambridge") before falling
+        # back to the Cambridge default.
         if not event.city:
-            event.city = "Cambridge"
+            from src.utils.geocoder import get_venue_city
+            event.city = get_venue_city(event.venue_name, event.street_address) or "Cambridge"
 
         if not event.state:
             event.state = "MA"
