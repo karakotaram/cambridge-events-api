@@ -1,10 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-01T10:19:17.429596",
-  "total_events": 1949,
-  "total_sources": 24,
+  "timestamp": "2026-07-01T18:01:55.116390",
+  "total_events": 2000,
+  "total_sources": 28,
   "history_runs": 6,
   "alerts": [
+    {
+      "source": "Central Square Theater",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 39.5,
+      "message": "0 events (avg: 40) - scraper may be broken"
+    },
+    {
+      "source": "Somerville Theatre",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 11.0,
+      "message": "0 events (avg: 11) - scraper may be broken"
+    },
     {
       "source": "Porter Square Books",
       "severity": "CRITICAL",
@@ -13,18 +27,18 @@
       "message": "0 events (avg: 18) - scraper may be broken"
     },
     {
-      "source": "Central Square Theater",
+      "source": "Harvard Book Store",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 39.2,
-      "message": "0 events (avg: 39) - scraper may be broken"
+      "average": 56.0,
+      "message": "0 events (avg: 56) - scraper may be broken"
     },
     {
-      "source": "The Mad Monkfish",
+      "source": "Aeronaut Brewing",
       "severity": "WARNING",
-      "current": 2,
-      "average": 4.3,
-      "message": "2 events vs avg 4 (46%)"
+      "current": 4,
+      "average": 8.2,
+      "message": "4 events vs avg 8 (49%)"
     },
     {
       "source": "Sanders Theatre",
@@ -34,9 +48,9 @@
       "message": "Source disappeared from data (avg: 3)"
     }
   ],
-  "diagnosis": "Here are the most likely reasons:\n* Website structure change: The venue's website layout or HTML structure has changed, breaking the scraper.\n* New anti-scraping measures: The website has implemented anti-scraping techniques, such as CAPTCHAs or rate limiting.\n* Changed event listing format: The format of the event listings has changed, making it difficult for the scraper to parse.\n* Server-side rendering: The website has switched to server-side rendering, making it harder for the scraper to access the event data.",
+  "diagnosis": null,
   "summary": {
-    "critical": 2,
+    "critical": 4,
     "warning": 1,
     "missing": 1
   }
