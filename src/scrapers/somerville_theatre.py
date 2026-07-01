@@ -1,7 +1,6 @@
 """Custom scraper for Somerville Theatre events"""
 import logging
 import re
-import cloudscraper
 from datetime import datetime
 from typing import List, Optional
 from dateutil import parser as date_parser
@@ -32,10 +31,19 @@ class SomervilleTheatreScraper(BaseScraper):
         super().__init__(
             source_name="Somerville Theatre",
             source_url="https://www.somervilletheatre.com/events/",
-            use_selenium=False  # Using cloudscraper instead
+            use_selenium=False
         )
-        # Use cloudscraper to bypass Cloudflare protection
-        self.scraper = cloudscraper.create_scraper()
+
+    def get_browser_headers(self) -> dict:
+        # The site's Cloudflare blocks the default Chrome UA (403) but serves a
+        # Safari UA. cloudscraper (used previously) fails the TLS handshake here.
+        return {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+        }
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Somerville Theatre"""
@@ -43,11 +51,10 @@ class SomervilleTheatreScraper(BaseScraper):
         seen_events = set()
 
         try:
-            # Fetch page with cloudscraper (bypasses Cloudflare protection)
-            response = self.scraper.get(self.source_url, timeout=30)
-            response.raise_for_status()
-            html = response.text
-            logger.info(f"Fetched page with cloudscraper, status {response.status_code}, {len(html)} chars")
+            # cloudscraper's custom SSL adapter fails the TLS handshake against
+            # this host on modern OpenSSL; plain requests negotiates fine.
+            html = self.fetch_html(self.source_url)
+            logger.info(f"Fetched Somerville Theatre page, {len(html)} chars")
         except Exception as e:
             logger.error(f"Failed to fetch page: {e}")
             return events

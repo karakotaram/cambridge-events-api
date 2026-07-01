@@ -2,7 +2,7 @@
 import logging
 import re
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from dateutil import parser as date_parser
 
 from src.scrapers.base_scraper import BaseScraper
@@ -36,196 +36,138 @@ class HarvardBookStoreScraper(BaseScraper):
         import requests
 
         try:
-            # Navigate to event page
             full_url = event_url if event_url.startswith('http') else f"https://www.harvard.com{event_url}"
             response = requests.get(full_url, timeout=30, headers=self.get_browser_headers())
             response.raise_for_status()
-
-            # Parse the page
             soup = self.parse_html(response.text)
 
-            # Find description paragraphs
-            description_parts = []
-
-            # Look for event description in common containers
-            for selector in ['.field-name-field-event-description', '.event-description', '.field-type-text-with-summary']:
-                desc_div = soup.find(class_=lambda c: c and selector.replace('.', '') in c if c else False)
-                if desc_div:
-                    paragraphs = desc_div.find_all('p')
-                    for p in paragraphs:
-                        text = self.clean_text(p.get_text())
-                        if len(text) > 20:
-                            description_parts.append(text)
-
-            # If no specific description found, try general content areas
-            if not description_parts:
-                content_area = soup.find('div', class_='region-content')
-                if content_area:
-                    paragraphs = content_area.find_all('p')
-                    for p in paragraphs:
-                        text = self.clean_text(p.get_text())
-                        # Filter out navigation/footer text
-                        if len(text) > 30 and not any(skip in text.lower() for skip in ['view all events', 'buy the book', 'add to cart']):
-                            description_parts.append(text)
-
-            if description_parts:
-                full_description = ' '.join(description_parts[:3])  # Take first 3 paragraphs
-                return full_description[:2000] if len(full_description) > 2000 else full_description
-
+            # The event body renders in one or more `.aba-body` blocks; take the
+            # longest substantial one as the description.
+            blocks = [self.clean_text(b.get_text(' ')) for b in soup.find_all(class_='aba-body')]
+            blocks = [b for b in blocks if len(b) > 30]
+            if blocks:
+                return max(blocks, key=len)[:2000]
             return ""
-        except Exception as e:
+        except Exception:
             return ""
 
-    def _fetch_page_items(self, page: int) -> list:
-        """Fetch event item elements from a single page."""
-        url = f"{self.source_url}?page={page}" if page > 0 else self.source_url
-        html = self.fetch_html(url)
-        soup = self.parse_html(html)
-        view_content = soup.find(class_='view-content')
-        if not view_content:
-            return []
-        return view_content.find_all('div', class_='views-row')
+    @staticmethod
+    def _detail_item(row, label: str) -> str:
+        """Return the value of an `event-list__details--item` by its label (e.g. Date/Time)."""
+        for item in row.find_all(class_='event-list__details--item'):
+            lab = item.find(class_='event-list__details--label')
+            if lab and lab.get_text(strip=True).rstrip(':').lower() == label.lower():
+                full = ' '.join(item.get_text(' ', strip=True).split())
+                return full.replace(lab.get_text(strip=True), '', 1).strip()
+        return ""
+
+    def _parse_row(self, row) -> Optional[EventCreate]:
+        """Parse a single `.views-row` from the events listing."""
+        title_elem = row.find(class_='event-list__title')
+        link = title_elem.find('a', href=True) if title_elem else None
+        if not link:
+            return None
+        title = self.clean_text(link.get_text())
+        if len(title) < 3:
+            return None
+
+        href = link.get('href', '')
+        event_url = href if href.startswith('http') else f"https://www.harvard.com{href}"
+
+        # Date/time live in labeled detail items: "Wed, 7/1/2026" + "7:00pm - 8:00pm"
+        date_str = self._detail_item(row, 'Date')
+        if not date_str:
+            return None
+        time_str = self._detail_item(row, 'Time')
+        start_part = time_str.split('-')[0].strip() if time_str else ''
+        try:
+            start_datetime = date_parser.parse(f"{date_str} {start_part}".strip(), fuzzy=True)
+        except Exception:
+            return None
+
+        # Venue / address parsed from the location <address> block
+        venue_name = "Harvard Book Store"
+        street_address, city, state, zip_code = "1256 Massachusetts Ave", "Cambridge", "MA", "02138"
+        loc = row.find(class_='event-details__location--location')
+        addr = loc.find('address') if loc else None
+        if addr:
+            lines = [ln.strip() for ln in addr.get_text('\n').split('\n') if ln.strip()]
+            if lines:
+                venue_name = lines[0]
+            if len(lines) >= 2:
+                street_address = lines[1]
+            if len(lines) >= 3:
+                m = re.match(r'(?P<city>[^,]+),\s*(?P<state>[A-Z]{2})\s*(?P<zip>\d{5})', lines[2])
+                if m:
+                    city, state, zip_code = m.group('city').strip(), m.group('state'), m.group('zip')
+
+        # Cost from tags (Free / Ticketed)
+        cost = None
+        for tag in row.find_all(class_='event-tag__term'):
+            t = tag.get_text(strip=True).lower()
+            if t == 'free':
+                cost = "Free"
+            elif t.startswith('ticket'):
+                cost = "Ticketed"
+
+        # Description: full text from the detail page, else the listing body, else title
+        description = self.fetch_event_description(event_url)
+        if not description or len(description) < 20:
+            body = row.find(class_='event-list__body')
+            if body:
+                description = self.clean_text(body.get_text())
+        if not description or len(description) < 20:
+            description = f"{title} at {venue_name}"
+
+        # Image
+        image_url = None
+        img_wrap = row.find(class_='event-list__image')
+        img = img_wrap.find('img', src=True) if img_wrap else None
+        if img:
+            src = img.get('src', '')
+            image_url = src if src.startswith('http') else f"https://www.harvard.com{src}"
+
+        category = self.categorize_event(title, description)
+
+        return EventCreate(
+            title=title[:200],
+            description=description[:2000],
+            start_datetime=start_datetime,
+            source_url=event_url or self.source_url,
+            source_name=self.source_name,
+            venue_name=venue_name[:150],
+            street_address=street_address[:200],
+            city=city,
+            state=state,
+            zip_code=zip_code,
+            category=category,
+            cost=cost,
+            image_url=image_url,
+        )
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from Harvard Book Store (all pages)"""
-        events = []
+        """Scrape events from Harvard Book Store.
 
-        # Fetch first page and detect pagination
+        The listing (harvard.com/events) renders all upcoming events on a single
+        page as `.views-row` items; there is no server-side pagination.
+        """
         html = self.fetch_html(self.source_url)
         soup = self.parse_html(html)
 
-        # Determine total pages from pager
-        max_page = 0
-        pager = soup.find(class_='pager')
-        if pager:
-            last_li = pager.find('li', class_='pager-last')
-            if last_li:
-                last_link = last_li.find('a')
-                if last_link:
-                    href = last_link.get('href', '')
-                    page_match = re.search(r'page=(\d+)', href)
-                    if page_match:
-                        max_page = int(page_match.group(1))
+        rows = soup.find_all('div', class_='views-row')
+        logger.info(f"Found {len(rows)} event rows")
 
-        # Collect event items from all pages
-        event_items = []
-        view_content = soup.find(class_='view-content')
-        if view_content:
-            event_items.extend(view_content.find_all('div', class_='views-row'))
-
-        for page in range(1, max_page + 1):
-            page_items = self._fetch_page_items(page)
-            if not page_items:
-                break
-            event_items.extend(page_items)
-
-        logger.info(f"Found {len(event_items)} event items across {max_page + 1} pages")
-
-        for item in event_items:
+        events = []
+        for row in rows:
             try:
-                # Extract title
-                title_elem = item.find('h2')
-                if not title_elem:
-                    continue
-
-                title_link = title_elem.find('a')
-                if not title_link:
-                    continue
-
-                title = self.clean_text(title_link.get_text())
-                if len(title) < 3:
-                    continue
-
-                # Extract event URL
-                event_url = title_link.get('href', '')
-                if event_url and not event_url.startswith('http'):
-                    event_url = f"https://www.harvard.com{event_url}"
-
-                # Extract date/time
-                date_elem = item.find(class_='date-display-single')
-                if not date_elem:
-                    continue
-
-                date_text = self.clean_text(date_elem.get_text())
-
-                # Parse the datetime
-                try:
-                    start_datetime = date_parser.parse(date_text, fuzzy=True)
-                except:
-                    continue
-
-                # Extract location
-                location_elem = item.find(class_='location')
-                venue_name = "Harvard Book Store"  # Default
-                if location_elem:
-                    location_text = self.clean_text(location_elem.get_text())
-                    if location_text and location_text != "Harvard Book Store":
-                        venue_name = location_text
-
-                # Extract cost info
-                cost = None
-                cost_elem = item.find(class_='cost')
-                if cost_elem:
-                    cost_text = self.clean_text(cost_elem.get_text())
-                    if 'free' in cost_text.lower():
-                        cost = "Free"
-                    elif 'ticketed' in cost_text.lower() or '$' in cost_text:
-                        # Try to extract dollar amount
-                        cost_match = re.search(r'\$(\d+(?:\.\d{2})?)', cost_text)
-                        if cost_match:
-                            cost = f"${cost_match.group(1)}"
-                        else:
-                            cost = "Ticketed"
-
-                # Fetch description from detail page if available
-                description = ""
-                if event_url:
-                    description = self.fetch_event_description(event_url)
-
-                # Fallback description from subtitle
-                if not description or len(description) < 20:
-                    subtitle_elem = item.find(class_='subtitle')
-                    if subtitle_elem:
-                        description = self.clean_text(subtitle_elem.get_text())
-
-                # Final fallback
-                if not description or len(description) < 20:
-                    description = f"{title} at {venue_name}"
-
-                # Harvard Book Store location (default to Cambridge)
-                street_address = "1256 Massachusetts Ave"
-                city = "Cambridge"
-                state = "MA"
-                zip_code = "02138"
-
-                # Check if event is at a different venue
-                if "Brattle" in venue_name:
-                    street_address = "40 Brattle St"
-                    zip_code = "02138"
-
-                # Categorize events
-                category = self.categorize_event(title, description)
-
-                event = EventCreate(
-                    title=title[:200],
-                    description=description[:2000],
-                    start_datetime=start_datetime,
-                    source_url=event_url or self.source_url,
-                    source_name=self.source_name,
-                    venue_name=venue_name[:200],
-                    street_address=street_address,
-                    city=city,
-                    state=state,
-                    zip_code=zip_code,
-                    category=category,
-                    cost=cost
-                )
-                events.append(event)
-
+                event = self._parse_row(row)
+                if event:
+                    events.append(event)
             except Exception as e:
-                # Log error but continue processing other events
+                logger.warning(f"Error parsing Harvard Book Store event: {e}")
                 continue
 
+        logger.info(f"Parsed {len(events)} events from Harvard Book Store")
         return events
 
     def categorize_event(self, title: str, description: str) -> EventCategory:
