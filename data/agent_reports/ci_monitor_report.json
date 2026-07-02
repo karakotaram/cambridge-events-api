@@ -1,13 +1,18 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-01T18:01:56.066826",
-  "total_events": 2000,
+  "timestamp": "2026-07-02T09:41:15.168950",
+  "total_events": 1932,
   "total_sources_registered": 38,
-  "total_sources_with_events": 28,
+  "total_sources_with_events": 23,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
       "event_count": 27,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "Harvard Book Store",
+      "event_count": 21,
       "days_since_scrape": 0
     },
     {
@@ -21,13 +26,8 @@
       "days_since_scrape": 0
     },
     {
-      "source": "The Dance Complex",
-      "event_count": 14,
-      "days_since_scrape": 0
-    },
-    {
       "source": "BostonShows.org",
-      "event_count": 994,
+      "event_count": 996,
       "days_since_scrape": 0
     },
     {
@@ -42,12 +42,12 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 73,
+      "event_count": 72,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 11,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
@@ -67,7 +67,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 228,
+      "event_count": 235,
       "days_since_scrape": 0
     },
     {
@@ -92,32 +92,17 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 183,
+      "event_count": 181,
       "days_since_scrape": 0
     },
     {
       "source": "Aeronaut Brewing",
-      "event_count": 4,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
-      "source": "MIT Events",
-      "event_count": 20,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "MIT Music & Theater",
-      "event_count": 1,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Cambridge Public Library",
-      "event_count": 4,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Skip the Small Talk",
-      "event_count": 20,
+      "source": "Somerville Theatre",
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -129,8 +114,8 @@
   "stale": [],
   "missing": [
     {
-      "source": "Harvard Book Store",
-      "ci": false,
+      "source": "The Dance Complex",
+      "ci": true,
       "issue": "No events in data"
     },
     {
@@ -169,12 +154,17 @@
       "issue": "No events in data"
     },
     {
-      "source": "Somerville Theatre",
-      "ci": false,
+      "source": "Longy School of Music",
+      "ci": true,
       "issue": "No events in data"
     },
     {
-      "source": "Longy School of Music",
+      "source": "MIT Events",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
+      "source": "MIT Music & Theater",
       "ci": true,
       "issue": "No events in data"
     },
@@ -184,7 +174,17 @@
       "issue": "No events in data"
     },
     {
+      "source": "Cambridge Public Library",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
       "source": "MIT Open Space",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
+      "source": "Skip the Small Talk",
       "ci": true,
       "issue": "No events in data"
     },
@@ -207,20 +207,12 @@
     {
       "source": "The Sinclair",
       "event_count": 10
-    },
-    {
-      "source": "Museum of Science",
-      "event_count": 16
-    },
-    {
-      "source": "Regent Theatre",
-      "event_count": 29
     }
   ],
   "summary": {
-    "healthy": 24,
+    "healthy": 21,
     "stale": 0,
-    "missing": 14,
-    "unregistered": 4
+    "missing": 17,
+    "unregistered": 2
   }
 }
