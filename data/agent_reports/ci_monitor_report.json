@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-02T09:41:15.168950",
-  "total_events": 1932,
+  "timestamp": "2026-07-03T09:45:47.897443",
+  "total_events": 1939,
   "total_sources_registered": 38,
   "total_sources_with_events": 23,
   "healthy": [
@@ -13,12 +13,12 @@
     {
       "source": "Harvard Book Store",
       "event_count": 21,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "The Comedy Studio",
@@ -42,22 +42,22 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 72,
+      "event_count": 66,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 6,
+      "event_count": 8,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 41,
+      "event_count": 42,
       "days_since_scrape": 0
     },
     {
       "source": "The Mad Monkfish",
-      "event_count": 2,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -67,7 +67,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 235,
+      "event_count": 237,
       "days_since_scrape": 0
     },
     {
@@ -92,23 +92,23 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 181,
+      "event_count": 180,
       "days_since_scrape": 0
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Somerville Theatre",
       "event_count": 9,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "User Submitted",
-      "event_count": 165,
-      "days_since_scrape": 1
+      "event_count": 167,
+      "days_since_scrape": 0
     }
   ],
   "stale": [],
