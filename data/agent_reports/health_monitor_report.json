@@ -1,8 +1,8 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-03T09:45:46.205296",
-  "total_events": 1939,
-  "total_sources": 23,
+  "timestamp": "2026-07-04T09:02:03.236888",
+  "total_events": 1967,
+  "total_sources": 24,
   "history_runs": 6,
   "alerts": [
     {
@@ -13,11 +13,32 @@
       "message": "0 events (avg: 20) - scraper may be broken"
     },
     {
+      "source": "Museum of Science",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 16.0,
+      "message": "0 events (avg: 16) - scraper may be broken"
+    },
+    {
       "source": "MIT Events",
       "severity": "CRITICAL",
       "current": 0,
       "average": 20.0,
       "message": "0 events (avg: 20) - scraper may be broken"
+    },
+    {
+      "source": "Porter Square Books",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 18.0,
+      "message": "0 events (avg: 18) - scraper may be broken"
+    },
+    {
+      "source": "Regent Theatre",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 29.0,
+      "message": "0 events (avg: 29) - scraper may be broken"
     },
     {
       "source": "Central Square Theater",
@@ -28,31 +49,10 @@
     },
     {
       "source": "The Dance Complex",
-      "severity": "CRITICAL",
-      "current": 0,
-      "average": 11.5,
-      "message": "0 events (avg: 12) - scraper may be broken"
-    },
-    {
-      "source": "Regent Theatre",
-      "severity": "CRITICAL",
-      "current": 0,
-      "average": 29.0,
-      "message": "0 events (avg: 29) - scraper may be broken"
-    },
-    {
-      "source": "Museum of Science",
-      "severity": "CRITICAL",
-      "current": 0,
-      "average": 16.0,
-      "message": "0 events (avg: 16) - scraper may be broken"
-    },
-    {
-      "source": "Porter Square Books",
-      "severity": "CRITICAL",
-      "current": 0,
-      "average": 18.0,
-      "message": "0 events (avg: 18) - scraper may be broken"
+      "severity": "WARNING",
+      "current": 1,
+      "average": 9.5,
+      "message": "1 events vs avg 10 (11%)"
     },
     {
       "source": "Cambridge Public Library",
@@ -67,19 +67,12 @@
       "current": 0,
       "average": 1.0,
       "message": "Source disappeared from data (avg: 1)"
-    },
-    {
-      "source": "Sanders Theatre",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 3.0,
-      "message": "Source disappeared from data (avg: 3)"
     }
   ],
-  "diagnosis": "Here are the most likely reasons:\n* Website structure change: The venue's website layout or HTML has changed, breaking the scraper.\n* New anti-scraping measures: The website has implemented anti-scraping techniques, such as CAPTCHAs or rate limiting.\n* Changed event listing format: The format of event listings has changed, making it hard for the scraper to parse.\n* Server-side rendering: The website now uses server-side rendering, making it difficult for the scraper to access the content.",
+  "diagnosis": "Here are the most likely reasons:\n* Website structure change: The venue's website layout or HTML structure has changed, breaking the scraper.\n* New anti-scraping measures: The website has implemented anti-scraping techniques, such as CAPTCHAs or rate limiting.\n* Changed event listing format: The format of the event listings has changed, making it hard for the scraper to parse.\n* Server-side rendering: The website is now using server-side rendering, making it difficult for the scraper to access the event data.",
   "summary": {
-    "critical": 7,
-    "warning": 0,
-    "missing": 3
+    "critical": 6,
+    "warning": 1,
+    "missing": 2
   }
 }
