@@ -1,24 +1,10 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-04T09:02:03.236888",
-  "total_events": 1967,
+  "timestamp": "2026-07-05T09:34:19.119267",
+  "total_events": 1994,
   "total_sources": 24,
   "history_runs": 6,
   "alerts": [
-    {
-      "source": "Skip the Small Talk",
-      "severity": "CRITICAL",
-      "current": 0,
-      "average": 20.0,
-      "message": "0 events (avg: 20) - scraper may be broken"
-    },
-    {
-      "source": "Museum of Science",
-      "severity": "CRITICAL",
-      "current": 0,
-      "average": 16.0,
-      "message": "0 events (avg: 16) - scraper may be broken"
-    },
     {
       "source": "MIT Events",
       "severity": "CRITICAL",
@@ -27,11 +13,11 @@
       "message": "0 events (avg: 20) - scraper may be broken"
     },
     {
-      "source": "Porter Square Books",
+      "source": "Skip the Small Talk",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 18.0,
-      "message": "0 events (avg: 18) - scraper may be broken"
+      "average": 20.0,
+      "message": "0 events (avg: 20) - scraper may be broken"
     },
     {
       "source": "Regent Theatre",
@@ -41,25 +27,11 @@
       "message": "0 events (avg: 29) - scraper may be broken"
     },
     {
-      "source": "Central Square Theater",
+      "source": "Museum of Science",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 40.0,
-      "message": "0 events (avg: 40) - scraper may be broken"
-    },
-    {
-      "source": "The Dance Complex",
-      "severity": "WARNING",
-      "current": 1,
-      "average": 9.5,
-      "message": "1 events vs avg 10 (11%)"
-    },
-    {
-      "source": "Cambridge Public Library",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 4.0,
-      "message": "Source disappeared from data (avg: 4)"
+      "average": 16.0,
+      "message": "0 events (avg: 16) - scraper may be broken"
     },
     {
       "source": "MIT Music & Theater",
@@ -67,12 +39,19 @@
       "current": 0,
       "average": 1.0,
       "message": "Source disappeared from data (avg: 1)"
+    },
+    {
+      "source": "Cambridge Public Library",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 4.0,
+      "message": "Source disappeared from data (avg: 4)"
     }
   ],
-  "diagnosis": "Here are the most likely reasons:\n* Website structure change: The venue's website layout or HTML structure has changed, breaking the scraper.\n* New anti-scraping measures: The website has implemented anti-scraping techniques, such as CAPTCHAs or rate limiting.\n* Changed event listing format: The format of the event listings has changed, making it hard for the scraper to parse.\n* Server-side rendering: The website is now using server-side rendering, making it difficult for the scraper to access the event data.",
+  "diagnosis": "Here are the most likely reasons:\n* Website structure change: The venue's website layout or HTML structure has changed, breaking the scraper.\n* New anti-scraping measures: The website has implemented anti-scraping techniques, such as CAPTCHAs or rate limiting.\n* Changed event listing format: The format of the event listings has changed, making it difficult for the scraper to parse the data.\n* Server-side rendering: The website is now using server-side rendering, making it harder for the scraper to access the event data.",
   "summary": {
-    "critical": 6,
-    "warning": 1,
+    "critical": 4,
+    "warning": 0,
     "missing": 2
   }
 }
