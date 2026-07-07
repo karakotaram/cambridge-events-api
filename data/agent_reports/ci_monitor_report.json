@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-06T11:09:35.348141",
-  "total_events": 1977,
+  "timestamp": "2026-07-07T10:10:08.021441",
+  "total_events": 1975,
   "total_sources_registered": 38,
   "total_sources_with_events": 24,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 16,
+      "event_count": 17,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 21,
-      "days_since_scrape": 4
+      "days_since_scrape": 5
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 4
+      "days_since_scrape": 5
     },
     {
       "source": "The Comedy Studio",
@@ -27,12 +27,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 8,
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1031,
+      "event_count": 1026,
       "days_since_scrape": 0
     },
     {
@@ -47,17 +47,17 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 58,
+      "event_count": 55,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 8,
+      "event_count": 11,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 40,
+      "event_count": 41,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 258,
+      "event_count": 262,
       "days_since_scrape": 0
     },
     {
@@ -87,7 +87,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 23,
+      "event_count": 21,
       "days_since_scrape": 0
     },
     {
@@ -103,12 +103,12 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 4
+      "days_since_scrape": 5
     },
     {
       "source": "Somerville Theatre",
       "event_count": 9,
-      "days_since_scrape": 4
+      "days_since_scrape": 5
     },
     {
       "source": "User Submitted",
