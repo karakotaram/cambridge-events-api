@@ -218,6 +218,52 @@ class ScraperOrchestrator:
         logger.info(f"Saved {len(all_events)} events to {output_file} ({len(events)} new, {len(preserved_events)} preserved)")
 
 
+def prune_orphaned_featured(featured_file: str = "data/featured.json",
+                            events_file: str = "data/events.json"):
+    """Remove Editor's Picks entries that no longer point at a live upcoming event.
+
+    An entry is kept only if some event in events.json matches its title +
+    source_name AND has a start_datetime on or after today (Eastern). This keeps
+    featured.json from accumulating orphaned/past entries as events roll off.
+
+    Safe by design: if events.json is missing/empty/unreadable it is a no-op, so a
+    failed scrape can never wipe the featured list.
+    """
+    if not os.path.exists(featured_file) or not os.path.exists(events_file):
+        return
+    try:
+        with open(featured_file) as f:
+            featured = json.load(f)
+        with open(events_file) as f:
+            events = json.load(f)
+    except Exception as e:
+        logger.warning(f"prune_orphaned_featured: could not load files ({e}); skipping")
+        return
+    if not featured or not events:
+        return
+
+    from src.models.event import EASTERN_TZ
+    today = datetime.now(EASTERN_TZ).strftime("%Y-%m-%d")
+
+    def has_upcoming_match(entry: dict) -> bool:
+        title = entry.get("title")
+        source = entry.get("source_name")
+        for e in events:
+            if (e.get("title") == title and e.get("source_name") == source
+                    and str(e.get("start_datetime", ""))[:10] >= today):
+                return True
+        return False
+
+    kept = [e for e in featured if has_upcoming_match(e)]
+    removed = len(featured) - len(kept)
+    if removed:
+        with open(featured_file, "w") as f:
+            json.dump(kept, f, indent=2)
+        logger.info(f"Pruned {removed} orphaned/past featured entries ({len(kept)} remain)")
+    else:
+        logger.info(f"Featured entries all valid ({len(kept)} upcoming)")
+
+
 def main():
     """Main execution function"""
     logger.info("=" * 80)
@@ -290,6 +336,12 @@ def main():
     logger.info("=" * 80)
     logger.info(f"SCRAPING COMPLETE - {len(events)} events collected")
     logger.info("=" * 80)
+
+    # Keep Editor's Picks free of orphaned/past entries (non-fatal)
+    try:
+        prune_orphaned_featured()
+    except Exception as e:
+        logger.warning(f"Featured prune failed (non-fatal): {e}")
 
     # Run monitoring agents (non-fatal)
     try:
