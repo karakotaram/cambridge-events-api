@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-08T08:54:59.926090",
-  "total_events": 1994,
+  "timestamp": "2026-07-09T10:13:15.512758",
+  "total_events": 1991,
   "total_sources_registered": 38,
   "total_sources_with_events": 24,
   "healthy": [
@@ -13,12 +13,12 @@
     {
       "source": "Harvard Book Store",
       "event_count": 21,
-      "days_since_scrape": 6
+      "days_since_scrape": 7
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 6
+      "days_since_scrape": 7
     },
     {
       "source": "The Comedy Studio",
@@ -27,17 +27,17 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 17,
+      "event_count": 8,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1040,
+      "event_count": 1046,
       "days_since_scrape": 0
     },
     {
       "source": "First Parish in Cambridge",
-      "event_count": 1,
+      "event_count": 2,
       "days_since_scrape": 0
     },
     {
@@ -47,12 +47,12 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 53,
+      "event_count": 51,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 8,
+      "event_count": 11,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 263,
+      "event_count": 265,
       "days_since_scrape": 0
     },
     {
@@ -92,28 +92,28 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 12,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 175,
+      "event_count": 173,
       "days_since_scrape": 0
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 6
+      "days_since_scrape": 7
     },
     {
       "source": "Somerville Theatre",
       "event_count": 9,
-      "days_since_scrape": 6
+      "days_since_scrape": 7
     },
     {
       "source": "User Submitted",
       "event_count": 171,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [],
