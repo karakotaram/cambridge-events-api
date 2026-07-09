@@ -61665,5 +61665,41 @@
     "image_url": "https://www.instagram.com/p/DaDmnqmlF1n/?img_index=1",
     "recurring_pattern": null,
     "featured": false
+  },
+  {
+    "id": "d692fab0-4101-4cc1-9552-3bc97f282945",
+    "title": "Debate: Marjorie Decker & Evan MacKay - hosted by Cambridge Day",
+    "description": "Who should represent the 25th Middlesex in the State House?\n\nJoin Cambridge Day for a live debate between Marjorie Decker and Evan MacKay. Moderated by Cambridge Day Editor-in-Chief Michael F. Fitzgerald and Senior Reporter Ruth Tam, this is an opportunity to see both candidates address the issues that matter most--and ask them your questions directly during an opportunity to mingle after the debate. Join us at the new Street Theory Collective space, which is hosting an art exhibit focused on people of Cambridge.\n\nCambridge Day is a nonprofit serving the broader Cambridge/Somerville community. To support our mission, visit CambridgeDay.com/donate",
+    "start_datetime": "2026-07-14T19:00:00",
+    "end_datetime": "2026-07-14T21:00:00",
+    "all_day": false,
+    "venue_name": "Street Theory Collective",
+    "street_address": "541 Massachusetts Ave",
+    "city": "Cambridge",
+    "state": "MA",
+    "zip_code": "02139",
+    "latitude": 42.3647724,
+    "longitude": -71.1021077,
+    "category": "community",
+    "tags": [
+      "debate",
+      "politics",
+      "civic",
+      "cambridge day"
+    ],
+    "family_friendly": false,
+    "age_restrictions": null,
+    "cost": "Free",
+    "registration_required": true,
+    "source_url": "https://luma.com/cnl9oume",
+    "source_name": "User Submitted",
+    "scraped_at": "2026-07-09T19:04:16.382317",
+    "last_updated": "2026-07-09T19:04:16.382317",
+    "contact_email": null,
+    "contact_phone": null,
+    "website_url": "https://luma.com/cnl9oume",
+    "image_url": "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=1,anim=false,background=white,quality=75,width=1920,height=1920/uploads/zg/133fcc07-4f44-4b4a-9a96-ef0f7e3ba4ab.png",
+    "recurring_pattern": null,
+    "featured": false
   }
 ]
