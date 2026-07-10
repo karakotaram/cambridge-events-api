@@ -1,35 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2026-07-05T09:34:19.119267",
-      "counts": {
-        "Lamplighter Brewing": 19,
-        "BostonShows.org": 1036,
-        "City of Cambridge": 259,
-        "The Middle East": 19,
-        "The Comedy Studio": 30,
-        "The Dance Complex": 10,
-        "First Parish in Cambridge": 2,
-        "Harvard Art Museums": 26,
-        "Brattle Theatre": 62,
-        "Multicultural Arts Center": 8,
-        "The Rockwell": 40,
-        "The Mad Monkfish": 10,
-        "Mount Auburn Cemetery": 10,
-        "Harvard GSD": 1,
-        "The Sinclair": 10,
-        "The Lily Pad": 29,
-        "Portico Brewing": 24,
-        "Arts at the Armory": 12,
-        "American Repertory Theater": 178,
-        "User Submitted": 167,
-        "Harvard Book Store": 21,
-        "Boston Swing Central": 3,
-        "Aeronaut Brewing": 9,
-        "Somerville Theatre": 9
-      }
-    },
-    {
       "timestamp": "2026-07-06T11:09:32.956609",
       "counts": {
         "BostonShows.org": 1031,
@@ -139,6 +110,35 @@
         "Arts at the Armory": 10,
         "American Repertory Theater": 173,
         "User Submitted": 171,
+        "Harvard Book Store": 21,
+        "Boston Swing Central": 3,
+        "Aeronaut Brewing": 9,
+        "Somerville Theatre": 9
+      }
+    },
+    {
+      "timestamp": "2026-07-10T10:04:09.047588",
+      "counts": {
+        "BostonShows.org": 1057,
+        "City of Cambridge": 267,
+        "Lamplighter Brewing": 14,
+        "The Comedy Studio": 30,
+        "The Dance Complex": 3,
+        "First Parish in Cambridge": 2,
+        "Harvard Art Museums": 26,
+        "Brattle Theatre": 48,
+        "Multicultural Arts Center": 11,
+        "The Rockwell": 45,
+        "The Mad Monkfish": 10,
+        "Mount Auburn Cemetery": 10,
+        "Harvard GSD": 1,
+        "The Sinclair": 8,
+        "The Lily Pad": 29,
+        "The Middle East": 20,
+        "Portico Brewing": 22,
+        "Arts at the Armory": 10,
+        "American Repertory Theater": 172,
+        "User Submitted": 172,
         "Harvard Book Store": 21,
         "Boston Swing Central": 3,
         "Aeronaut Brewing": 9,
