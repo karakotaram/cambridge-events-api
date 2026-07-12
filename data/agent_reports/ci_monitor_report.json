@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-11T08:21:46.395844",
-  "total_events": 2104,
+  "timestamp": "2026-07-12T08:43:25.735183",
+  "total_events": 2080,
   "total_sources_registered": 38,
   "total_sources_with_events": 24,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 13,
+      "event_count": 23,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 21,
-      "days_since_scrape": 9
+      "days_since_scrape": 10
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 9
+      "days_since_scrape": 10
     },
     {
       "source": "The Comedy Studio",
@@ -27,12 +27,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 15,
+      "event_count": 11,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1056,
+      "event_count": 1037,
       "days_since_scrape": 0
     },
     {
@@ -42,12 +42,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 25,
+      "event_count": 23,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 139,
+      "event_count": 135,
       "days_since_scrape": 0
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "source": "The Rockwell",
-      "event_count": 44,
+      "event_count": 41,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 277,
+      "event_count": 276,
       "days_since_scrape": 0
     },
     {
@@ -87,7 +87,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 21,
+      "event_count": 20,
       "days_since_scrape": 0
     },
     {
@@ -97,23 +97,23 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 171,
+      "event_count": 168,
       "days_since_scrape": 0
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 9
+      "days_since_scrape": 10
     },
     {
       "source": "Somerville Theatre",
       "event_count": 9,
-      "days_since_scrape": 9
+      "days_since_scrape": 10
     },
     {
       "source": "User Submitted",
       "event_count": 172,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     }
   ],
   "stale": [],
@@ -206,7 +206,7 @@
     },
     {
       "source": "The Sinclair",
-      "event_count": 7
+      "event_count": 10
     }
   ],
   "summary": {
