@@ -1,24 +1,24 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-12T08:43:25.735183",
-  "total_events": 2080,
+  "timestamp": "2026-07-13T09:57:07.248679",
+  "total_events": 2065,
   "total_sources_registered": 38,
-  "total_sources_with_events": 24,
+  "total_sources_with_events": 23,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 23,
+      "event_count": 20,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Book Store",
       "event_count": 21,
-      "days_since_scrape": 10
+      "days_since_scrape": 11
     },
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 10
+      "days_since_scrape": 11
     },
     {
       "source": "The Comedy Studio",
@@ -32,12 +32,12 @@
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1037,
+      "event_count": 1038,
       "days_since_scrape": 0
     },
     {
       "source": "First Parish in Cambridge",
-      "event_count": 2,
+      "event_count": 1,
       "days_since_scrape": 0
     },
     {
@@ -47,17 +47,12 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 135,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Multicultural Arts Center",
-      "event_count": 9,
+      "event_count": 131,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 41,
+      "event_count": 39,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +67,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 276,
+      "event_count": 280,
       "days_since_scrape": 0
     },
     {
@@ -87,7 +82,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 20,
+      "event_count": 19,
       "days_since_scrape": 0
     },
     {
@@ -103,17 +98,17 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 10
+      "days_since_scrape": 11
     },
     {
       "source": "Somerville Theatre",
       "event_count": 9,
-      "days_since_scrape": 10
+      "days_since_scrape": 11
     },
     {
       "source": "User Submitted",
       "event_count": 172,
-      "days_since_scrape": 2
+      "days_since_scrape": 3
     }
   ],
   "stale": [],
@@ -125,6 +120,11 @@
     },
     {
       "source": "Grolier Poetry Book Shop",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
+      "source": "Multicultural Arts Center",
       "ci": true,
       "issue": "No events in data"
     },
@@ -210,9 +210,9 @@
     }
   ],
   "summary": {
-    "healthy": 22,
+    "healthy": 21,
     "stale": 0,
-    "missing": 16,
+    "missing": 17,
     "unregistered": 2
   }
 }
