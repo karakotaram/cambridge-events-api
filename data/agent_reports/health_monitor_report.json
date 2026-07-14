@@ -1,19 +1,19 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-13T09:57:05.547341",
-  "total_events": 2065,
+  "timestamp": "2026-07-14T08:38:17.278399",
+  "total_events": 2067,
   "total_sources": 23,
   "history_runs": 6,
   "alerts": [
     {
-      "source": "Multicultural Arts Center",
+      "source": "Arts at the Armory",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 9.6,
-      "message": "0 events (avg: 10) - scraper may be broken"
+      "average": 10.6,
+      "message": "0 events (avg: 11) - scraper may be broken"
     }
   ],
-  "diagnosis": "Here are the most likely reasons:\n* Website structure change: The venue's website layout or HTML structure was modified.\n* JavaScript rendering issue: The scraper doesn't handle JavaScript rendering, and the site now relies on it.\n* Changed event data source: The venue's event data is now fetched from a different API or source.\n* Anti-scraping measures: The website has implemented anti-scraping techniques, such as CAPTCHAs or rate limiting.",
+  "diagnosis": "Here are the most likely reasons:\n* Website structure change: The venue's website layout or HTML structure was modified, breaking the scraper.\n* New anti-scraping measures: The website implemented measures to prevent scraping, such as CAPTCHAs or rate limiting.\n* Changed event listing format: The format or URL of the event listings was altered, making it unrecognizable to the scraper.\n* Temporary website issues: The website is experiencing technical difficulties or maintenance, causing the scraper to fail.",
   "summary": {
     "critical": 1,
     "warning": 0,
