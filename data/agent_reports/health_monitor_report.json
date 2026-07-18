@@ -1,22 +1,14 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-17T08:41:36.184575",
-  "total_events": 2066,
+  "timestamp": "2026-07-18T08:19:33.765530",
+  "total_events": 2104,
   "total_sources": 24,
   "history_runs": 6,
-  "alerts": [
-    {
-      "source": "The Dance Complex",
-      "severity": "WARNING",
-      "current": 3,
-      "average": 10.0,
-      "message": "3 events vs avg 10 (30%)"
-    }
-  ],
+  "alerts": [],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 1,
+    "warning": 0,
     "missing": 0
   }
 }
