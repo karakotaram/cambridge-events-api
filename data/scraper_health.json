@@ -1,35 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2026-07-15T08:42:46.985329",
-      "counts": {
-        "BostonShows.org": 1024,
-        "City of Cambridge": 293,
-        "Lamplighter Brewing": 18,
-        "The Comedy Studio": 30,
-        "The Dance Complex": 16,
-        "First Parish in Cambridge": 1,
-        "Harvard Art Museums": 27,
-        "Brattle Theatre": 126,
-        "Multicultural Arts Center": 1,
-        "The Rockwell": 40,
-        "The Mad Monkfish": 10,
-        "Mount Auburn Cemetery": 10,
-        "Harvard GSD": 1,
-        "The Sinclair": 10,
-        "The Lily Pad": 29,
-        "The Middle East": 20,
-        "Portico Brewing": 19,
-        "Arts at the Armory": 11,
-        "American Repertory Theater": 168,
-        "User Submitted": 172,
-        "Harvard Book Store": 21,
-        "Boston Swing Central": 3,
-        "Aeronaut Brewing": 9,
-        "Somerville Theatre": 9
-      }
-    },
-    {
       "timestamp": "2026-07-16T08:42:20.396156",
       "counts": {
         "The Dance Complex": 10,
@@ -136,6 +107,34 @@
         "The Lily Pad": 29,
         "The Middle East": 20,
         "Portico Brewing": 16,
+        "Arts at the Armory": 9,
+        "American Repertory Theater": 168,
+        "User Submitted": 176,
+        "Harvard Book Store": 21,
+        "Boston Swing Central": 3,
+        "Aeronaut Brewing": 9,
+        "Somerville Theatre": 9
+      }
+    },
+    {
+      "timestamp": "2026-07-20T09:44:08.900525",
+      "counts": {
+        "The Dance Complex": 12,
+        "BostonShows.org": 1014,
+        "City of Cambridge": 283,
+        "Lamplighter Brewing": 17,
+        "The Comedy Studio": 30,
+        "Harvard Art Museums": 31,
+        "Brattle Theatre": 109,
+        "Multicultural Arts Center": 7,
+        "The Rockwell": 44,
+        "The Mad Monkfish": 10,
+        "Mount Auburn Cemetery": 10,
+        "Harvard GSD": 1,
+        "The Sinclair": 10,
+        "The Lily Pad": 29,
+        "The Middle East": 20,
+        "Portico Brewing": 15,
         "Arts at the Armory": 9,
         "American Repertory Theater": 168,
         "User Submitted": 176,
