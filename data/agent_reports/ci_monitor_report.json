@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-20T09:44:08.998413",
-  "total_events": 2037,
+  "timestamp": "2026-07-21T08:55:25.762492",
+  "total_events": 2011,
   "total_sources_registered": 38,
   "total_sources_with_events": 23,
   "healthy": [
@@ -17,12 +17,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 12,
+      "event_count": 11,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1014,
+      "event_count": 995,
       "days_since_scrape": 0
     },
     {
@@ -32,17 +32,17 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 109,
+      "event_count": 106,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 7,
+      "event_count": 3,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 44,
+      "event_count": 45,
       "days_since_scrape": 0
     },
     {
@@ -91,46 +91,46 @@
       "source": "Harvard Book Store",
       "ci": false,
       "event_count": 21,
-      "days_stale": 18,
+      "days_stale": 19,
       "latest_scraped": "2026-07-01T18:51:01.973824",
       "threshold_days": 14,
-      "issue": "Last scraped 18 days ago (threshold: 14)"
+      "issue": "Last scraped 19 days ago (threshold: 14)"
     },
     {
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 3,
-      "days_stale": 18,
+      "days_stale": 19,
       "latest_scraped": "2026-07-01T18:51:01.973874",
       "threshold_days": 14,
-      "issue": "Last scraped 18 days ago (threshold: 14)"
+      "issue": "Last scraped 19 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 9,
-      "days_stale": 18,
+      "days_stale": 19,
       "latest_scraped": "2026-07-01T18:51:01.974021",
       "threshold_days": 14,
-      "issue": "Last scraped 18 days ago (threshold: 14)"
+      "issue": "Last scraped 19 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 9,
-      "days_stale": 18,
+      "days_stale": 19,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 18 days ago (threshold: 14)"
+      "issue": "Last scraped 19 days ago (threshold: 14)"
     },
     {
       "source": "User Submitted",
       "ci": true,
       "event_count": 176,
-      "days_stale": 4,
+      "days_stale": 5,
       "latest_scraped": "2026-07-15T10:08:38.153323",
       "threshold_days": 3,
-      "issue": "Last scraped 4 days ago (threshold: 3)"
+      "issue": "Last scraped 5 days ago (threshold: 3)"
     }
   ],
   "missing": [
