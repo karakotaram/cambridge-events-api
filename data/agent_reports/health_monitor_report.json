@@ -1,16 +1,16 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-23T08:56:57.572625",
-  "total_events": 2052,
+  "timestamp": "2026-07-24T08:52:52.308906",
+  "total_events": 2090,
   "total_sources": 25,
   "history_runs": 6,
   "alerts": [
     {
-      "source": "Multicultural Arts Center",
+      "source": "The Dance Complex",
       "severity": "WARNING",
-      "current": 1,
-      "average": 2.8,
-      "message": "1 events vs avg 3 (35%)"
+      "current": 4,
+      "average": 11.5,
+      "message": "4 events vs avg 12 (35%)"
     }
   ],
   "diagnosis": null,

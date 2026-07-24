@@ -1,35 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2026-07-19T08:44:30.596848",
-      "counts": {
-        "BostonShows.org": 1039,
-        "City of Cambridge": 283,
-        "Lamplighter Brewing": 13,
-        "The Comedy Studio": 30,
-        "The Dance Complex": 13,
-        "First Parish in Cambridge": 1,
-        "Harvard Art Museums": 31,
-        "Brattle Theatre": 113,
-        "Multicultural Arts Center": 2,
-        "The Rockwell": 43,
-        "The Mad Monkfish": 10,
-        "Mount Auburn Cemetery": 10,
-        "Harvard GSD": 1,
-        "The Sinclair": 11,
-        "The Lily Pad": 29,
-        "The Middle East": 20,
-        "Portico Brewing": 16,
-        "Arts at the Armory": 9,
-        "American Repertory Theater": 168,
-        "User Submitted": 176,
-        "Harvard Book Store": 21,
-        "Boston Swing Central": 3,
-        "Aeronaut Brewing": 9,
-        "Somerville Theatre": 9
-      }
-    },
-    {
       "timestamp": "2026-07-20T09:44:08.900525",
       "counts": {
         "The Dance Complex": 12,
@@ -137,6 +108,36 @@
         "Portico Brewing": 15,
         "Arts at the Armory": 10,
         "Central Square Theater": 7,
+        "American Repertory Theater": 168,
+        "User Submitted": 177,
+        "Harvard Book Store": 21,
+        "Boston Swing Central": 3,
+        "Aeronaut Brewing": 9,
+        "Somerville Theatre": 9
+      }
+    },
+    {
+      "timestamp": "2026-07-24T08:52:52.308906",
+      "counts": {
+        "Lamplighter Brewing": 16,
+        "BostonShows.org": 1030,
+        "City of Cambridge": 298,
+        "The Comedy Studio": 30,
+        "The Dance Complex": 4,
+        "First Parish in Cambridge": 1,
+        "Harvard Art Museums": 38,
+        "Brattle Theatre": 105,
+        "Multicultural Arts Center": 4,
+        "The Rockwell": 45,
+        "The Mad Monkfish": 10,
+        "Mount Auburn Cemetery": 10,
+        "Harvard GSD": 1,
+        "The Sinclair": 9,
+        "The Lily Pad": 29,
+        "The Middle East": 20,
+        "Portico Brewing": 26,
+        "Arts at the Armory": 10,
+        "Central Square Theater": 17,
         "American Repertory Theater": 168,
         "User Submitted": 177,
         "Harvard Book Store": 21,
