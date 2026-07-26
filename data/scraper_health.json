@@ -1,34 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2026-07-21T08:55:25.684970",
-      "counts": {
-        "BostonShows.org": 995,
-        "City of Cambridge": 283,
-        "Lamplighter Brewing": 17,
-        "The Comedy Studio": 30,
-        "The Dance Complex": 11,
-        "Harvard Art Museums": 31,
-        "Brattle Theatre": 106,
-        "Multicultural Arts Center": 3,
-        "The Rockwell": 45,
-        "The Mad Monkfish": 10,
-        "Mount Auburn Cemetery": 10,
-        "Harvard GSD": 1,
-        "The Sinclair": 10,
-        "The Lily Pad": 29,
-        "The Middle East": 20,
-        "Portico Brewing": 15,
-        "Arts at the Armory": 9,
-        "American Repertory Theater": 168,
-        "User Submitted": 176,
-        "Harvard Book Store": 21,
-        "Boston Swing Central": 3,
-        "Aeronaut Brewing": 9,
-        "Somerville Theatre": 9
-      }
-    },
-    {
       "timestamp": "2026-07-22T08:54:08.371315",
       "counts": {
         "BostonShows.org": 999,
@@ -142,6 +114,35 @@
         "Central Square Theater": 17,
         "American Repertory Theater": 168,
         "User Submitted": 179,
+        "Harvard Book Store": 21,
+        "Boston Swing Central": 3,
+        "Aeronaut Brewing": 9,
+        "Somerville Theatre": 9
+      }
+    },
+    {
+      "timestamp": "2026-07-26T08:51:57.018350",
+      "counts": {
+        "Lamplighter Brewing": 14,
+        "BostonShows.org": 1034,
+        "City of Cambridge": 263,
+        "The Comedy Studio": 30,
+        "The Dance Complex": 12,
+        "First Parish in Cambridge": 1,
+        "Harvard Art Museums": 38,
+        "Brattle Theatre": 105,
+        "The Rockwell": 46,
+        "The Mad Monkfish": 10,
+        "Mount Auburn Cemetery": 10,
+        "Harvard GSD": 1,
+        "The Sinclair": 9,
+        "The Lily Pad": 29,
+        "The Middle East": 19,
+        "Portico Brewing": 23,
+        "Arts at the Armory": 9,
+        "Central Square Theater": 17,
+        "American Repertory Theater": 168,
+        "User Submitted": 182,
         "Harvard Book Store": 21,
         "Boston Swing Central": 3,
         "Aeronaut Brewing": 9,
