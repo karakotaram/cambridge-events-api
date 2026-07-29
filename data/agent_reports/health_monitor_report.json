@@ -1,22 +1,14 @@
 {
   "status": "ok",
-  "timestamp": "2026-07-28T09:01:09.707425",
-  "total_events": 2028,
-  "total_sources": 24,
+  "timestamp": "2026-07-29T09:08:50.056688",
+  "total_events": 2061,
+  "total_sources": 25,
   "history_runs": 6,
-  "alerts": [
-    {
-      "source": "First Parish in Cambridge",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 1.0,
-      "message": "Source disappeared from data (avg: 1)"
-    }
-  ],
+  "alerts": [],
   "diagnosis": null,
   "summary": {
     "critical": 0,
     "warning": 0,
-    "missing": 1
+    "missing": 0
   }
 }
