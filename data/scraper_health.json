@@ -1,36 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2026-08-05T09:03:09.486720",
-      "counts": {
-        "BostonShows.org": 1027,
-        "Multicultural Arts Center": 5,
-        "City of Cambridge": 293,
-        "Lamplighter Brewing": 27,
-        "The Comedy Studio": 30,
-        "The Dance Complex": 13,
-        "First Parish in Cambridge": 1,
-        "Harvard Art Museums": 49,
-        "Brattle Theatre": 89,
-        "The Rockwell": 50,
-        "The Mad Monkfish": 10,
-        "Mount Auburn Cemetery": 10,
-        "Harvard GSD": 1,
-        "The Sinclair": 13,
-        "The Lily Pad": 30,
-        "The Middle East": 19,
-        "Portico Brewing": 21,
-        "Arts at the Armory": 7,
-        "Central Square Theater": 36,
-        "American Repertory Theater": 176,
-        "User Submitted": 193,
-        "Harvard Book Store": 21,
-        "Boston Swing Central": 3,
-        "Aeronaut Brewing": 9,
-        "Somerville Theatre": 9
-      }
-    },
-    {
       "timestamp": "2026-08-06T09:06:11.120890",
       "counts": {
         "The Dance Complex": 9,
@@ -141,6 +111,35 @@
         "The Middle East": 20,
         "Portico Brewing": 19,
         "Arts at the Armory": 5,
+        "Central Square Theater": 37,
+        "American Repertory Theater": 176,
+        "User Submitted": 196,
+        "Harvard Book Store": 21,
+        "Boston Swing Central": 3,
+        "Aeronaut Brewing": 9,
+        "Somerville Theatre": 9
+      }
+    },
+    {
+      "timestamp": "2026-08-10T08:11:54.310208",
+      "counts": {
+        "BostonShows.org": 1029,
+        "City of Cambridge": 263,
+        "Lamplighter Brewing": 23,
+        "The Comedy Studio": 30,
+        "The Dance Complex": 12,
+        "Harvard Art Museums": 47,
+        "Brattle Theatre": 72,
+        "Multicultural Arts Center": 1,
+        "The Rockwell": 49,
+        "The Mad Monkfish": 10,
+        "Mount Auburn Cemetery": 10,
+        "Harvard GSD": 1,
+        "The Sinclair": 13,
+        "The Lily Pad": 30,
+        "The Middle East": 20,
+        "Portico Brewing": 18,
+        "Arts at the Armory": 7,
         "Central Square Theater": 37,
         "American Repertory Theater": 176,
         "User Submitted": 196,
