@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Live URLs
+
+- **Domain**: `cambridgecalendar.com` (Vercel — frontend)
+- **API**: `https://web-production-00281.up.railway.app` (Railway — this repo)
+- **Frontend repo**: `~/cambridge-event-compass` (React/Vite, deployed on Vercel)
+
+### Pages served by this API but accessible via the domain
+
+These static HTML pages live in `static/` and are served by FastAPI. Vercel rewrites proxy them through to Railway so they appear on the main domain:
+
+| Public URL | Route served by Railway | Source file |
+|---|---|---|
+| `cambridgecalendar.com/signup` | `/signup` | `static/onboarding/index.html` |
+| `cambridgecalendar.com/admin` | `/admin` | `static/admin/index.html` |
+| `cambridgecalendar.com/admin/featured` | `/admin/featured` | `static/admin/featured.html` |
+
+The Vercel `vercel.json` in the frontend repo also proxies `/onboarding/*`, `/events/*`, and `/featured` to Railway so the pages' relative fetch calls work.
+
 ## Commands
 
 ```bash
@@ -54,13 +72,28 @@ Scrapers → EventCreate → Validator → Deduplicator → Event (with ID) → 
                                                               Railway auto-deploys on push
                                                                             ↓
                                                               API serves events + chat
+                                                                            ↓
+                                                         Vercel frontend fetches from API
+                                                         (cambridgecalendar.com)
 ```
 
 ### API Features
 
-- REST endpoints: `/events`, `/events/search`, `/stats`, `/sources`, `/categories`
+- REST endpoints: `/events`, `/events/slim`, `/events/search`, `/stats`, `/sources`, `/categories`
 - AI Chat (`/chat`): Uses Groq (openai/gpt-oss-120b) with 500 events in context
 - Chat has age-appropriate guidance (toddlers → story time, not theater)
+- Editor's Picks: `/featured` (GET/PUT), `/events/{id}/feature` (POST/DELETE)
+
+### Onboarding & Email System
+
+- **Signup flow** (`src/api/onboarding.py`, `static/onboarding/index.html`):
+  - Step 1: User thumbs-up events from `/onboarding/sample-events`
+  - Step 2: Email capture → `/onboarding/submit` creates user, computes preferences
+- **Weekly digest emails** via Resend SDK (`src/services/email_service.py`)
+- **Recommendation engine** (`src/services/recommendation.py`) — LightFM + content-based scoring
+- **Admin dashboard** (`static/admin/index.html`) — user management, digest preview/override, email history
+- **Tracking**: open pixel (`/onboarding/track/open/:id`), click redirects (`/onboarding/track/click/:id`)
+- **Unsubscribe**: token-based via `/onboarding/unsubscribe/:token`
 
 ### Event Model
 
@@ -100,6 +133,16 @@ python -m src.agents.scraper_generator --url URL --venue "Name" [--write] [--dry
 
 ## Deployment
 
-- API hosted on Railway, auto-deploys from `main` branch
-- Push `data/events.json` changes to update the live database
+- **API** hosted on Railway, auto-deploys from `main` branch
+- **Frontend** hosted on Vercel at `cambridgecalendar.com`, auto-deploys from `main` of `cambridge-event-compass`
+- Push `data/events.json` changes to update the live event database
 - GitHub Actions runs daily at 6 AM UTC to refresh events
+- Vercel rewrites in the frontend repo proxy `/signup`, `/admin`, `/onboarding/*`, `/events/*`, `/featured` to Railway
+
+### Design System (Broadsheet theme)
+
+The signup page (`static/onboarding/index.html`) uses the same editorial "Broadsheet" design as the frontend:
+- Fonts: Playfair Display (headings), Source Sans 3 (body) — loaded via Google Fonts
+- Colors: warm ivory background `hsl(40,33%,97%)`, dark navy foreground `hsl(240,27%,14%)`, rose-red accent `hsl(355,76%,56%)`
+- Zero border-radius everywhere, double-border masthead, sharp editorial style
+- When updating these pages, match this theme — not the generic app UI
