@@ -59,7 +59,7 @@ Scrapers → EventCreate → Validator → Deduplicator → Event (with ID) → 
 ### API Features
 
 - REST endpoints: `/events`, `/events/search`, `/stats`, `/sources`, `/categories`
-- AI Chat (`/chat`): Uses Groq (llama-3.3-70b) with 500 events in context
+- AI Chat (`/chat`): Uses Groq (openai/gpt-oss-120b) with 500 events in context
 - Chat has age-appropriate guidance (toddlers → story time, not theater)
 
 ### Event Model

@@ -17,7 +17,7 @@ Automated monitoring, quality improvement, and venue discovery agents for the Ca
 
 | Variable | Used By | Purpose |
 |----------|---------|---------|
-| `GROQ_API_KEY` | Enrichment, Source Discovery, Chat Quality, Health Monitor | LLM calls (llama-3.3-70b) |
+| `GROQ_API_KEY` | Enrichment, Source Discovery, Chat Quality, Health Monitor | LLM calls (openai/gpt-oss-120b) |
 | `ANTHROPIC_API_KEY` | Scraper Generator | Code generation (Claude Sonnet) |
 | `GH_TOKEN` / `GITHUB_TOKEN` | CI Monitor, Health Monitor, Source Discovery | GitHub issue creation via `gh` CLI |
 

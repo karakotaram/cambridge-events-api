@@ -60,10 +60,11 @@ class BaseAgent(ABC):
                     messages.append({"role": "system", "content": system})
                 messages.append({"role": "user", "content": prompt})
                 response = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="openai/gpt-oss-120b",
                     messages=messages,
                     temperature=0.3,
                     max_tokens=4096,
+                    reasoning_effort="low",
                 )
                 return response.choices[0].message.content
             except Exception as e:

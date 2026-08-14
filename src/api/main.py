@@ -1376,9 +1376,10 @@ async def chat_with_events(request: ChatRequest, http_request: Request):
         # Call Groq
         client = Groq(api_key=api_key)
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=messages,
-            max_tokens=1024
+            max_tokens=2048,
+            reasoning_effort="low",
         )
 
         _posthog_capture(http_request, "chat_message_sent", {
