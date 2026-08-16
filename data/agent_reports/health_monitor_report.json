@@ -1,21 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-08-15T07:09:37.988497",
-  "total_events": 2104,
-  "total_sources": 25,
+  "timestamp": "2026-08-16T07:08:18.681943",
+  "total_events": 2074,
+  "total_sources": 26,
   "history_runs": 6,
-  "alerts": [
-    {
-      "source": "Arts at the Armory",
-      "severity": "CRITICAL",
-      "current": 0,
-      "average": 6.6,
-      "message": "0 events (avg: 7) - scraper may be broken"
-    }
-  ],
-  "diagnosis": "- **Site structure changed** \u2013 HTML tags, class names, or the DOM hierarchy that the scraper targets were renamed, moved, or removed, so the selector no longer matches any event elements.  \n- **Dynamic content loading** \u2013 Events are now rendered client\u2011side via JavaScript (e.g., an API call or React component) instead of being present in the initial HTML; a simple HTTP\u2011GET scraper sees an empty page.  \n- **Anti\u2011scraping measures added** \u2013 New CAPTCHAs, bot\u2011detect headers, IP rate\u2011limits, or required cookies/session tokens cause the request to be blocked or redirected to a \u201cno events\u201d placeholder.  \n- **Data source moved or filtered** \u2013 The venue\u2019s calendar URL changed, now points to a different page (e.g., a \u201cno upcoming events\u201d page) or requires query parameters (date range, location) that the scraper isn\u2019t supplying.",
+  "alerts": [],
+  "diagnosis": null,
   "summary": {
-    "critical": 1,
+    "critical": 0,
     "warning": 0,
     "missing": 0
   }
