@@ -1,14 +1,29 @@
 {
   "status": "ok",
-  "timestamp": "2026-08-16T07:08:18.681943",
-  "total_events": 2074,
-  "total_sources": 26,
+  "timestamp": "2026-08-17T07:27:12.314631",
+  "total_events": 2033,
+  "total_sources": 25,
   "history_runs": 6,
-  "alerts": [],
+  "alerts": [
+    {
+      "source": "Central Square Theater",
+      "severity": "WARNING",
+      "current": 12,
+      "average": 32.8,
+      "message": "12 events vs avg 33 (37%)"
+    },
+    {
+      "source": "First Parish in Cambridge",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 1.0,
+      "message": "Source disappeared from data (avg: 1)"
+    }
+  ],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 0,
-    "missing": 0
+    "warning": 1,
+    "missing": 1
   }
 }
