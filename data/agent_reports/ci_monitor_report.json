@@ -1,9 +1,9 @@
 {
   "status": "ok",
-  "timestamp": "2026-08-23T07:10:38.467092",
-  "total_events": 2118,
+  "timestamp": "2026-08-24T07:30:49.149307",
+  "total_events": 2174,
   "total_sources_registered": 38,
-  "total_sources_with_events": 26,
+  "total_sources_with_events": 24,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
@@ -16,18 +16,8 @@
       "days_since_scrape": 0
     },
     {
-      "source": "The Dance Complex",
-      "event_count": 12,
-      "days_since_scrape": 0
-    },
-    {
       "source": "BostonShows.org",
-      "event_count": 1074,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "First Parish in Cambridge",
-      "event_count": 1,
+      "event_count": 1061,
       "days_since_scrape": 0
     },
     {
@@ -37,22 +27,22 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 77,
+      "event_count": 73,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 7,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 48,
+      "event_count": 47,
       "days_since_scrape": 0
     },
     {
       "source": "The Mad Monkfish",
-      "event_count": 10,
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
@@ -62,17 +52,17 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 5,
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 226,
+      "event_count": 315,
       "days_since_scrape": 0
     },
     {
       "source": "The Lily Pad",
-      "event_count": 29,
+      "event_count": 30,
       "days_since_scrape": 0
     },
     {
@@ -82,7 +72,7 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 13,
+      "event_count": 14,
       "days_since_scrape": 0
     },
     {
@@ -97,13 +87,13 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 166,
+      "event_count": 164,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
       "event_count": 224,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [
@@ -111,42 +101,52 @@
       "source": "Harvard Book Store",
       "ci": false,
       "event_count": 21,
-      "days_stale": 52,
+      "days_stale": 53,
       "latest_scraped": "2026-07-01T18:51:01.973824",
       "threshold_days": 14,
-      "issue": "Last scraped 52 days ago (threshold: 14)"
+      "issue": "Last scraped 53 days ago (threshold: 14)"
     },
     {
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 3,
-      "days_stale": 52,
+      "days_stale": 53,
       "latest_scraped": "2026-07-01T18:51:01.973874",
       "threshold_days": 14,
-      "issue": "Last scraped 52 days ago (threshold: 14)"
+      "issue": "Last scraped 53 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 9,
-      "days_stale": 52,
+      "days_stale": 53,
       "latest_scraped": "2026-07-01T18:51:01.974021",
       "threshold_days": 14,
-      "issue": "Last scraped 52 days ago (threshold: 14)"
+      "issue": "Last scraped 53 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 9,
-      "days_stale": 52,
+      "days_stale": 53,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 52 days ago (threshold: 14)"
+      "issue": "Last scraped 53 days ago (threshold: 14)"
     }
   ],
   "missing": [
     {
+      "source": "The Dance Complex",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
       "source": "Theatre at First",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
+      "source": "First Parish in Cambridge",
       "ci": true,
       "issue": "No events in data"
     },
@@ -227,9 +227,9 @@
     }
   ],
   "summary": {
-    "healthy": 20,
+    "healthy": 18,
     "stale": 4,
-    "missing": 14,
+    "missing": 16,
     "unregistered": 2
   }
 }
