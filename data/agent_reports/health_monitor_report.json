@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-08-25T07:18:59.782676",
-  "total_events": 2087,
+  "timestamp": "2026-08-26T07:17:20.399330",
+  "total_events": 2119,
   "total_sources": 25,
   "history_runs": 6,
   "alerts": [
@@ -9,11 +9,11 @@
       "source": "The Dance Complex",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 10.2,
-      "message": "0 events (avg: 10) - scraper may be broken"
+      "average": 11.0,
+      "message": "0 events (avg: 11) - scraper may be broken"
     }
   ],
-  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM (tags, classes, IDs, or layout) was updated, so the scraper\u2019s selectors no longer match any elements.  \n- **Dynamic content loading** \u2013 event listings are now rendered via JavaScript/AJAX after the initial HTML load; a simple HTTP\u2011GET fetch won\u2019t capture them.  \n- **Anti\u2011scraping measures** \u2013 the site added CAPTCHAs, bot\u2011detect headers, IP rate\u2011limits, or required a valid session cookie, causing the request to be blocked or return an empty page.  \n- **URL or query\u2011parameter change** \u2013 the endpoint the scraper calls (e.g., a calendar API or pagination URL) was altered or now requires authentication, resulting in a response with no event data.",
+  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM, class names, or element hierarchy was updated, so the selectors (XPath/CSS) no longer match any event nodes.  \n- **Content now loaded via JavaScript/AJAX** \u2013 events are fetched client\u2011side after the initial HTML load; a simple HTTP request without a headless browser or API call returns an empty page.  \n- **Rate\u2011limiting or blocking** \u2013 the site detected the scraper\u2019s IP/user\u2011agent pattern and returned a 403/429 page, a CAPTCHA, or an empty placeholder instead of the real listings.  \n- **URL or query\u2011parameter change** \u2013 the scraper is hitting an outdated endpoint (e.g., a previous \u201c/events\u201d path) that now redirects to a generic page with no event data.",
   "summary": {
     "critical": 1,
     "warning": 0,
