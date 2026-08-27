@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-08-26T07:17:20.399330",
-  "total_events": 2119,
+  "timestamp": "2026-08-27T17:54:53.325270",
+  "total_events": 2186,
   "total_sources": 25,
   "history_runs": 6,
   "alerts": [
@@ -9,11 +9,11 @@
       "source": "The Dance Complex",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 11.0,
-      "message": "0 events (avg: 11) - scraper may be broken"
+      "average": 14.5,
+      "message": "0 events (avg: 14) - scraper may be broken"
     }
   ],
-  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM, class names, or element hierarchy was updated, so the selectors (XPath/CSS) no longer match any event nodes.  \n- **Content now loaded via JavaScript/AJAX** \u2013 events are fetched client\u2011side after the initial HTML load; a simple HTTP request without a headless browser or API call returns an empty page.  \n- **Rate\u2011limiting or blocking** \u2013 the site detected the scraper\u2019s IP/user\u2011agent pattern and returned a 403/429 page, a CAPTCHA, or an empty placeholder instead of the real listings.  \n- **URL or query\u2011parameter change** \u2013 the scraper is hitting an outdated endpoint (e.g., a previous \u201c/events\u201d path) that now redirects to a generic page with no event data.",
+  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM, class names, or element hierarchy was updated, so the scraper\u2019s selectors no longer match any event nodes.  \n- **Content loaded via JavaScript/AJAX** \u2013 events are now fetched client\u2011side after page load; a simple HTTP request returns only a static skeleton with no event data.  \n- **Rate\u2011limiting or blocking** \u2013 the site detected the scraper\u2019s IP/user\u2011agent pattern and returned an empty response, a CAPTCHA page, or a \u201cno results\u201d placeholder.  \n- **Query parameters or URL changes** \u2013 the scraper is hitting a different endpoint (e.g., a past\u2011events archive or a \u201cno events\u201d page) because the URL pattern or required query string was altered.",
   "summary": {
     "critical": 1,
     "warning": 0,
