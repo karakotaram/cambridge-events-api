@@ -1,21 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-08-28T18:50:23.229318",
-  "total_events": 2176,
+  "timestamp": "2026-08-29T12:53:09.443420",
+  "total_events": 2170,
   "total_sources": 25,
   "history_runs": 6,
-  "alerts": [
-    {
-      "source": "The Dance Complex",
-      "severity": "CRITICAL",
-      "current": 0,
-      "average": 12.0,
-      "message": "0 events (avg: 12) - scraper may be broken"
-    }
-  ],
-  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM (tags, classes, IDs, or layout) was updated, so the selectors the scraper relies on no longer match any elements.  \n- **Dynamic content loading** \u2013 event listings are now rendered via JavaScript/AJAX after the initial HTML load; a simple HTTP\u2011GET fetch won\u2019t capture them unless you use a headless browser or API call.  \n- **Access restrictions** \u2013 the site added bot\u2011blocking measures (CAPTCHA, Cloudflare challenge, required headers, IP rate\u2011limits, or a \u201crobots.txt\u201d disallow) that cause the request to be denied or return an empty/redirected page.  \n- **Data source moved or renamed** \u2013 the URL endpoint for the events feed changed (e.g., a new JSON API endpoint or a different page URL), so the scraper is pulling the wrong page that contains no event data.",
+  "alerts": [],
+  "diagnosis": null,
   "summary": {
-    "critical": 1,
+    "critical": 0,
     "warning": 0,
     "missing": 0
   }
