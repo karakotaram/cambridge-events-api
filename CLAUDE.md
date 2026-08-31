@@ -102,6 +102,19 @@ Scrapers → EventCreate → Validator → Deduplicator → Event (with ID) → 
 - Categories: music, arts and culture, food and drink, theater, lectures, sports, community, other
 - `family_friendly: bool` used for kid-appropriate filtering
 
+**Times are always naive Eastern wall clock.** A `field_validator` on both
+models converts any tz-aware `start_datetime`/`end_datetime` to Eastern and
+strips the offset — every venue is in Greater Boston, so a published time is an
+Eastern time whether the source said so or not. Don't reintroduce offsets:
+mixing aware and naive values raises `TypeError` on comparison and shifts
+evening events onto the wrong day for anyone outside ET. Use `as_local_naive()`
+in `src/api/main.py` when comparing a query parameter against an event.
+
+**Never fall back to `datetime.now()` for a start time.** A scraper that can't
+read a date must skip the event — a wrong date lands it on someone else's day.
+`EventValidator` rejects any start time carrying seconds or microseconds, since
+real listings are always on the minute.
+
 ## Adding a New Scraper
 
 1. Create `src/scrapers/venue_name.py`

@@ -14,7 +14,7 @@ import pytz
 import time
 from groq import Groq
 
-from src.models.event import Event, EventCategory, EASTERN_TZ
+from src.models.event import Event, EventCategory, EASTERN_TZ, to_eastern_naive
 from src.api.onboarding import router as onboarding_router
 from src.models.interactions import WebsiteInteraction
 from src.services.scoring import calculate_event_score
@@ -162,13 +162,11 @@ def _is_featured(event, featured_list: list) -> bool:
 def as_local_naive(dt: datetime) -> datetime:
     """Normalize a datetime to naive Eastern wall-clock time.
 
-    Events come from many scrapers: some carry a UTC offset, most are naive
-    local times. Comparing the two kinds directly raises TypeError, so every
-    date comparison and sort goes through this first.
+    Stored event times are already naive Eastern (the Event model enforces it),
+    but query parameters arrive however the caller wrote them, so anything
+    compared against an event goes through this first.
     """
-    if dt.tzinfo is None:
-        return dt
-    return dt.astimezone(EASTERN_TZ).replace(tzinfo=None)
+    return to_eastern_naive(dt)
 
 
 def load_events(use_cache: bool = True) -> List[Event]:

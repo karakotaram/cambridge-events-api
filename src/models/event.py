@@ -1,12 +1,32 @@
 """Event data models following PRD schema"""
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field, HttpUrl, EmailStr
+from pydantic import BaseModel, Field, HttpUrl, EmailStr, field_validator
 from enum import Enum
 import pytz
 
 # All events are in Eastern Time (Cambridge/Somerville, MA)
 EASTERN_TZ = pytz.timezone('America/New_York')
+
+
+def to_eastern_naive(dt: Optional[datetime]) -> Optional[datetime]:
+    """Store every event time as naive Eastern wall-clock time.
+
+    Every venue this project covers is physically in Greater Boston, so a
+    published start time is an Eastern time whether or not the source bothered
+    to say so. Most scrapers hand back naive datetimes; a few sources stamp an
+    offset. Storing both kinds side by side means date comparisons raise
+    TypeError, and any consumer that converts to the viewer's local timezone
+    moves the stamped events to a different clock time - and, for evening
+    events, a different day - than their naive neighbours.
+
+    So: an aware datetime is converted to Eastern and stripped of its offset
+    (same instant, now written as local wall clock), and a naive one is left
+    alone (already Eastern by convention).
+    """
+    if dt is None or dt.tzinfo is None:
+        return dt
+    return dt.astimezone(EASTERN_TZ).replace(tzinfo=None)
 
 
 class EventCategory(str, Enum):
@@ -63,6 +83,11 @@ class Event(BaseModel):
     recurring_pattern: Optional[dict] = Field(None, description="Recurrence information")
     featured: bool = Field(default=False, description="Editor's pick / featured event")
 
+    @field_validator("start_datetime", "end_datetime")
+    @classmethod
+    def _store_times_as_eastern(cls, dt: Optional[datetime]) -> Optional[datetime]:
+        return to_eastern_naive(dt)
+
     class Config:
         use_enum_values = True
 
@@ -98,6 +123,11 @@ class EventCreate(BaseModel):
     website_url: Optional[str] = None
     image_url: Optional[str] = None
     recurring_pattern: Optional[dict] = None
+
+    @field_validator("start_datetime", "end_datetime")
+    @classmethod
+    def _store_times_as_eastern(cls, dt: Optional[datetime]) -> Optional[datetime]:
+        return to_eastern_naive(dt)
 
 
 class ScraperConfig(BaseModel):
