@@ -2,10 +2,10 @@
 import logging
 import re
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import List, Optional
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
+from dateutil import parser as date_parser
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -273,10 +273,13 @@ class GenericScraper(BaseScraper):
                 if not date_str:
                     continue
 
-                # Simplified date parsing - would need proper implementation
+                # Never fall back to "now" here - an event stamped with the
+                # scrape time shows up on the wrong day of the calendar.
+                # Subclasses that need dates must parse them themselves.
                 try:
-                    start_datetime = datetime.now()  # Placeholder
-                except:
+                    start_datetime = date_parser.parse(date_str, fuzzy=True)
+                except (ValueError, OverflowError):
+                    logger.warning(f"Skipping '{title}' - unparseable date {date_str!r}")
                     continue
 
                 # Look for location

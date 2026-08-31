@@ -27,6 +27,12 @@ class EventValidator:
         if not event.start_datetime:
             return False, "Missing start datetime"
 
+        # A start time carrying seconds/microseconds did not come from a
+        # published schedule - it is a scraper falling back to datetime.now(),
+        # which drops the event onto whatever day the scrape ran plus an offset.
+        if event.start_datetime.second or event.start_datetime.microsecond:
+            return False, "Start datetime looks like a scrape timestamp, not a published time"
+
         # Check date is not too far in past (using Eastern Time since all events are in Cambridge/Somerville)
         now_eastern = datetime.now(EASTERN_TZ)
 

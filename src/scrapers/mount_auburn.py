@@ -155,17 +155,18 @@ class MountAuburnScraper(BaseScraper):
                 if not title or len(title) < 3:
                     continue
 
-                # Get date/time
+                # Get date/time. Skip the event rather than guess a date -
+                # a made-up date lands the event on the wrong day of the calendar.
                 datetime_elem = item.find('time')
-                start_datetime = datetime.now().replace(hour=10, minute=0, second=0, microsecond=0)
-
-                if datetime_elem:
-                    datetime_attr = datetime_elem.get('datetime')
-                    if datetime_attr:
-                        try:
-                            start_datetime = datetime.fromisoformat(datetime_attr.replace('Z', '+00:00'))
-                        except:
-                            pass
+                datetime_attr = datetime_elem.get('datetime') if datetime_elem else None
+                if not datetime_attr:
+                    logger.warning(f"Skipping '{title}' - no date on listing")
+                    continue
+                try:
+                    start_datetime = datetime.fromisoformat(datetime_attr.replace('Z', '+00:00'))
+                except ValueError:
+                    logger.warning(f"Skipping '{title}' - unparseable date {datetime_attr!r}")
+                    continue
 
                 # Get description
                 desc_elem = item.find(class_=re.compile(r'tribe-events.*description|excerpt'))

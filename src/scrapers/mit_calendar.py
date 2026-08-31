@@ -182,17 +182,18 @@ class MITCalendarScraper(BasePlaywrightScraper):
                     if url and not url.startswith('http'):
                         url = f"https://calendar.mit.edu{url}"
 
-                    # Get date/time
+                    # Get date/time. Skip the event rather than guess a date -
+                    # a made-up date lands the event on the wrong day of the calendar.
                     date_elem = card.query_selector('.em-list_dates__container, [class*="date"], time')
-                    start_datetime = datetime.now().replace(hour=12, minute=0)
-
-                    if date_elem:
-                        datetime_attr = date_elem.get_attribute('datetime')
-                        if datetime_attr:
-                            try:
-                                start_datetime = datetime.fromisoformat(datetime_attr.replace('Z', '+00:00'))
-                            except:
-                                pass
+                    datetime_attr = date_elem.get_attribute('datetime') if date_elem else None
+                    if not datetime_attr:
+                        logger.warning(f"Skipping '{title}' - no date on listing")
+                        continue
+                    try:
+                        start_datetime = datetime.fromisoformat(datetime_attr.replace('Z', '+00:00'))
+                    except ValueError:
+                        logger.warning(f"Skipping '{title}' - unparseable date {datetime_attr!r}")
+                        continue
 
                     # Get location
                     location_elem = card.query_selector('[class*="location"], [class*="venue"]')

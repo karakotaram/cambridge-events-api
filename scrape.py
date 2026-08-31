@@ -300,9 +300,9 @@ def main():
     orchestrator.register_scraper(HarvardAthleticsScraper())
     orchestrator.register_scraper(HarvardGSDScraper())
     orchestrator.register_scraper(TheSinclairScraper())
+    orchestrator.register_scraper(CambridgeGovScraper())
 
     # Selenium/Playwright scrapers (run after non-Selenium to reduce browser restarts)
-    orchestrator.register_scraper(CambridgeGovScraper())
     orchestrator.register_scraper(LilyPadScraper())
     orchestrator.register_scraper(MideastClubScraper())
     orchestrator.register_scraper(PorticoScraper())

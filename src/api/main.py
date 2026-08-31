@@ -159,6 +159,18 @@ def _is_featured(event, featured_list: list) -> bool:
     return False
 
 
+def as_local_naive(dt: datetime) -> datetime:
+    """Normalize a datetime to naive Eastern wall-clock time.
+
+    Events come from many scrapers: some carry a UTC offset, most are naive
+    local times. Comparing the two kinds directly raises TypeError, so every
+    date comparison and sort goes through this first.
+    """
+    if dt.tzinfo is None:
+        return dt
+    return dt.astimezone(EASTERN_TZ).replace(tzinfo=None)
+
+
 def load_events(use_cache: bool = True) -> List[Event]:
     """Load events from JSON file with optional caching"""
     global _events_cache
@@ -368,10 +380,12 @@ async def get_events(
         events = [e for e in events if e.source_name and e.source_name.lower() == source.lower()]
 
     if start_date:
-        events = [e for e in events if e.start_datetime >= start_date]
+        start_cmp = as_local_naive(start_date)
+        events = [e for e in events if as_local_naive(e.start_datetime) >= start_cmp]
 
     if end_date:
-        events = [e for e in events if e.start_datetime <= end_date]
+        end_cmp = as_local_naive(end_date)
+        events = [e for e in events if as_local_naive(e.start_datetime) <= end_cmp]
 
     if family_friendly is not None:
         events = [e for e in events if getattr(e, 'family_friendly', False) == family_friendly]
@@ -382,10 +396,7 @@ async def get_events(
         events.sort(key=lambda e: event_scores.get(e.id, 0), reverse=True)
     else:
         def get_sort_key(event):
-            dt = event.start_datetime
-            if dt.tzinfo is not None:
-                return dt.replace(tzinfo=None)
-            return dt
+            return as_local_naive(event.start_datetime)
         events.sort(key=get_sort_key, reverse=(sort_order == "desc"))
 
     # Apply pagination
@@ -632,10 +643,7 @@ async def get_events_slim(
     else:
         # Sort by start date (original behavior)
         def get_sort_key(event):
-            dt = event.start_datetime
-            if dt.tzinfo is not None:
-                return dt.replace(tzinfo=None)
-            return dt
+            return as_local_naive(event.start_datetime)
         events.sort(key=get_sort_key)
 
     # Apply pagination
@@ -737,9 +745,7 @@ def generate_ics(event: Event) -> str:
 
     def format_ics_datetime(dt: datetime) -> str:
         """Format datetime for ICS (YYYYMMDDTHHMMSS)"""
-        if dt.tzinfo is not None:
-            dt = dt.replace(tzinfo=None)
-        return dt.strftime("%Y%m%dT%H%M%S")
+        return as_local_naive(dt).strftime("%Y%m%dT%H%M%S")
 
     def escape_ics_text(text: str) -> str:
         """Escape special characters for ICS format"""
@@ -940,9 +946,10 @@ async def get_stats():
     cities = {}
 
     for event in events:
-        # Count by category
+        # Count by category. Event.category is a plain string (the model sets
+        # use_enum_values), so don't reach for .value.
         if event.category:
-            cat = event.category.value
+            cat = getattr(event.category, "value", event.category)
             categories[cat] = categories.get(cat, 0) + 1
 
         # Count by source
@@ -954,9 +961,9 @@ async def get_stats():
             cities[event.city] = cities.get(event.city, 0) + 1
 
     # Find date range
-    dates = [e.start_datetime for e in events]
-    earliest = min(dates)
-    latest = max(dates)
+    dates = [as_local_naive(e.start_datetime) for e in events]
+    earliest = min(dates) if dates else None
+    latest = max(dates) if dates else None
 
     return {
         "total_events": len(events),
@@ -964,8 +971,8 @@ async def get_stats():
         "sources": sources,
         "cities": cities,
         "date_range": {
-            "earliest": earliest.isoformat(),
-            "latest": latest.isoformat()
+            "earliest": earliest.isoformat() if earliest else None,
+            "latest": latest.isoformat() if latest else None
         }
     }
 
