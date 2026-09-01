@@ -1,4 +1,21 @@
-"""Scraper for Skip the Small Talk events using Playwright"""
+"""Scraper for Skip the Small Talk events
+
+Skip the Small Talk is a national organisation: its public-events page carries
+roughly 150 listings across Austin, Baltimore, Chicago, Denver, Detroit, London,
+Los Angeles, Nashville, New York, Portland, Providence, Raleigh, San Diego,
+Seattle, Toronto and Washington, alongside the Boston ones.
+
+The page ships every listing in the DOM and hides non-matching ones client-side,
+so which URL you request does not narrow what a parser sees — each item's own
+`category-<city>` classes do. This filters on those.
+
+That distinction cost the calendar its geography. The scraper used to fetch
+`?category=Boston` and then also `?category=Cambridge`; "Cambridge" is not one of
+the site's categories, so that second request returned the unfiltered national
+list, and all 153 listings were appended. Events at Crank Arm Brewing in
+Raleigh, Monument City Brewing in Baltimore and kibbitznest in Chicago were
+published on a Cambridge calendar.
+"""
 import logging
 import re
 import json
@@ -10,6 +27,10 @@ from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
 
+# Squarespace stamps each listing with a `category-<city>` class per city it is
+# offered in. These are the ones this calendar covers.
+LOCAL_CATEGORY_CLASSES = ("category-boston",)
+
 
 class SkipSmallTalkScraper(BasePlaywrightScraper):
     """Scraper for Skip the Small Talk - conversation events"""
@@ -17,39 +38,20 @@ class SkipSmallTalkScraper(BasePlaywrightScraper):
     def __init__(self):
         super().__init__(
             source_name="Skip the Small Talk",
-            source_url="http://www.skipthesmalltalk.com/public-events?category=Boston"
+            source_url="https://www.skipthesmalltalk.com/public-events?category=Boston",
         )
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from Skip the Small Talk"""
-        events = []
-
+        """Scrape the Boston-area listings."""
         try:
-            # Try Boston category first
-            self.goto(self.source_url, wait_until="networkidle")
+            self.goto(self.source_url, wait_until="networkidle", timeout=60000)
             self.page.wait_for_timeout(3000)
-
             soup = self.get_soup()
-            events = self._parse_events(soup)
-
-            # Also try Cambridge if exists
-            try:
-                self.goto("http://www.skipthesmalltalk.com/public-events?category=Cambridge", wait_until="networkidle")
-                self.page.wait_for_timeout(2000)
-                soup = self.get_soup()
-                cambridge_events = self._parse_events(soup)
-
-                # Add non-duplicates
-                seen_urls = {e.source_url for e in events}
-                for e in cambridge_events:
-                    if e.source_url not in seen_urls:
-                        events.append(e)
-            except:
-                pass
-
         except Exception as e:
             logger.error(f"Error scraping Skip the Small Talk: {e}")
+            return []
 
+        events = self._parse_events(soup)
         logger.info(f"Scraped {len(events)} events from Skip the Small Talk")
         return events
 
@@ -63,8 +65,16 @@ class SkipSmallTalkScraper(BasePlaywrightScraper):
         if not event_items:
             event_items = soup.find_all('article')
 
+        skipped_elsewhere = 0
         for item in event_items:
             try:
+                # The page carries every city's listings; keep only the ones the
+                # site itself tags for this area.
+                classes = item.get('class') or []
+                if not any(c in classes for c in LOCAL_CATEGORY_CLASSES):
+                    skipped_elsewhere += 1
+                    continue
+
                 # Get link
                 link = item.find('a', href=True)
                 if not link:
@@ -101,14 +111,17 @@ class SkipSmallTalkScraper(BasePlaywrightScraper):
                 # Format: "Thursday, January 29, 2026, 6:30 pm"
                 text = item.get_text()
                 start_datetime = self._parse_date_time(text)
+                if start_datetime is None:
+                    # Never guess a date — see docs/ARCHITECTURE.md "Layer 1".
+                    logger.warning(f"Skipping '{title}' - no parseable date")
+                    continue
 
-                # Get location from text
-                venue_name = "Skip the Small Talk Event"
-                location_match = re.search(r'(Boston|Cambridge|Somerville)', text, re.I)
-                if location_match:
-                    city = location_match.group(1).title()
-                else:
-                    city = "Boston"
+                # Venue comes from the "..., <venue>, (map)" line when present;
+                # an online session has no map link.
+                venue_name = venue or ("Online" if re.search(r'\bonline\b', text, re.I)
+                                       else "Skip the Small Talk Event")
+                location_match = re.search(r'\b(Cambridge|Somerville|Boston)\b', text, re.I)
+                city = location_match.group(1).title() if location_match else "Boston"
 
                 # Build a detailed description
                 base_desc = f"{title}. Skip the Small Talk events help strangers really get to know each other using conversation methods grounded in psychology research. Come meet interesting people and have meaningful conversations in a fun, structured environment."
@@ -139,12 +152,17 @@ class SkipSmallTalkScraper(BasePlaywrightScraper):
                 logger.debug(f"Error parsing event: {e}")
                 continue
 
+        if skipped_elsewhere:
+            logger.info(f"Skipped {skipped_elsewhere} listings tagged for other cities")
         return events
 
-    def _parse_date_time(self, text: str) -> datetime:
-        """Parse date/time from text like 'Thursday, January 29, 2026, 6:30 pm'"""
-        default = datetime.now().replace(hour=18, minute=30, second=0, microsecond=0)
+    def _parse_date_time(self, text: str) -> Optional[datetime]:
+        """Parse date/time from text like 'Thursday, January 29, 2026, 6:30 pm'.
 
+        Returns None when nothing parses. This used to fall back to
+        `datetime.now()` at 18:30, which is the same defect that put 117
+        Cambridge.gov events on one day — see docs/ROADMAP.md item 0.
+        """
         try:
             # Pattern: Day, Month DD, YYYY, HH:MM am/pm
             pattern = r'(\w+),\s+(\w+)\s+(\d{1,2}),\s+(\d{4}),?\s+(\d{1,2}):(\d{2})\s*(am|pm)'
@@ -173,4 +191,4 @@ class SkipSmallTalkScraper(BasePlaywrightScraper):
         except Exception as e:
             logger.debug(f"Error parsing date: {e}")
 
-        return default
+        return None

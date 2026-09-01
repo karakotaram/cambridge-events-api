@@ -210,6 +210,19 @@ def compare(current: Fingerprint, history: list[dict]) -> list[Drift]:
 # Baseline persistence
 # --------------------------------------------------------------------------- #
 
+def _registered_names() -> Optional[set]:
+    """Names the registry still lists, or None if it cannot be read.
+
+    Returning None rather than an empty set matters: a broken import must not
+    silently disable every disappearance check.
+    """
+    try:
+        from src.sources import SOURCES
+        return {s.name for s in SOURCES}
+    except Exception:
+        return None
+
+
 def load_baselines(path: Path | str = BASELINE_PATH) -> dict[str, list[dict]]:
     path = Path(path)
     if not path.exists():
@@ -273,9 +286,14 @@ def check_drift(events: Iterable[dict], *,
         drifts.extend(compare(fp, baselines.get(name, [])))
 
     # A source with history that produced nothing at all this run has no
-    # fingerprint to compare, so catch it here.
+    # fingerprint to compare, so catch it here — but only if we still scrape it.
+    # A retired source has no events by design, and reporting that forever is
+    # noise the reader learns to skip.
+    registered = _registered_names()
     for name, history in baselines.items():
         if name in fingerprints or len(history) < MIN_RUNS_FOR_DRIFT:
+            continue
+        if registered is not None and name not in registered:
             continue
         base = _baseline_of(history, "events") or 0
         if base >= MIN_EVENTS_FOR_DRIFT:

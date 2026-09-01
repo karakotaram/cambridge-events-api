@@ -67,8 +67,6 @@ class Source:
 SOURCES: tuple[Source, ...] = (
     # ---- plain HTTP (requests / cloudscraper) --------------------------------
     Source("Lamplighter Brewing", "src.scrapers.lamplighter", "LamplighterScraper", "requests"),
-    Source("Harvard Book Store", "src.scrapers.harvard", "HarvardBookStoreScraper", "requests",
-           runs_in_ci=False, notes="blocks GitHub cloud IPs; run scrape_local.py"),
     Source("Boston Swing Central", "src.scrapers.boston_swing", "BostonSwingCentralScraper", "requests",
            runs_in_ci=False, notes="blocks GitHub cloud IPs; run scrape_local.py"),
     Source("The Comedy Studio", "src.scrapers.comedy_studio", "ComedyStudioScraper", "requests"),
@@ -123,6 +121,18 @@ SOURCES: tuple[Source, ...] = (
     Source("MIT Music & Theater", "src.scrapers.mit_music_theater", "MITMusicTheaterScraper", "playwright"),
     Source("MIT Open Space", "src.scrapers.openspace_mit", "OpenSpaceMITScraper", "playwright"),
     Source("Skip the Small Talk", "src.scrapers.skip_small_talk", "SkipSmallTalkScraper", "playwright"),
+
+    # Retired 2026-09-01: "Harvard Book Store". harvard.com moved behind
+    # Cloudflare's interstitial — "Just a moment... Enable JavaScript and
+    # cookies" — for plain HTTP, for headless Chromium, from CI and from a
+    # residential IP alike. It had been marked CI-blocked; it is now blocked
+    # everywhere, and getting past it means defeating protection the venue chose.
+    #
+    # Coverage continues: the Harvard Square aggregator lists 36 of their events
+    # with correct dates and reaches a month further out than the direct
+    # scraper's last good run did. A handful of their off-site events (the
+    # virtual warehouse sale, readings hosted at First Parish) are not carried
+    # there, which is the cost of this.
 
     # Retired 2026-09-01: "Harvard Memorial Church" returns 403 for every path on
     # memorialchurch.harvard.edu — homepage, calendar, RSS, REST — to plain HTTP

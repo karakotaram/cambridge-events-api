@@ -573,6 +573,37 @@ local run dropped all 21 of its events and Somerville Theatre's with them.
 failed or came back empty. A scrape that failed is not evidence that a venue
 cancelled its programme.
 
+### Skip the Small Talk was publishing the wrong city
+
+*Fixed 2026-09-01, after the sweep above.* The organisation is national, and its
+public-events page carries ~150 listings across Austin, Baltimore, Chicago,
+Denver, Detroit, Los Angeles, Nashville, New York, Portland, Providence,
+Raleigh, San Diego, Seattle, Toronto and Washington.
+
+The scraper fetched `?category=Boston` and then also `?category=Cambridge`.
+"Cambridge" is not one of the site's categories, so that second request returned
+the unfiltered national list and all 153 listings were appended — 114 of them
+published on a Cambridge calendar, at venues like Crank Arm Brewing in Raleigh
+and Monument City Brewing in Baltimore.
+
+The page ships every listing in the DOM and hides non-matching ones
+client-side, so which URL you request does not narrow what a parser sees. It now
+filters on each item's own `category-boston` class, which holds regardless of
+what the page chooses to display. 114 events became **31**, at Aeronaut, Short
+Path Distillery, Park-9, Trident Books and Cafe Zing.
+
+Its `_parse_date_time` also fell back to `datetime.now()` at 18:30 — the third
+scraper found carrying the Sept 14 defect. It skips now.
+
+### Harvard Book Store went behind Cloudflare
+
+*Retired 2026-09-01.* harvard.com began serving Cloudflare's "Just a moment…"
+interstitial to plain HTTP, to headless Chromium, from CI and from a residential
+IP alike. Coverage continues through the Harvard Square aggregator, which lists
+36 of their events with correct dates and reaches a month further out than the
+direct scraper's last good run. A few of their off-site events are not carried
+there; that is the cost.
+
 ### And one the fixes surfaced
 
 Reading a progressively-rendered list races the render. Longfellow House yielded
@@ -591,13 +622,10 @@ rather than timing it.
   Complex at "2341% of normal" the run after that scraper was fixed, which is a
   true observation about a stale baseline and exactly the kind of alert that
   should not have been able to block a deploy.
-- **Skip the Small Talk is national.** It returns events in Chicago, New York,
-  Washington, Austin, and Richmond, all stamped `city="Boston"`. Most land in
-  the past and are rejected, so the leakage is small, but the scraper should
-  filter on venue rather than trust the site's `?category=Boston` parameter.
-- **Harvard Book Store and Longy are being blocked**, the first permanently so
-  far, the second by rate limiting. Their events are preserved rather than
-  dropped; `scrape_local.py` is the intended path for the first.
+- **Longy is rate-limited from one IP, not broken.** Repeated requests trip an
+  Imunify360 challenge keyed on the caller's address; CI has a different one and
+  collected 10 events the same morning. Its events are preserved when a run
+  comes back empty, so this heals itself. Do not retry it in a loop.
 - **Editor's Picks still matches on `title + source_name`.** Now that ids are
   stable it could key on identity, but the existing mechanism works and changing
   it risks dropping live picks for no user-visible gain.

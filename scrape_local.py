@@ -1,23 +1,20 @@
 """
 Local scraper for sources that don't work in CI.
 
-Run this script locally to update events from:
-- Harvard Book Store
-- Boston Swing Central
-- Aeronaut Brewing
+Runs whichever sources `src/sources.py` marks `runs_in_ci=False` — venues that
+block GitHub's IP ranges. The daily CI workflow preserves their events rather
+than re-collecting them, so this script is how they get refreshed.
 
-These sources block GitHub's cloud IPs, so they must be scraped locally.
-The CI workflow will preserve these events when it runs.
+The source list is derived, not repeated. It used to be a third hand-maintained
+copy alongside scrape.py and ci_monitor.py, which is how four scrapers ended up
+running daily with no monitoring at all.
 """
 import json
 import logging
 import uuid
 from datetime import datetime
 
-from src.scrapers.harvard import HarvardBookStoreScraper
-from src.scrapers.boston_swing import BostonSwingCentralScraper
-from src.scrapers.aeronaut import AeronautScraper
-from src.scrapers.somerville_theatre import SomervilleTheatreScraper
+from src.sources import SOURCES
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
 from src.utils.storage import sort_events
@@ -30,13 +27,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Sources that only work locally
-LOCAL_ONLY_SOURCES = [
-    "Harvard Book Store",
-    "Boston Swing Central",
-    "Aeronaut Brewing",
-    "Somerville Theatre",
-]
+# Derived from the one registry — see src/sources.py
+LOCAL_ONLY_SOURCES = [s.name for s in SOURCES if s.is_scraped and not s.runs_in_ci]
 
 
 def main():
@@ -48,13 +40,8 @@ def main():
     validator = EventValidator()
     deduplicator = EventDeduplicator()
 
-    # Scrapers that only work locally
-    scrapers = [
-        HarvardBookStoreScraper(),
-        BostonSwingCentralScraper(),
-        AeronautScraper(),
-        SomervilleTheatreScraper(),
-    ]
+    scrapers = [s.load() for s in SOURCES if s.is_scraped and not s.runs_in_ci]
+    logger.info(f"Local-only sources: {', '.join(LOCAL_ONLY_SOURCES)}")
 
     all_events = []
     for scraper in scrapers:

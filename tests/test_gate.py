@@ -205,3 +205,37 @@ def test_a_source_that_succeeded_is_replaced_not_merged():
         fresh, skipped_sources=[], barren_sources=[])
     brattle = [e for e in published if e["source_name"] == "Brattle Theatre"]
     assert len(brattle) == 1 and brattle[0]["title"] == "Only one now"
+
+
+def test_drift_ignores_retired_sources(tmp_path):
+    """A retired source has no events by design.
+
+    Harvard Book Store went behind Cloudflare and was retired; its 14 runs of
+    history then reported "source disappeared from the data entirely" on every
+    check. A monitor that permanently reports an intended state trains its
+    reader to skip the output.
+    """
+    from src.quality.fingerprint import check_drift, fingerprint_all, record
+    from src.sources import BY_NAME
+    from src.utils.storage import load_events
+
+    path = tmp_path / "fingerprints.json"
+    live = next(s.name for s in __import__("src.sources", fromlist=["SOURCES"]).SOURCES
+                if s.is_scraped)
+    published = load_events()
+
+    # Give a live source and a retired one identical histories, then publish
+    # neither of them.
+    for name in (live, "Harvard Book Store"):
+        events = [e for e in published if e["source_name"] == name] or [
+            {"source_name": name, "title": f"t{i}", "description": "d" * 25,
+             "start_datetime": f"2026-10-{i % 28 + 1:02d}T19:00:00",
+             "source_url": f"http://x/{i}", "id": f"{name}-{i}"} for i in range(20)]
+        for run in range(4):
+            record({name: fingerprint_all(events)[name]}, path=path, run_id=f"r{run}")
+
+    _, drifts = check_drift([], path=path)
+    reported = {d.source for d in drifts}
+    assert "Harvard Book Store" not in reported, "retired source should be silent"
+    assert live in reported, "a registered source that vanished must still be reported"
+    assert "Harvard Book Store" not in BY_NAME
