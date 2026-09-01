@@ -93,6 +93,28 @@ jobs:
         if: steps.git-check.outputs.changed != 'true'
         run: echo "No new events found, skipping commit"
 
+      # The public calendar prerenders a page per event at build time
+      # (cambridge-event-compass/scripts/generate-static.mjs). Vercel only
+      # rebuilds when that repo changes, so without this the sitemap and every
+      # event page freeze on the day they were generated while the data moves
+      # on — stale pages that Google would eventually drop.
+      #
+      # Set VERCEL_DEPLOY_HOOK_URL to a deploy hook from the frontend project
+      # (Vercel → Settings → Git → Deploy Hooks). Absent, this is a no-op and
+      # says so rather than failing the scrape.
+      - name: Rebuild the public calendar
+        if: steps.git-check.outputs.changed == 'true'
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::warning::VERCEL_DEPLOY_HOOK_URL is not set - prerendered event pages and the sitemap will not pick up today's events"
+            exit 0
+          fi
+          code=$(curl -s -o /tmp/hook.out -w '%{http_code}' -X POST "$HOOK")
+          echo "deploy hook responded $code"
+          [ "$code" -lt 400 ] || { cat /tmp/hook.out; exit 1; }
+
       # Runs even when the gate blocked, so the evidence survives the job.
       - name: Preserve run record and quarantine
         if: always()
