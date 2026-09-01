@@ -1,22 +1,29 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-01T13:58:22.247824",
-  "total_events": 4062,
-  "total_sources": 39,
+  "timestamp": "2026-09-01T15:30:10.571053",
+  "total_events": 3976,
+  "total_sources": 38,
   "history_runs": 6,
   "alerts": [
     {
-      "source": "First Parish in Cambridge",
-      "severity": "MISSING",
+      "source": "Harvard Book Store",
+      "severity": "CRITICAL",
       "current": 0,
-      "average": 1.0,
-      "message": "Source disappeared from data (avg: 1)"
+      "average": 25.7,
+      "message": "0 events (avg: 26) - scraper may be broken"
+    },
+    {
+      "source": "Skip the Small Talk",
+      "severity": "WARNING",
+      "current": 31,
+      "average": 97.4,
+      "message": "31 events vs avg 97 (32%)"
     }
   ],
-  "diagnosis": null,
+  "diagnosis": "- **HTML structure changed** \u2013 the site renamed or moved the event list container, CSS classes/IDs, or added new nesting, so the scraper\u2019s selectors no longer match anything.  \n- **Dynamic content loading** \u2013 events are now rendered client\u2011side via JavaScript (e.g., React, AJAX) instead of being present in the raw HTML, and the scraper isn\u2019t executing the script or waiting for the data to load.  \n- **Access restrictions** \u2013 new bot\u2011detection measures (CAPTCHA, Cloudflare, rate\u2011limit headers, required cookies, or Referrer checks) cause the request to be blocked or return a generic \u201cno events\u201d page.  \n- **URL or query\u2011parameter change** \u2013 the endpoint the scraper calls (e.g., a calendar API or filtered URL) was altered or now requires authentication/parameters, resulting in an empty response.",
   "summary": {
-    "critical": 0,
-    "warning": 0,
-    "missing": 1
+    "critical": 1,
+    "warning": 1,
+    "missing": 0
   }
 }

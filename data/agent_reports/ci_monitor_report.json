@@ -1,18 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-01T13:58:22.325034",
-  "total_events": 4062,
-  "total_sources_registered": 40,
-  "total_sources_with_events": 39,
+  "timestamp": "2026-09-01T15:30:13.215445",
+  "total_events": 3976,
+  "total_sources_registered": 39,
+  "total_sources_with_events": 38,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
       "event_count": 19,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Harvard Book Store",
-      "event_count": 35,
       "days_since_scrape": 0
     },
     {
@@ -27,12 +22,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 398,
+      "event_count": 406,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1040,
+      "event_count": 1050,
       "days_since_scrape": 0
     },
     {
@@ -57,12 +52,12 @@
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 8,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 47,
+      "event_count": 49,
       "days_since_scrape": 0
     },
     {
@@ -97,7 +92,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 1076,
+      "event_count": 1078,
       "days_since_scrape": 0
     },
     {
@@ -182,17 +177,17 @@
     },
     {
       "source": "Skip the Small Talk",
-      "event_count": 114,
+      "event_count": 31,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Square",
-      "event_count": 254,
+      "event_count": 265,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
-      "event_count": 232,
+      "event_count": 233,
       "days_since_scrape": 0
     }
   ],
@@ -216,7 +211,7 @@
   ],
   "unregistered": [],
   "summary": {
-    "healthy": 38,
+    "healthy": 37,
     "stale": 1,
     "missing": 1,
     "unregistered": 0
