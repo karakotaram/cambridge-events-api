@@ -97,7 +97,6 @@ SOURCES: tuple[Source, ...] = (
     Source("The Lily Pad", "src.scrapers.lilypad", "LilyPadScraper", "selenium"),
     Source("The Middle East", "src.scrapers.mideast", "MideastClubScraper", "selenium"),
     Source("Portico Brewing", "src.scrapers.portico", "PorticoScraper", "selenium"),
-    Source("Porter Square Books", "src.scrapers.porter", "PorterSquareBooksScraper", "selenium"),
     Source("Arts at the Armory", "src.scrapers.armory", "ArtsAtTheArmoryScraper", "selenium"),
     Source("Harvard-Radcliffe Dramatic Club", "src.scrapers.hrdc", "HRDCScraper", "selenium"),
     Source("Central Square Theater", "src.scrapers.central_square", "CentralSquareTheaterScraper", "selenium"),
@@ -107,6 +106,8 @@ SOURCES: tuple[Source, ...] = (
            runs_in_ci=False, notes="blocks GitHub cloud IPs; run scrape_local.py"),
 
     # ---- Playwright ----------------------------------------------------------
+    Source("Porter Square Books", "src.scrapers.porter", "PorterSquareBooksScraper", "playwright",
+           notes="Drupal behind bot protection: plain HTTP and Selenium both get 403, Playwright does not"),
     Source("Museum of Science", "src.scrapers.museum_of_science", "MuseumOfScienceScraper", "playwright"),
     Source("Regent Theatre", "src.scrapers.regent_theatre", "RegentTheatreScraper", "playwright"),
     Source("Longy School of Music", "src.scrapers.longy", "LongyScraper", "playwright"),

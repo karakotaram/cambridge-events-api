@@ -17,7 +17,7 @@ class GrolierPoetryBookshopScraper(BaseScraper):
     def __init__(self):
         super().__init__(
             source_name="Grolier Poetry Book Shop",
-            source_url="https://www.grolierpoetrybookshop.org/upcoming-readings",
+            source_url="https://www.grolierpoetrybookshop.org/upcoming-events",  # renamed from /upcoming-readings
             use_selenium=False
         )
 

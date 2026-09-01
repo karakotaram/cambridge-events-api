@@ -23,9 +23,17 @@ class BasePlaywrightScraper(ABC):
     - Better CI/CD compatibility
     """
 
-    def __init__(self, source_name: str, source_url: str):
+    def __init__(self, source_name: str, source_url: str, user_agent: Optional[str] = None):
+        """user_agent defaults to the browser's own.
+
+        Do not spoof it without a reason. A UA claiming macOS on a browser whose
+        client hints say Linux is a *contradiction*, and bot protection reads it
+        as one — Porter Square Books returns 403 for the spoofed UA and 200 for
+        the browser's own, from the same headless Chromium.
+        """
         self.source_name = source_name
         self.source_url = source_url
+        self.user_agent = user_agent
         self._browser = None
         self._context = None
         self._page = None
@@ -46,10 +54,13 @@ class BasePlaywrightScraper(ABC):
                     '--disable-software-rasterizer',
                 ]
             )
+            context_options = {}
+            if self.user_agent:
+                context_options['user_agent'] = self.user_agent
             self._context = self._browser.new_context(
                 viewport={'width': 1920, 'height': 1080},
-                user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 java_script_enabled=True,
+                **context_options,
                 bypass_csp=True,
                 extra_http_headers={
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',

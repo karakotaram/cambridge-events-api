@@ -1,278 +1,218 @@
-"""Custom scraper for Porter Square Books events"""
+"""Custom scraper for Porter Square Books events
+
+The site is a Drupal build behind bot protection. Plain HTTP gets 403, and so
+does Selenium — the automation fingerprint is detected. Playwright gets a clean
+200, which is why this uses `BasePlaywrightScraper`; the previous Selenium
+version was silently receiving an "Access Restricted" page and parsing zero
+events out of it.
+
+The month calendar is a FullCalendar grid of `a.fc-event` anchors. Each anchor
+carries the detail URL with the date already in the path
+(/event/2026-09-01/slug), and wraps a `<template>` holding the fully-populated
+`article.event-teaser` with date, time, place, and image.
+
+That `<template>` is the trap. Only the one teaser for the selected day exists
+in the live DOM; the other 32 are inert template content that BeautifulSoup's
+html.parser will not descend into, so `soup.find_all(class_="event-teaser")`
+returns 33 nodes of which 32 look empty. Each template is re-parsed separately
+here.
+
+The previous selectors matched an older version of the page, and the scraper
+quietly returned zero events for months.
+"""
+import logging
 import re
 from datetime import datetime
-from typing import List
+from typing import Dict, List, Optional
+
 from dateutil import parser as date_parser
 
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_playwright_scraper import BasePlaywrightScraper
 from src.models.event import EventCreate, EventCategory
 
+logger = logging.getLogger(__name__)
 
-class PorterSquareBooksScraper(BaseScraper):
+BASE = "https://portersquarebooks.com"
+# The calendar is month-at-a-time; three covers the usual publishing horizon.
+MONTHS_AHEAD = 3
+
+# Porter Square Books has two locations; the Cambridge one is on Mass Ave.
+DEFAULT_ADDRESS = "25 White St"
+
+
+class PorterSquareBooksScraper(BasePlaywrightScraper):
     """Custom scraper for Porter Square Books events"""
 
     def __init__(self):
         super().__init__(
             source_name="Porter Square Books",
-            source_url="https://portersquarebooks.com/events/calendar",
-            use_selenium=True  # JavaScript-rendered content
+            source_url=f"{BASE}/events/calendar",
         )
 
-    def fetch_event_description(self, event_url: str) -> str:
-        """Fetch the full description from an event detail page"""
-        try:
-            if not self.driver:
-                return ""
-
-            # Navigate to event page
-            full_url = event_url if event_url.startswith('http') else f"https://portersquarebooks.com{event_url}"
-            self.driver.get(full_url)
-            import time
-            time.sleep(2)  # Wait for page load
-
-            # Parse the page
-            html = self.driver.page_source
-            soup = self.parse_html(html)
-
-            # Find description paragraphs in main content
-            description_parts = []
-
-            # Find main content area
-            main_content = soup.find('main') or soup.find('article') or soup.find(class_='content')
-
-            if main_content:
-                # Get all paragraph tags
-                paragraphs = main_content.find_all('p')
-                for p in paragraphs:
-                    text = self.clean_text(p.get_text())
-                    # Filter out short navigation/footer text and common non-description content
-                    if len(text) > 30 and not any(skip in text.lower() for skip in [
-                        'view all events', 'buy the book', 'add to cart', 'ticket',
-                        'online ticket sales', 'sign up', 'register'
-                    ]):
-                        description_parts.append(text)
-
-            if description_parts:
-                # Take first 4 paragraphs for a fuller description
-                full_description = ' '.join(description_parts[:4])
-
-                # Remove common addenda that aren't part of the main description
-                import re
-
-                # List of patterns that indicate the start of location/booking details to remove
-                patterns_to_remove = [
-                    r'this event (?:will )?takes? place at',
-                    r'we offer validated parking',
-                    r'\*please note that you will not receive',
-                    r'please check your spam folder',
-                ]
-
-                # Find the earliest match among all patterns
-                earliest_match = None
-                for pattern in patterns_to_remove:
-                    match = re.search(pattern, full_description, re.IGNORECASE)
-                    if match:
-                        if earliest_match is None or match.start() < earliest_match.start():
-                            earliest_match = match
-
-                if earliest_match:
-                    full_description = full_description[:earliest_match.start()].strip()
-
-                return full_description[:2000] if len(full_description) > 2000 else full_description
-
-            return ""
-        except Exception as e:
-            return ""
-
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from Porter Square Books"""
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        import time
-        import logging
+        events: List[EventCreate] = []
+        seen = set()
 
-        logger = logging.getLogger(__name__)
-
-        html = self.fetch_html(self.source_url)
-
-        # Click list view button to show event articles
-        if self.driver:
+        for url in self._month_urls():
             try:
-                time.sleep(3)  # Wait for initial page load
-
-                # Click the list view button
-                list_btn = self.driver.find_element(By.CSS_SELECTOR, 'a.events-views-nav__list')
-                list_btn.click()
-
-                # Wait for event-list articles to appear
-                WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "article.event-list"))
-                )
-                time.sleep(2)
-
+                self.goto(url)
+                # The grid is rendered client-side after load.
+                self.wait_for_selector("a.fc-event", timeout=20000)
+                soup = self.get_soup()
             except Exception as e:
-                logger.warning(f"Error switching to list view: {e}")
-
-            html = self.driver.page_source
-
-        soup = self.parse_html(html)
-
-        events = []
-
-        # Find all event articles
-        event_articles = soup.find_all('article', class_='event-list')
-
-        # Limit to reasonable number (30 upcoming events)
-        event_articles = event_articles[:30]
-
-        for article in event_articles:
-            try:
-                # Extract title
-                title_elem = article.find('h3', class_='event-list__title')
-                if not title_elem:
-                    continue
-
-                title_link = title_elem.find('a')
-                if not title_link:
-                    continue
-
-                title = self.clean_text(title_link.get_text())
-                if len(title) < 3:
-                    continue
-
-                # Extract event URL
-                event_url = title_link.get('href', '')
-                if event_url and not event_url.startswith('http'):
-                    event_url = f"https://portersquarebooks.com{event_url}"
-
-                # Extract date
-                date_text_elem = article.find('div', class_='event-list__details--item')
-                if not date_text_elem:
-                    continue
-
-                date_text = self.clean_text(date_text_elem.get_text())
-                date_text = date_text.replace('Date:', '').strip()
-
-                # Extract time
-                time_elem = None
-                for detail_item in article.find_all('div', class_='event-list__details--item'):
-                    if 'Time:' in detail_item.get_text():
-                        time_elem = detail_item
-                        break
-
-                time_text = ""
-                if time_elem:
-                    time_text = self.clean_text(time_elem.get_text())
-                    time_text = time_text.replace('Time:', '').strip()
-
-                # Combine date and time for parsing
-                datetime_str = f"{date_text} {time_text.split('-')[0].strip()}"
-
-                # Parse the datetime
-                try:
-                    start_datetime = date_parser.parse(datetime_str, fuzzy=True)
-                except:
-                    continue
-
-                # Extract location
-                location_elem = article.find('div', class_='event-details__location--location')
-                if not location_elem:
-                    location_elem = article.find('address')
-
-                venue_name = "Porter Square Books"  # Default
-                street_address = "25 White St"  # Default Cambridge location
-                city = "Cambridge"
-                state = "MA"
-                zip_code = "02140"
-
-                if location_elem:
-                    address_text = self.clean_text(location_elem.get_text())
-
-                    # Skip events not in Cambridge (Boston location, etc.)
-                    if "360 Newbury" in address_text or ("Boston" in address_text and "Cambridge" not in address_text):
-                        continue
-
-                    # Check if it's a different Cambridge location
-                    if "1815 Massachusetts Avenue" in address_text or "Cambridge Edition" in address_text:
-                        venue_name = "Porter Square Books - Cambridge"
-                        street_address = "1815 Massachusetts Avenue"
-                        zip_code = "02140"
-                    elif "25 White" in address_text:
-                        venue_name = "Porter Square Books - Cambridge"
-                        street_address = "25 White St"
-                        city = "Cambridge"
-                        zip_code = "02140"
-
-                # Extract cost info (if available)
-                cost = None
-                body_text = article.get_text()
-                if 'free' in body_text.lower():
-                    cost = "Free"
-                elif 'ticketed' in body_text.lower() or '$' in body_text:
-                    # Try to extract dollar amount
-                    cost_match = re.search(r'\$(\d+(?:\.\d{2})?)', body_text)
-                    if cost_match:
-                        cost = f"${cost_match.group(1)}"
-
-                # Fetch description from detail page (list view has only short previews)
-                description = ""
-                if event_url:
-                    # Always fetch from detail page for full descriptions
-                    detail_desc = self.fetch_event_description(event_url)
-                    if detail_desc and len(detail_desc) > 20:
-                        description = detail_desc
-                    else:
-                        # Fallback to list view preview if detail fetch fails
-                        body_elem = article.find('div', class_='event-list__body')
-                        if body_elem:
-                            description = self.clean_text(body_elem.get_text())
-
-                # Final fallback
-                if not description or len(description) < 20:
-                    description = f"{title} at {venue_name}"
-
-                # Categorize events
-                category = self.categorize_event(title, description)
-
-                event = EventCreate(
-                    title=title[:200],
-                    description=description[:2000],
-                    start_datetime=start_datetime,
-                    source_url=event_url or self.source_url,
-                    source_name=self.source_name,
-                    venue_name=venue_name[:200],
-                    street_address=street_address,
-                    city=city,
-                    state=state,
-                    zip_code=zip_code,
-                    category=category,
-                    cost=cost
-                )
-                events.append(event)
-
-            except Exception as e:
-                # Log error but continue processing other events
+                logger.warning(f"Could not fetch {url}: {e}")
                 continue
 
+            anchors = soup.find_all("a", class_="fc-event", href=True)
+            if not anchors:
+                logger.warning(f"No calendar entries found at {url}")
+                continue
+
+            for anchor in anchors:
+                event = self._parse_anchor(anchor)
+                if event is None:
+                    continue
+                if event.source_url in seen:
+                    continue
+                seen.add(event.source_url)
+                events.append(event)
+
+        logger.info(f"Scraped {len(events)} events from Porter Square Books")
         return events
 
-    def categorize_event(self, title: str, description: str) -> EventCategory:
-        """Categorize event based on keywords"""
-        text = f"{title} {description}".lower()
+    def _month_urls(self) -> List[str]:
+        urls = [self.source_url]
+        now = datetime.now()
+        for offset in range(1, MONTHS_AHEAD):
+            month = now.month + offset
+            year, month = now.year + (month - 1) // 12, (month - 1) % 12 + 1
+            urls.append(f"{BASE}/events/calendar/{year}/{month:02d}")
+        return urls
 
-        # Check specific categories
-        if any(word in text for word in ['trivia', 'quiz', 'jeopardy', 'bingo']):
+    def _parse_anchor(self, anchor) -> Optional[EventCreate]:
+        path = anchor["href"]
+        title_el = anchor.find(class_="fc-title")
+        title = self.clean_text(title_el.get_text()) if title_el else ""
+        teaser = self._teaser_from_template(anchor)
+
+        if not title and teaser is not None:
+            heading = teaser.find(class_="event-teaser__title")
+            title = self.clean_text(heading.get_text()) if heading else ""
+        if len(title) < 3:
+            return None
+
+        details = self._details(teaser) if teaser is not None else {}
+        start = self._parse_start(details.get("date") or self._date_from_path(path),
+                                  details.get("time"))
+        if start is None:
+            # Never guess a date — see docs/ARCHITECTURE.md "Layer 1 — Scrapers".
+            logger.warning(f"Skipping '{title}' - no parseable date "
+                           f"(path={path} time={details.get('time')!r})")
+            return None
+
+        venue_name, street = self._location(teaser) if teaser is not None else (self.source_name, None)
+
+        image_url = None
+        if teaser is not None:
+            image = teaser.find("img", src=True)
+            if image:
+                image_url = image["src"]
+                if image_url.startswith("/"):
+                    image_url = f"{BASE}{image_url}"
+
+        tags = [self.clean_text(t.get_text())
+                for t in (teaser.find_all(class_="event-tag__term") if teaser is not None else [])]
+
+        description = f"{title} at {venue_name}."
+        if tags:
+            description += f" {', '.join(tags)}."
+
+        return EventCreate(
+            title=title[:200],
+            description=description[:2000],
+            start_datetime=start,
+            source_url=f"{BASE}{path}" if path.startswith("/") else path,
+            source_name=self.source_name,
+            venue_name=venue_name[:200],
+            street_address=street[:200] if street else DEFAULT_ADDRESS,
+            city="Cambridge",
+            state="MA",
+            category=self._categorize(title, tags),
+            image_url=image_url,
+        )
+
+    @staticmethod
+    def _teaser_from_template(anchor):
+        """Re-parse the <template> an anchor wraps.
+
+        html.parser exposes template content as an opaque node, so the teaser
+        inside is invisible to a normal find() until it is parsed on its own.
+        """
+        template = anchor.find("template")
+        if template is None:
+            return None
+        from bs4 import BeautifulSoup
+        inner = BeautifulSoup(template.decode_contents(), "html.parser")
+        return inner.find(class_="event-teaser") or inner
+
+    @staticmethod
+    def _date_from_path(path: str) -> Optional[str]:
+        """/event/2026-09-01/slug -> 2026-09-01. The date is in the URL."""
+        match = re.search(r"/event/(\d{4}-\d{2}-\d{2})/", path or "")
+        return match.group(1) if match else None
+
+    def _details(self, teaser) -> Dict[str, str]:
+        """Read the <dt>label</dt><dd>value</dd> pairs into a dict."""
+        found: Dict[str, str] = {}
+        block = teaser.find(class_="event-teaser__details")
+        if not block:
+            return found
+        labels = block.find_all("dt")
+        values = block.find_all("dd")
+        for label, value in zip(labels, values):
+            key = self.clean_text(label.get_text()).rstrip(":").lower()
+            found[key] = self.clean_text(value.get_text())
+        return found
+
+    def _location(self, teaser) -> tuple:
+        node = teaser.find(class_="event-teaser__details-location")
+        if not node:
+            return self.source_name, None
+        address = node.find("address")
+        if not address:
+            return self.clean_text(node.get_text())[:200] or self.source_name, None
+        lines = [self.clean_text(line) for line in address.stripped_strings]
+        venue = lines[0] if lines else self.source_name
+        street = lines[1] if len(lines) > 1 else None
+        return venue, street
+
+    @staticmethod
+    def _parse_start(date_text: Optional[str], time_text: Optional[str]) -> Optional[datetime]:
+        """Combine "Tue, 9/1/2026" with "7:00pm".
+
+        Times are often ranges ("10:00am - 10:30am"); take the start. Passing the
+        whole range to dateutil fails outright, which silently dropped every
+        story time and workshop from the calendar.
+        """
+        if not date_text:
+            return None
+        start_time = ""
+        if time_text:
+            start_time = re.split(r"\s*(?:-|–|—|to)\s*", time_text.strip())[0].strip()
+        try:
+            parsed = date_parser.parse(f"{date_text} {start_time}".strip(), fuzzy=True)
+        except (ValueError, OverflowError):
+            return None
+        return parsed.replace(second=0, microsecond=0)
+
+    @staticmethod
+    def _categorize(title: str, tags: List[str]) -> EventCategory:
+        text = f"{title} {' '.join(tags)}".lower()
+        if any(w in text for w in ("story hour", "kids", "children", "storytime")):
             return EventCategory.ARTS_CULTURE
-        elif any(word in text for word in ['concert', 'music', 'band', 'dj', 'live music', 'musical']):
+        if any(w in text for w in ("music", "concert")):
             return EventCategory.MUSIC
-        elif any(word in text for word in ['book', 'author', 'reading', 'poetry', 'writer', 'novel', 'memoir', 'pencils up']):
-            return EventCategory.ARTS_CULTURE
-        elif any(word in text for word in ['comedy', 'stand-up', 'comedian']):
-            return EventCategory.THEATER
-        elif any(word in text for word in ['cooking', 'chef', 'food', 'recipe']):
-            return EventCategory.FOOD_DRINK
-        elif any(word in text for word in ['art', 'paint', 'craft', 'exhibit']):
-            return EventCategory.ARTS_CULTURE
-        else:
-            return EventCategory.ARTS_CULTURE  # Default to arts & culture for book events
+        if any(w in text for w in ("book club", "writers", "workshop", "class")):
+            return EventCategory.LECTURES
+        # An independent bookstore's calendar is overwhelmingly author events
+        return EventCategory.LECTURES
