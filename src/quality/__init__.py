@@ -17,10 +17,11 @@ from src.quality.fingerprint import (
     fingerprint_source,
     load_baselines,
     record,
+    reset_baseline,
 )
 
 __all__ = [
     "Violation", "check_invariants", "errors",
     "Drift", "Fingerprint", "check_drift", "fingerprint_all",
-    "fingerprint_source", "load_baselines", "record",
+    "fingerprint_source", "load_baselines", "record", "reset_baseline",
 ]

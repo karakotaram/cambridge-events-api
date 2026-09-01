@@ -1,11 +1,33 @@
-"""Custom scraper for Harvard-Radcliffe Dramatic Club"""
+"""Custom scraper for Harvard-Radcliffe Dramatic Club
+
+The publicity calendar is a plain month grid: a `table.calendar-table` whose
+`<td>` cells each hold a `.calendar-day` number and any `.calendar-show-item`
+entries for that day. Month and year come from the URL, not the page, so no year
+has to be inferred.
+
+Plain HTTP is enough — the previous version drove Selenium and then fetched a
+detail page per show, which was slow and, once the markup changed, silently
+produced nothing at all.
+"""
+import logging
 import re
+from calendar import monthrange
 from datetime import datetime
-from typing import List
+from typing import List, Optional
+
 from dateutil import parser as date_parser
 
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
+
+logger = logging.getLogger(__name__)
+
+BASE = "https://my.hrdctheater.org"
+MONTHS_AHEAD = 3
+
+VENUE = "Harvard-Radcliffe Dramatic Club"
+# HRDC produces across several Harvard theaters; the Loeb is the primary one.
+ADDRESS = "64 Brattle St"
 
 
 class HRDCScraper(BaseScraper):
@@ -13,178 +35,112 @@ class HRDCScraper(BaseScraper):
 
     def __init__(self):
         super().__init__(
-            source_name="Harvard-Radcliffe Dramatic Club",
-            source_url="https://my.hrdctheater.org/publicity/calendar/",
-            use_selenium=True
+            source_name=VENUE,
+            source_url=f"{BASE}/publicity/calendar/",
+            use_selenium=False,
         )
 
-    def fetch_show_details(self, show_url: str) -> tuple:
-        """Fetch the description and image from a show detail page
-        Returns (description, image_url)
-        """
-        try:
-            if not self.driver:
-                return "", None
-
-            self.driver.get(show_url)
-            import time
-            time.sleep(2)
-
-            html = self.driver.page_source
-            soup = self.parse_html(html)
-
-            # Extract image - look for show poster/image
-            image_url = None
-
-            # Try og:image first
-            og_image = soup.find('meta', property='og:image')
-            if og_image and og_image.get('content'):
-                image_url = og_image['content']
-
-            # If no og:image, look for show image in main content
-            if not image_url:
-                main = soup.find('main') or soup.find('article')
-                if main:
-                    img = main.find('img', src=True)
-                    if img:
-                        img_src = img.get('src') or img.get('data-src')
-                        if img_src and not any(skip in img_src.lower() for skip in ['logo', 'icon', 'avatar']):
-                            image_url = img_src
-
-            # Normalize image URL
-            if image_url and not image_url.startswith('http'):
-                if image_url.startswith('//'):
-                    image_url = f'https:{image_url}'
-                else:
-                    image_url = f"https://hrdctheater.org{image_url}"
-
-            # Find main content area for description
-            main = soup.find('main') or soup.find('article')
-            description = ""
-            if main:
-                # Get all paragraphs from main
-                paragraphs = main.find_all('p')
-                description_parts = []
-
-                for p in paragraphs:
-                    text = self.clean_text(p.get_text())
-                    # Look for substantive paragraphs (skip credits, dates, warnings)
-                    if len(text) > 100 and not any(skip in text.lower() for skip in [
-                        'director', 'producer', 'stage manager', 'music director',
-                        'wednesday,', 'thursday,', 'friday,', 'saturday,', 'sunday,',
-                        'run time:', 'content warning', 'free with huid'
-                    ]):
-                        description_parts.append(text)
-
-                if description_parts:
-                    # Use the first substantive paragraph as description
-                    description = description_parts[0][:2000]
-
-            return description, image_url
-        except Exception:
-            return "", None
-
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from HRDC calendar"""
-        events = []
-        seen_identifiers = set()  # Track (title, date) to avoid duplicates
+        events: List[EventCreate] = []
+        seen = set()
 
-        try:
-            html = self.fetch_html(self.source_url)
-            soup = self.parse_html(html)
+        for year, month in self._months():
+            url = f"{BASE}/publicity/calendar/{year}/{month}/"
+            try:
+                soup = self.parse_html(self.fetch_html(url))
+            except Exception as e:
+                logger.warning(f"Could not fetch {url}: {e}")
+                continue
 
-            # Find all event list items
-            event_items = soup.find_all('li', class_='list-group-item')
-
-            for item in event_items:
-                try:
-                    # Find the title link
-                    title_link = item.find('a', href=lambda x: x and 'hrdctheater.org/shows/' in x if x else False)
-                    if not title_link:
+            last_day = monthrange(year, month)[1]
+            for cell in soup.find_all("td"):
+                day = self._day_number(cell)
+                # Grid cells spill into the neighbouring months; those days are
+                # covered by their own page, so skip anything out of range.
+                if day is None or not 1 <= day <= last_day:
+                    continue
+                for item in cell.find_all(class_="calendar-show-item"):
+                    event = self._parse_item(item, year, month, day)
+                    if event is None:
                         continue
-
-                    title = self.clean_text(title_link.get_text())
-                    if len(title) < 3:
+                    key = (event.title, event.start_datetime)
+                    if key in seen:
                         continue
-
-                    # Skip "apps due" events - these aren't real events
-                    if 'apps due' in title.lower() or 'applications' in title.lower():
-                        continue
-
-                    # Extract event URL
-                    event_url = title_link.get('href', '')
-                    if not event_url.startswith('http'):
-                        event_url = f"https://hrdctheater.org{event_url}"
-
-                    # Extract date/time from pull-right span
-                    date_span = item.find('span', class_='pull-right')
-                    if not date_span:
-                        continue
-
-                    date_text = self.clean_text(date_span.get_text())
-                    # Format: "Dec 4 @ 7:30 PM" or "Nov 28 @ 11:59 PM"
-
-                    # Skip if we've already seen this event on this date
-                    identifier = f"{title}|{date_text}"
-                    if identifier in seen_identifiers:
-                        continue
-                    seen_identifiers.add(identifier)
-
-                    # Parse the date/time
-                    try:
-                        # Add current year if not present
-                        current_year = datetime.now().year
-                        date_with_year = f"{date_text} {current_year}"
-                        start_datetime = date_parser.parse(date_with_year, fuzzy=True)
-
-                        # If the parsed date is in the past, assume it's next year
-                        if start_datetime < datetime.now():
-                            start_datetime = date_parser.parse(f"{date_text} {current_year + 1}", fuzzy=True)
-                    except Exception:
-                        # If parsing fails, skip this event
-                        continue
-
-                    # Extract venue information
-                    venue_name = None
-                    street_address = None
-
-                    # Look for Google Maps link with venue info
-                    maps_link = item.find('a', href=lambda x: x and 'google.com/maps' in x if x else False)
-                    if maps_link:
-                        # Venue name is in a span inside the maps link
-                        venue_span = maps_link.find('span', class_='badge')
-                        if venue_span:
-                            venue_text = self.clean_text(venue_span.get_text())
-                            if venue_text and len(venue_text) < 100:
-                                venue_name = venue_text[:200]
-
-                    # Fetch description and image from show detail page
-                    description, image_url = self.fetch_show_details(event_url)
-                    if not description or len(description) < 50:
-                        description = title
-
-                    # All HRDC events are theater
-                    category = EventCategory.THEATER
-
-                    event = EventCreate(
-                        title=title[:200],
-                        description=description,
-                        start_datetime=start_datetime,
-                        source_url=event_url,
-                        source_name=self.source_name,
-                        venue_name=venue_name,
-                        street_address=street_address,
-                        city="Cambridge",
-                        state="MA",
-                        category=category,
-                        image_url=image_url
-                    )
+                    seen.add(key)
                     events.append(event)
 
-                except Exception as e:
-                    continue
-
-        except Exception as e:
-            pass
-
+        logger.info(f"Scraped {len(events)} events from {VENUE}")
         return events
+
+    def _months(self) -> List[tuple]:
+        now = datetime.now()
+        out = []
+        for offset in range(MONTHS_AHEAD):
+            month = now.month + offset
+            out.append((now.year + (month - 1) // 12, (month - 1) % 12 + 1))
+        return out
+
+    def _day_number(self, cell) -> Optional[int]:
+        node = cell.find(class_="calendar-day")
+        if not node:
+            return None
+        text = self.clean_text(node.get_text())
+        return int(text) if text.isdigit() else None
+
+    def _parse_item(self, item, year: int, month: int, day: int) -> Optional[EventCreate]:
+        title_el = item.find(class_="calendar-show-title")
+        if not title_el:
+            return None
+        title = self.clean_text(title_el.get_text())
+        if len(title) < 3:
+            return None
+
+        time_el = item.find(class_="calendar-show-time")
+        start = self._parse_start(year, month, day,
+                                  self.clean_text(time_el.get_text()) if time_el else "")
+        if start is None:
+            # Never guess — see docs/ARCHITECTURE.md "Layer 1 — Scrapers".
+            logger.warning(f"Skipping '{title}' - no parseable date for {year}-{month:02d}-{day:02d}")
+            return None
+
+        link = title_el.find("a", href=True)
+        url = link["href"] if link else self.source_url
+        if url.startswith("/"):
+            url = f"{BASE}{url}"
+
+        # The info icon's tooltip carries the venue/notes for the show
+        note = item.find("i", attrs={"data-original-title": True})
+        detail = self.clean_text(note["data-original-title"]) if note else ""
+
+        description = f"{title} — {VENUE}."
+        if detail:
+            description += f" {detail}"
+
+        return EventCreate(
+            title=title[:200],
+            description=description[:2000],
+            start_datetime=start,
+            source_url=url,
+            source_name=self.source_name,
+            venue_name=VENUE,
+            street_address=ADDRESS,
+            city="Cambridge",
+            state="MA",
+            zip_code="02138",
+            category=EventCategory.THEATER,
+        )
+
+    @staticmethod
+    def _parse_start(year: int, month: int, day: int, time_text: str) -> Optional[datetime]:
+        """Date from the calendar cell, time from "9 PM" style text."""
+        try:
+            date = datetime(year, month, day)
+        except ValueError:
+            return None
+        if not time_text:
+            return date
+        try:
+            parsed = date_parser.parse(time_text, fuzzy=True)
+        except (ValueError, OverflowError):
+            return date
+        return date.replace(hour=parsed.hour, minute=parsed.minute, second=0, microsecond=0)

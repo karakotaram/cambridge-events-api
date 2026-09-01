@@ -139,3 +139,69 @@ def test_quarantine_preserves_the_evidence(tmp_path, published, baseline):
     assert json.loads((target / "events.json").read_text())
     assert json.loads((target / "gate.json").read_text())["decision"] == "BLOCKED"
     assert "collapsed" in (target / "report.txt").read_text()
+
+
+# --------------------------------------------------------------------------- #
+# Preservation: a failed scrape must not delete data
+# --------------------------------------------------------------------------- #
+
+def test_a_failed_source_keeps_its_upcoming_events(tmp_path, monkeypatch):
+    """Harvard Book Store started 403-ing from every IP. Because it only had
+    "preserve" status inside CI, a local run deleted all 21 of its events, and
+    Somerville Theatre's with them. A scrape that failed says nothing about
+    whether a venue still has a programme."""
+    import json as _json
+    from datetime import datetime, timedelta
+
+    import scrape
+    from src.models.event import Event, EventCreate
+
+    future = (datetime.now() + timedelta(days=10)).replace(second=0, microsecond=0)
+    past = (datetime.now() - timedelta(days=10)).replace(second=0, microsecond=0)
+
+    def stored(source, when, n=1):
+        return [{
+            "id": f"{source}-{when.date()}-{i}", "title": f"{source} show {i}",
+            "description": "d" * 25, "start_datetime": when.isoformat(),
+            "source_url": f"http://x/{source}/{i}", "source_name": source,
+        } for i in range(n)]
+
+    on_disk = (stored("Harvard Book Store", future, 3)
+               + stored("Harvard Book Store", past, 2)
+               + stored("Brattle Theatre", future, 4))
+    monkeypatch.setattr(scrape, "load_stored_events", lambda *a, **k: on_disk)
+
+    orchestrator = scrape.ScraperOrchestrator()
+    fresh = [Event.from_create(EventCreate(
+        title="Brattle screening", description="d" * 25, start_datetime=future,
+        source_url="http://b/1", source_name="Brattle Theatre"))]
+
+    published = orchestrator.build_publish_set(
+        fresh, skipped_sources=[], barren_sources=["Harvard Book Store"])
+
+    by_source = {}
+    for e in published:
+        by_source[e["source_name"]] = by_source.get(e["source_name"], 0) + 1
+
+    assert by_source.get("Harvard Book Store") == 3, (
+        "the 3 upcoming events of the failed source must survive; "
+        "its 2 past ones must not")
+    assert by_source.get("Brattle Theatre") == 1, "the working source is replaced, not merged"
+
+
+def test_a_source_that_succeeded_is_replaced_not_merged():
+    """Preservation applies only to sources that produced nothing. A source that
+    scraped successfully is authoritative for its own events."""
+    import scrape
+    from datetime import datetime, timedelta
+    from src.models.event import Event, EventCreate
+
+    future = (datetime.now() + timedelta(days=5)).replace(second=0, microsecond=0)
+    fresh = [Event.from_create(EventCreate(
+        title="Only one now", description="d" * 25, start_datetime=future,
+        source_url="http://b/new", source_name="Brattle Theatre"))]
+
+    published = scrape.ScraperOrchestrator().build_publish_set(
+        fresh, skipped_sources=[], barren_sources=[])
+    brattle = [e for e in published if e["source_name"] == "Brattle Theatre"]
+    assert len(brattle) == 1 and brattle[0]["title"] == "Only one now"

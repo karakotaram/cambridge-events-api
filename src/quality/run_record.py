@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import subprocess
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -59,12 +59,21 @@ class RunRecord:
 
     @classmethod
     def start(cls, *, is_ci: bool = False) -> "RunRecord":
-        now = datetime.now()
+        """Run ids are UTC, and the trailing Z means it.
+
+        They were local time with a Z pasted on, which is only harmless while
+        every run happens in one timezone. CI runs in UTC and a developer does
+        not, so `data/runs/` ended up holding two clocks under one naming
+        scheme: a 09:44 EDT run sorted *before* an 11:32 UTC one that had
+        actually happened two hours earlier. `cal doctor` reads the newest run
+        by id, so it reported a stale failure.
+        """
+        now = datetime.now(timezone.utc)
         return cls(run_id=now.strftime("%Y-%m-%dT%H-%M-%SZ"),
                    started_at=now.isoformat(timespec="seconds"), is_ci=is_ci)
 
     def finish(self) -> None:
-        end = datetime.now()
+        end = datetime.now(timezone.utc)
         self.finished_at = end.isoformat(timespec="seconds")
         self.duration_s = round((end - datetime.fromisoformat(self.started_at)).total_seconds(), 1)
 

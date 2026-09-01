@@ -130,9 +130,17 @@ cost the most time:
 - **A source can look alive and contribute nothing.** If everything it returns is
   over 30 days old, `EventValidator` drops all of it. Check a run record's
   `rejected` counts, not just the scraper's status.
-- **18 of 42 sources currently contribute zero events.** Diagnosed, not fixed —
-  three separate causes. See
-  [ROADMAP § What `doctor` found](docs/ROADMAP.md#what-doctor-found).
+- **`wait_for_selector` returns on the *first* match.** On a progressively
+  rendered list that reads a partial page — Longfellow House gave 54 items alone
+  and 4 under load. Use `wait_for_stable_count()`, or better, read the JSON the
+  page itself fetches.
+- **A failed scrape must never delete events.** `build_publish_set` preserves
+  the upcoming events of any source that failed or came back empty. Harvard Book
+  Store started 403-ing and a local run wiped all 21 of its listings before this
+  existed.
+- **Never spoof a browser user-agent.** A UA claiming macOS on a browser whose
+  client hints say Linux is a contradiction, and bot protection reads it as one.
+  That spoof was in the Playwright base and cost us one source outright.
 - **Drift does not block yet** (`GATE_DRIFT=report`). Invariants do, from day one.
 
 ## Structure

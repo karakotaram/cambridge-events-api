@@ -1,143 +1,147 @@
-"""Scraper for Museum of Science Boston events using Playwright"""
+"""Scraper for the Museum of Science special events
+
+The museum's `/events` page lists a handful of dated special events — the rest of
+its programme is daily exhibits and shows, which are not calendar entries. Five
+listings is the real number, not a truncated one.
+
+Dates read as "Saturday, September 26, 2026 | 10:00 am – 4:00 pm", and sometimes
+"Sunday, September 27 | 6:00 – 10:00 pm" with the year left off. A missing year
+is inferred forward from today — never backward — because the page only ever
+advertises upcoming events.
+"""
 import logging
 import re
 from datetime import datetime
 from typing import List, Optional
 
-from bs4 import BeautifulSoup
-from dateutil import parser as dateutil_parser
+from dateutil import parser as date_parser
 
 from src.scrapers.base_playwright_scraper import BasePlaywrightScraper
 from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
 
+BASE = "https://www.mos.org"
+VENUE = "Museum of Science"
+ADDRESS = "1 Science Park"
+
+# "Saturday, September 26, 2026 | 10:00 am – 4:00 pm" -> date part, time part
+DATE_TIME_SPLIT = re.compile(r"\s*\|\s*")
+# Ranges use an en dash more often than a hyphen
+TIME_RANGE_SPLIT = re.compile(r"\s*(?:–|—|-|to)\s*")
+
 
 class MuseumOfScienceScraper(BasePlaywrightScraper):
-    """Scraper for Museum of Science Boston events via rendered page."""
+    """Scraper for Museum of Science events"""
 
     def __init__(self):
-        super().__init__(
-            source_name="Museum of Science",
-            source_url="https://www.mos.org/events",
-        )
+        super().__init__(source_name=VENUE, source_url=f"{BASE}/events")
 
     def scrape_events(self) -> List[EventCreate]:
-        events = []
-
         try:
-            self.goto(self.source_url, wait_until="domcontentloaded")
-            self.page.wait_for_timeout(5000)
-
+            self.goto(self.source_url)
+            self.wait_for_stable_count(".listing-item", timeout=25000)
             soup = self.get_soup()
-            cards = soup.select(".listing-item")
-            logger.info(f"Found {len(cards)} event cards on MOS page")
-
-            for card in cards:
-                try:
-                    event = self._parse_card(card)
-                    if event:
-                        events.append(event)
-                except Exception as e:
-                    logger.debug(f"Error parsing MOS event card: {e}")
-
         except Exception as e:
-            logger.error(f"Error scraping Museum of Science: {e}")
+            logger.error(f"Could not load Museum of Science events: {e}")
+            return []
 
-        logger.info(f"Scraped {len(events)} events from Museum of Science")
+        events: List[EventCreate] = []
+        seen = set()
+        for item in soup.find_all(class_="listing-item"):
+            event = self._parse_item(item)
+            if event is None:
+                continue
+            if event.source_url in seen:
+                continue
+            seen.add(event.source_url)
+            events.append(event)
+
+        logger.info(f"Scraped {len(events)} events from {VENUE}")
         return events
 
-    def _parse_card(self, card) -> Optional[EventCreate]:
-        """Parse a single .listing-item card."""
-        # Title
-        title_tag = card.select_one("h3.listing-item__title a")
-        if not title_tag:
+    def _parse_item(self, item) -> Optional[EventCreate]:
+        link = item.find("a", class_="listing-item__image", href=True) or item.find("a", href=True)
+        if not link:
             return None
-        title = self.clean_text(title_tag.get_text())
+        path = link["href"]
+        if "/events/" not in path:
+            return None
+
+        title = ""
+        title_el = item.find(class_=re.compile(r"listing-item__(title|heading)"))
+        if title_el:
+            title = self.clean_text(title_el.get_text())
         if not title:
+            # Fall back to the anchor whose text is not the image alt
+            for anchor in item.find_all("a", href=True):
+                text = self.clean_text(anchor.get_text())
+                if text and text.lower() != "image":
+                    title = text
+                    break
+        if len(title) < 3:
             return None
 
-        # URL
-        href = title_tag.get("href", "")
-        if href.startswith("/"):
-            href = f"https://www.mos.org{href}"
-        source_url = href or self.source_url
-
-        # Date/time
-        date_tag = card.select_one(".field--name-field-date-time-info")
-        date_text = self.clean_text(date_tag.get_text()) if date_tag else ""
-        start_dt = self._parse_date(date_text)
-        if not start_dt:
+        date_el = item.find(class_="listing-item__date")
+        start = self._parse_start(self.clean_text(date_el.get_text()) if date_el else "")
+        if start is None:
+            # Never guess — see docs/ARCHITECTURE.md "Layer 1 — Scrapers".
+            logger.warning(f"Skipping '{title}' - no parseable date "
+                           f"({self.clean_text(date_el.get_text()) if date_el else None!r})")
             return None
 
-        # Description
-        summary_tag = card.select_one(".listing-item__summary")
-        description = self.clean_text(summary_tag.get_text()) if summary_tag else title
+        body = item.find(class_=re.compile(r"listing-item__(summary|description|content-body)"))
+        description = self.clean_text(body.get_text()) if body else ""
+        if len(description) < 20:
+            description = f"{title} at the {VENUE}, Science Park, Boston."
 
-        # Image
-        img_tag = card.select_one("picture img[src]")
-        image_url = img_tag["src"] if img_tag else None
-
-        # Category
-        category = self._detect_category(title, description)
+        image = item.find("img", src=True)
+        image_url = image["src"] if image else None
+        if image_url and image_url.startswith("/"):
+            image_url = f"{BASE}{image_url}"
 
         return EventCreate(
             title=title[:200],
             description=description[:2000],
-            start_datetime=start_dt,
-            venue_name="Museum of Science",
-            street_address="1 Museum Of Science Driveway",
+            start_datetime=start,
+            source_url=f"{BASE}{path}" if path.startswith("/") else path,
+            source_name=self.source_name,
+            venue_name=VENUE,
+            street_address=ADDRESS,
             city="Boston",
             state="MA",
             zip_code="02114",
-            category=category,
-            source_name=self.source_name,
-            source_url=source_url,
+            category=EventCategory.ARTS_CULTURE,
             image_url=image_url,
         )
 
-    def _parse_date(self, text: str) -> Optional[datetime]:
-        """Parse date strings like 'Thursday, February 19 | 7:00 pm'."""
+    @staticmethod
+    def _parse_start(text: str) -> Optional[datetime]:
         if not text:
             return None
+        parts = DATE_TIME_SPLIT.split(text, maxsplit=1)
+        date_part = parts[0].strip()
+        time_part = TIME_RANGE_SPLIT.split(parts[1].strip())[0] if len(parts) > 1 else ""
 
-        # Strip day-of-week prefix
-        text = re.sub(
-            r"^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s*",
-            "", text, flags=re.I,
-        )
+        # An end-of-range time like "4:00 pm" carries the meridiem the start may
+        # be missing ("6:00 – 10:00 pm"); borrow it when the start has none.
+        if time_part and not re.search(r"[ap]\.?m", time_part, re.I) and len(parts) > 1:
+            meridiem = re.search(r"([ap]\.?m)", parts[1], re.I)
+            if meridiem:
+                time_part = f"{time_part} {meridiem.group(1)}"
 
-        # Handle "Doors at X, Show at Y" — use show time
-        show_match = re.search(r"Show\s+(?:at\s+)?(\d{1,2}:\d{2}\s*[ap]m)", text, re.I)
-        if show_match:
-            time_str = show_match.group(1)
-            date_part = text.split("|")[0].strip() if "|" in text else text.split(",")[0].strip()
-            text = f"{date_part} {time_str}"
-        elif "|" in text:
-            parts = text.split("|")
-            date_part = parts[0].strip()
-            time_part = parts[1].strip()
-            # Handle range like "10:00 am - 4:00 pm" — use start time
-            time_part = re.split(r"\s*[-–]\s*", time_part)[0].strip()
-            text = f"{date_part} {time_part}"
-
-        # Add current year if not present
-        if not re.search(r"\d{4}", text):
-            text = f"{text} {datetime.now().year}"
-
+        now = datetime.now()
         try:
-            return dateutil_parser.parse(text, fuzzy=True)
+            parsed = date_parser.parse(f"{date_part} {time_part}".strip(),
+                                       default=now.replace(hour=0, minute=0, second=0, microsecond=0))
         except (ValueError, OverflowError):
             return None
 
-    def _detect_category(self, title: str, description: str) -> EventCategory:
-        text = f"{title} {description}".lower()
-        if any(w in text for w in ["concert", "music", "jazz", "symphony", "dj", "tribute"]):
-            return EventCategory.MUSIC
-        if any(w in text for w in ["lecture", "talk", "speaker", "seminar", "symposium"]):
-            return EventCategory.LECTURES
-        if any(w in text for w in ["exhibit", "exhibition", "gallery", "art", "film", "screening"]):
-            return EventCategory.ARTS_CULTURE
-        if any(w in text for w in ["theater", "theatre", "comedy", "improv"]):
-            return EventCategory.THEATER
-        return EventCategory.COMMUNITY
+        # The page only advertises upcoming events, so a date that lands in the
+        # past means the year was omitted — roll forward, never backward.
+        if parsed < now and not re.search(r"\d{4}", date_part):
+            try:
+                parsed = parsed.replace(year=parsed.year + 1)
+            except ValueError:      # 29 Feb
+                return None
+        return parsed.replace(second=0, microsecond=0)

@@ -57,7 +57,7 @@ class PorterSquareBooksScraper(BasePlaywrightScraper):
             try:
                 self.goto(url)
                 # The grid is rendered client-side after load.
-                self.wait_for_selector("a.fc-event", timeout=20000)
+                self.wait_for_stable_count("a.fc-event", timeout=25000)
                 soup = self.get_soup()
             except Exception as e:
                 logger.warning(f"Could not fetch {url}: {e}")

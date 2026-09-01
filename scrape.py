@@ -110,7 +110,11 @@ class ScraperOrchestrator:
 
         # The publish set is what the gate judges and what would land on disk:
         # this run's events plus the ones we always preserve.
-        publish_set = self.build_publish_set(final_events, skipped_sources)
+        # A scraper that failed or came back empty tells us nothing about its
+        # events, so keep the ones we already have rather than deleting them.
+        produced = {e.source_name for e in final_events}
+        barren = [r.source for r in run.scrapers if r.source not in produced]
+        publish_set = self.build_publish_set(final_events, skipped_sources, barren)
         run.counts["final"] = len(publish_set)
 
         before = load_stored_events()
@@ -166,26 +170,59 @@ class ScraperOrchestrator:
         return [Event.from_create(e) for e in events]
 
     def build_publish_set(self, events: List[Event],
-                          skipped_sources: List[str] = None) -> List[dict]:
+                          skipped_sources: List[str] = None,
+                          barren_sources: List[str] = None) -> List[dict]:
         """This run's events plus the ones that must survive it.
 
         Built before writing anything, so the gate judges exactly what would
         land on disk rather than a subset of it.
+
+        Three things survive a run:
+          - sources the registry says this pipeline does not produce (user
+            submissions)
+          - sources CI cannot reach, which are refreshed by scrape_local.py
+          - sources whose scraper failed or returned nothing this run
+
+        That last one is the important one. Harvard Book Store started
+        403-ing from every IP, and because it only had "preserve" status inside
+        CI, a local run deleted all 21 of its events — along with Somerville
+        Theatre's. A failed scrape is not evidence that a venue cancelled its
+        programme, so it must not be allowed to delete anything.
         """
         # Preserve CI-blocked sources plus anything the registry says the
         # scrape pipeline does not produce (e.g. user submissions).
         sources_to_preserve = set(skipped_sources or []) | set(preserved_always())
+        recovered = set(barren_sources or []) - sources_to_preserve
 
+        stored = load_stored_events()
         preserved_events = [
-            e for e in load_stored_events()
-            if e.get('source_name') in sources_to_preserve
+            e for e in stored if e.get('source_name') in sources_to_preserve
         ]
+
+        # For a source that produced nothing, keep only its still-upcoming
+        # events: preserved entries bypass validation, so without this they
+        # would linger in the past forever.
+        today = datetime.now().date().isoformat()
+        rescued = [
+            e for e in stored
+            if e.get('source_name') in recovered
+            and str(e.get('start_datetime') or '')[:10] >= today
+        ]
+        if rescued:
+            by_source = {}
+            for e in rescued:
+                by_source[e['source_name']] = by_source.get(e['source_name'], 0) + 1
+            logger.warning(
+                "Kept existing events for sources that produced nothing this run: "
+                + ", ".join(f"{k} ({v})" for k, v in sorted(by_source.items())))
+        preserved_events += rescued
+
         if preserved_events:
             user_submitted = len([e for e in preserved_events
                                   if e.get('source_name') == 'User Submitted'])
             logger.info(f"Preserving {len(preserved_events)} events "
                         f"({user_submitted} user-submitted, "
-                        f"{len(preserved_events) - user_submitted} from skipped sources)")
+                        f"{len(preserved_events) - user_submitted} from skipped or failed sources)")
 
         events_dict = [event.model_dump(mode='json') for event in events]
         # Deterministic order: stable ids plus a stable order make the daily git

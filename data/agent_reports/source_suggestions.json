@@ -1,0 +1,541 @@
+{
+  "status": "ok",
+  "timestamp": "2026-02-17T16:55:33.414180",
+  "known_sources": 25,
+  "suggestions": [
+    {
+      "name": "The Sinclair",
+      "url": "https://www.sinclaircambridge.com/events/",
+      "type": "Music Venue",
+      "validation": {
+        "reachable": true,
+        "status_code": 200,
+        "keyword_hits": 5,
+        "has_events": true,
+        "keywords_found": [
+          "event",
+          "calendar",
+          "upcoming",
+          "tickets",
+          "shows"
+        ]
+      }
+    },
+    {
+      "name": "Club Passim",
+      "url": "https://passim.org/events/",
+      "type": "Music Venue",
+      "validation": {
+        "reachable": false,
+        "error": "404 Client Error: Not Found for url: https://www.passim.org/events/",
+        "has_events": false
+      }
+    },
+    {
+      "name": "Somerville Public Library",
+      "url": "https://www.somervillepubliclibrary.org/events",
+      "type": "Library",
+      "validation": {
+        "reachable": false,
+        "error": "404 Client Error: Not Found for url: https://somervillepubliclibrary.org/events",
+        "has_events": false
+      }
+    },
+    {
+      "name": "Cambridge Public Library",
+      "url": "https://www.cambridgepubliclibrary.org/events",
+      "type": "Library",
+      "validation": {
+        "reachable": true,
+        "status_code": 200,
+        "keyword_hits": 5,
+        "has_events": true,
+        "keywords_found": [
+          "event",
+          "calendar",
+          "tickets",
+          "classes",
+          "workshops"
+        ]
+      }
+    },
+    {
+      "name": "Museum of Science",
+      "url": "https://www.mos.org/events",
+      "type": "Museum",
+      "validation": {
+        "reachable": true,
+        "status_code": 200,
+        "keyword_hits": 5,
+        "has_events": true,
+        "keywords_found": [
+          "event",
+          "tickets",
+          "schedule",
+          "shows",
+          "classes"
+        ]
+      }
+    },
+    {
+      "name": "The Center for Arts at the Armory's neighbor, The Democracy Center",
+      "url": "https://democracycenter.org/events/",
+      "type": "Community Space",
+      "validation": {
+        "reachable": false,
+        "error": "403 Client Error: Forbidden for url: https://www.natefortexas.com/events/",
+        "has_events": false
+      }
+    },
+    {
+      "name": "Scullers Jazz Club",
+      "url": "https://www.scullersjazz.com/events/",
+      "type": "Music Venue",
+      "validation": {
+        "reachable": false,
+        "error": "404 Client Error: Not Found for url: https://scullersjazz.com/events/",
+        "has_events": false
+      }
+    },
+    {
+      "name": "Regent Theatre",
+      "url": "https://regenttheatre.com/events",
+      "type": "Theater",
+      "validation": {
+        "reachable": true,
+        "status_code": 200,
+        "keyword_hits": 4,
+        "has_events": true,
+        "keywords_found": [
+          "event",
+          "calendar",
+          "schedule",
+          "classes"
+        ]
+      }
+    },
+    {
+      "name": "Somerville Theatre",
+      "url": "https://somervilletheatre.com/events/",
+      "type": "Theater",
+      "validation": {
+        "reachable": false,
+        "error": "403 Client Error: Forbidden for url: https://somervilletheatre.com/events/",
+        "has_events": false
+      }
+    },
+    {
+      "name": "MIT Museum",
+      "url": "https://museum.mit.edu/events",
+      "type": "Museum",
+      "validation": {
+        "reachable": false,
+        "error": "HTTPSConnectionPool(host='museum.mit.edu', port=443): Max retries exceeded with url: /events (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x10ccbc190>, 'Connection to museum.mit.edu timed out. (connect timeout=15)'))",
+        "has_events": false
+      }
+    }
+  ],
+  "validated": [
+    {
+      "name": "The Sinclair",
+      "url": "https://www.sinclaircambridge.com/events/",
+      "type": "Music Venue",
+      "validation": {
+        "reachable": true,
+        "status_code": 200,
+        "keyword_hits": 5,
+        "has_events": true,
+        "keywords_found": [
+          "event",
+          "calendar",
+          "upcoming",
+          "tickets",
+          "shows"
+        ]
+      }
+    },
+    {
+      "name": "Cambridge Public Library",
+      "url": "https://www.cambridgepubliclibrary.org/events",
+      "type": "Library",
+      "validation": {
+        "reachable": true,
+        "status_code": 200,
+        "keyword_hits": 5,
+        "has_events": true,
+        "keywords_found": [
+          "event",
+          "calendar",
+          "tickets",
+          "classes",
+          "workshops"
+        ]
+      }
+    },
+    {
+      "name": "Museum of Science",
+      "url": "https://www.mos.org/events",
+      "type": "Museum",
+      "validation": {
+        "reachable": true,
+        "status_code": 200,
+        "keyword_hits": 5,
+        "has_events": true,
+        "keywords_found": [
+          "event",
+          "tickets",
+          "schedule",
+          "shows",
+          "classes"
+        ]
+      }
+    },
+    {
+      "name": "Regent Theatre",
+      "url": "https://regenttheatre.com/events",
+      "type": "Theater",
+      "validation": {
+        "reachable": true,
+        "status_code": 200,
+        "keyword_hits": 4,
+        "has_events": true,
+        "keywords_found": [
+          "event",
+          "calendar",
+          "schedule",
+          "classes"
+        ]
+      }
+    }
+  ],
+  "generation_results": [
+    {
+      "status": "error",
+      "investigation": {
+        "url": "https://www.sinclaircambridge.com/events/",
+        "best_source": {
+          "type": "static_html",
+          "containers": [
+            {
+              "tag": "div",
+              "class": "search_container show_mobile_navigation"
+            },
+            {
+              "tag": "div",
+              "class": "page_header_container eventlist_header_container animated fixed"
+            },
+            {
+              "tag": "div",
+              "class": "event_list"
+            }
+          ],
+          "has_pagination": true
+        },
+        "apis": [],
+        "embedded_json": [],
+        "feeds": [],
+        "static_html": {
+          "page_title": "Events | Sinclair Cambridge",
+          "event_containers": [
+            {
+              "tag": "div",
+              "class": "search_container show_mobile_navigation"
+            },
+            {
+              "tag": "div",
+              "class": "page_header_container eventlist_header_container animated fixed"
+            },
+            {
+              "tag": "div",
+              "class": "event_list"
+            }
+          ],
+          "has_pagination": true,
+          "needs_js": false,
+          "date_patterns": [
+            "Feb 17, 2026",
+            "Feb 19, 2026",
+            "Feb 20, 2026",
+            "Feb 20, 2026",
+            "Feb 21, 2026",
+            "Feb 25, 2026",
+            "Feb 26, 2026",
+            "Feb 27, 2026",
+            "Feb 27, 2026",
+            "Feb 28, 2026"
+          ]
+        },
+        "fetch_error": null,
+        "json_ld": [],
+        "venue_name": "The Sinclair"
+      },
+      "code": "\"\"\"Custom scraper for The Sinclair events\"\"\"\nimport logging\nimport re\nfrom datetime import datetime\nfrom typing import List\nfrom dateutil import parser as date_parser\n\nfrom src.scrapers.base_scraper import BaseScraper\nfrom src.models.event import EventCreate, EventCategory\n\nlogger = logging.getLogger(__name__)\n\n\nclass SinclairScraper(BaseScraper):\n    \"\"\"Custom scraper for The Sinclair events\"\"\"\n\n    def __init__(self):\n        super().__init__(\n            source_name=\"The Sinclair\",\n            source_url=\"https://www.sinclaircambridge.com/events/\",\n            use_selenium=False\n        )\n\n    def scrape_events(self) -> List[EventCreate]:\n        \"\"\"Scrape events from The Sinclair\"\"\"\n        events = []\n        page = 1\n        max_pages = 10\n        \n        while page <= max_pages:\n            try:\n                if page == 1:\n                    url = self.source_url\n                else:\n                    url = f\"https://www.sinclaircambridge.com/events/page/{page}/\"\n                \n                html = self.fetch_html(url)\n                soup = self.parse_html(html)\n                \n                event_items = soup.find_all('article', class_='event_item')\n                \n                if not event_items:\n                    break\n                \n                for item in event_items:\n                    try:\n                        title_elem = item.find('h3', class_='event_title')\n                        if not title_elem:\n                            continue\n                        \n                        title_link = title_elem.find('a')\n                        if not title_link:\n                            continue\n                        \n                        title = self.clean_text(title_link.get_text())\n                        event_url = title_link.get('href', '')\n                        \n                        if not title or not event_url:\n                            continue\n                        \n                        date_elem = item.find('span', class_='event_date')\n                        if not date_elem:\n                            continue\n                        \n                        date_text = self.clean_text(date_elem.get_text())\n                        \n                        time_elem = item.find('span', class_='event_time')\n                        time_text = ''\n                        if time_elem:\n                            time_text = self.clean_text(time_elem.get_text())\n                        \n                        try:\n                            if time_text:\n                                datetime_str = f\"{date_text} {time_text}\"\n                                start_datetime = date_parser.parse(datetime_str, fuzzy=True)\n                            else:\n                                start_datetime = date_parser.parse(date_text, fuzzy=True)\n                        except Exception as e:\n                            logger.warning(f\"Failed to parse date '{date_text} {time_text}': {str(e)}\")\n                            continue\n                        \n                        desc_elem = item.find('div', class_='event_description')\n                        description = ''\n                        if desc_elem:\n                            description = self.clean_text(desc_elem.get_text())\n                        \n                        if not description:\n                            description = f\"{title} at The Sinclair in Cambridge, MA\"\n                        \n                        image_url = None\n                        img_elem = item.find('img')\n                        if img_elem:\n                            image_url = img_elem.get('src') or img_elem.get('data-src')\n                            if image_url and not image_url.startswith('http'):\n                                if image_url.startswith('//'):\n                                    image_url = f\"https:{image_url}\"\n                                else:\n                                    image_url = f\"https://www.sinclaircambridge.com{image_url}\"\n                        \n                        if not image_url and event_url:\n                            try:\n                                detail_html = self.fetch_html(event_url)\n                                detail_soup = self.parse_html(detail_html)\n                                image_url = self.extract_image_url(detail_soup, event_url)\n                            except Exception as e:\n                                logger.warning(f\"Failed to fetch image from detail page: {str(e)}\")\n                        \n                        cost_elem = item.find('span', class_='event_price')\n                        cost = None\n                        if cost_elem:\n                            cost = self.clean_text(cost_elem.get_text())\n                        \n                        age_elem = item.find('span', class_='event_age')\n                        age_restrictions = None\n                        if age_elem:\n                            age_restrictions = self.clean_text(age_elem.get_text())\n                        \n                        category = self.categorize_event(title, description)\n                        \n                        event = EventCreate(\n                            title=title[:200],\n                            description=description[:2000],\n                            start_datetime=start_datetime,\n                            source_url=event_url,\n                            source_name=self.source_name,\n                            venue_name=\"The Sinclair\",\n                            street_address=\"52 Church Street\",\n                            city=\"Cambridge\",\n                            state=\"MA\",\n                            zip_code=\"02138\",\n                            category=category,\n                            cost=cost,\n                            age_restrictions=age_restrictions,\n                            image_url=image_url\n                        )\n                        events.append(event)\n                    \n                    except Exception as e:\n                        logger.warning(f\"Failed to parse event item: {str(e)}\")\n                        continue\n                \n                page += 1\n            \n            except Exception as e:\n                logger.error(f\"Failed to fetch page {page}: {str(e)}\")\n                break\n        \n        return events\n\n    def categorize_event(self, title: str, description: str) -> EventCategory:\n        \"\"\"Categorize event based on keywords\"\"\"\n        text = f\"{title} {description}\".lower()\n        \n        if any(word in text for word in ['concert', 'music', 'band', 'dj', 'live music', 'show', 'tour', 'performance']):\n            return EventCategory.MUSIC\n        elif any(word in text for word in ['comedy', 'stand-up', 'comedian']):\n            return EventCategory.THEATER\n        elif any(word in text for word in ['trivia', 'quiz']):\n            return EventCategory.ARTS_CULTURE\n        elif any(word in text for word in ['dance', 'dancing']):\n            return EventCategory.ARTS_CULTURE\n        else:\n            return EventCategory.MUSIC",
+      "validation": {
+        "valid": false,
+        "errors": [
+          "Scraper returned 0 events"
+        ],
+        "events_found": 0,
+        "error": "Scraper returned 0 events"
+      },
+      "venue": "The Sinclair",
+      "url": "https://www.sinclaircambridge.com/events/"
+    },
+    {
+      "status": "ok",
+      "investigation": {
+        "url": "https://www.cambridgepubliclibrary.org/events",
+        "best_source": {
+          "type": "static_html",
+          "containers": [
+            {
+              "tag": "section",
+              "class": "homeCalendar"
+            },
+            {
+              "tag": "div",
+              "class": "eventDate"
+            },
+            {
+              "tag": "li",
+              "class": "event"
+            }
+          ],
+          "has_pagination": true
+        },
+        "apis": [],
+        "embedded_json": [],
+        "feeds": [],
+        "static_html": {
+          "page_title": "Cambridge Public Library",
+          "event_containers": [
+            {
+              "tag": "section",
+              "class": "homeCalendar"
+            },
+            {
+              "tag": "div",
+              "class": "eventDate"
+            },
+            {
+              "tag": "li",
+              "class": "event"
+            },
+            {
+              "tag": "li",
+              "class": "event"
+            },
+            {
+              "tag": "li",
+              "class": "event"
+            },
+            {
+              "tag": "li",
+              "class": "event"
+            },
+            {
+              "tag": "li",
+              "class": "event"
+            },
+            {
+              "tag": "li",
+              "class": "event"
+            },
+            {
+              "tag": "li",
+              "class": "event"
+            },
+            {
+              "tag": "li",
+              "class": "event"
+            }
+          ],
+          "has_pagination": true,
+          "needs_js": false,
+          "date_patterns": [
+            "February 18",
+            "February 19",
+            "February 15, 2026",
+            "February 8, 2026",
+            "February 1, 2025",
+            "January 25, 2026",
+            "Feb\n\n\n17",
+            "Feb\n\n\n17",
+            "Feb\n\n\n17"
+          ]
+        },
+        "fetch_error": null,
+        "json_ld": [],
+        "venue_name": "Cambridge Public Library"
+      },
+      "code": "\"\"\"Custom scraper for Cambridge Public Library events\"\"\"\nimport logging\nimport re\nfrom datetime import datetime\nfrom typing import List, Optional\nfrom dateutil import parser as date_parser\n\nfrom src.scrapers.base_scraper import BaseScraper\nfrom src.models.event import EventCreate, EventCategory\n\nlogger = logging.getLogger(__name__)\n\n\nclass CambridgePublicLibraryScraper(BaseScraper):\n    \"\"\"Custom scraper for Cambridge Public Library events\"\"\"\n\n    def __init__(self):\n        super().__init__(\n            source_name=\"Cambridge Public Library\",\n            source_url=\"https://www.cambridgepubliclibrary.org/events\",\n            use_selenium=False\n        )\n\n    def fetch_event_details(self, event_url: str) -> tuple:\n        \"\"\"Fetch full description and image from event detail page\n        Returns (description, image_url)\n        \"\"\"\n        try:\n            full_url = event_url if event_url.startswith('http') else f\"https://www.cambridgepubliclibrary.org{event_url}\"\n            html = self.fetch_html(full_url)\n            soup = self.parse_html(html)\n\n            description = \"\"\n            image_url = None\n\n            # Extract image\n            image_url = self.extract_image_url(soup, full_url)\n\n            # Extract description from event detail page\n            desc_div = soup.find('div', class_=re.compile(r'event.*description|description', re.I))\n            if desc_div:\n                paragraphs = desc_div.find_all('p')\n                desc_parts = []\n                for p in paragraphs:\n                    text = self.clean_text(p.get_text())\n                    if len(text) > 10:\n                        desc_parts.append(text)\n                if desc_parts:\n                    description = ' '.join(desc_parts)[:2000]\n\n            # If no description div, try other common containers\n            if not description:\n                content_div = soup.find('div', class_=re.compile(r'content|body|details', re.I))\n                if content_div:\n                    text = self.clean_text(content_div.get_text())\n                    if len(text) > 20:\n                        description = text[:2000]\n\n            return description, image_url\n\n        except Exception as e:\n            logger.warning(f\"Failed to fetch event details from {event_url}: {str(e)}\")\n            return \"\", None\n\n    def parse_event_datetime(self, date_text: str, time_text: str = None) -> Optional[datetime]:\n        \"\"\"Parse event date and time strings into datetime object\"\"\"\n        try:\n            # Clean up the text\n            date_text = self.clean_text(date_text)\n            \n            # If time is provided separately, combine them\n            if time_text:\n                time_text = self.clean_text(time_text)\n                datetime_str = f\"{date_text} {time_text}\"\n            else:\n                datetime_str = date_text\n\n            # Use dateutil parser which handles various formats\n            parsed_date = date_parser.parse(datetime_str, fuzzy=True)\n            \n            # If no year is specified, dateutil might default to current year\n            # Check if the date is in the past and add a year if needed\n            current_year = datetime.now().year\n            if parsed_date.year < current_year or (parsed_date.year == current_year and parsed_date < datetime.now()):\n                # Try parsing with explicit year\n                datetime_str_with_year = f\"{date_text} {current_year + 1}\"\n                if time_text:\n                    datetime_str_with_year += f\" {time_text}\"\n                try:\n                    parsed_date = date_parser.parse(datetime_str_with_year, fuzzy=True)\n                except:\n                    pass\n            \n            return parsed_date\n\n        except Exception as e:\n            logger.warning(f\"Failed to parse datetime from '{date_text}' and '{time_text}': {str(e)}\")\n            return None\n\n    def extract_location_info(self, location_text: str) -> dict:\n        \"\"\"Extract venue name and address from location text\"\"\"\n        location_info = {\n            'venue_name': 'Cambridge Public Library',\n            'street_address': None,\n            'city': 'Cambridge',\n            'state': 'MA',\n            'zip_code': None\n        }\n\n        if not location_text:\n            return location_info\n\n        location_lower = location_text.lower()\n\n        # Check for specific library branches\n        if 'main library' in location_lower or '449 broadway' in location_lower:\n            location_info['venue_name'] = 'Cambridge Public Library - Main Library'\n            location_info['street_address'] = '449 Broadway'\n            location_info['zip_code'] = '02138'\n        elif 'central square' in location_lower or '45 pearl' in location_lower:\n            location_info['venue_name'] = 'Cambridge Public Library - Central Square Branch'\n            location_info['street_address'] = '45 Pearl Street'\n            location_info['zip_code'] = '02139'\n        elif 'boudreau' in location_lower or '245 concord' in location_lower:\n            location_info['venue_name'] = 'Cambridge Public Library - Boudreau Branch'\n            location_info['street_address'] = '245 Concord Avenue'\n            location_info['zip_code'] = '02138'\n        elif 'collins' in location_lower or '64 aberdeen' in location_lower:\n            location_info['venue_name'] = 'Cambridge Public Library - Collins Branch'\n            location_info['street_address'] = '64 Aberdeen Avenue'\n            location_info['zip_code'] = '02138'\n        elif 'o\\'neill' in location_lower or 'oneill' in location_lower or '70 rindge' in location_lower:\n            location_info['venue_name'] = 'Cambridge Public Library - O\\'Neill Branch'\n            location_info['street_address'] = '70 Rindge Avenue'\n            location_info['zip_code'] = '02140'\n        elif 'valente' in location_lower or '826 cambridge' in location_lower:\n            location_info['venue_name'] = 'Cambridge Public Library - Valente Branch'\n            location_info['street_address'] = '826 Cambridge Street'\n            location_info['zip_code'] = '02141'\n        elif 'online' in location_lower or 'virtual' in location_lower or 'zoom' in location_lower:\n            location_info['venue_name'] = 'Cambridge Public Library - Online'\n\n        return location_info\n\n    def categorize_event(self, title: str, description: str) -> EventCategory:\n        \"\"\"Categorize event based on keywords\"\"\"\n        text = f\"{title} {description}\".lower()\n\n        if any(word in text for word in ['book', 'reading', 'author', 'literature', 'poetry', 'story']):\n            return EventCategory.LECTURES\n        elif any(word in text for word in ['music', 'concert', 'jazz', 'folk', 'classical', 'band']):\n            return EventCategory.MUSIC\n        elif any(word in text for word in ['art', 'craft', 'painting', 'drawing', 'exhibition', 'gallery']):\n            return EventCategory.ARTS_CULTURE\n        elif any(word in text for word in ['film', 'movie', 'cinema', 'screening']):\n            return EventCategory.ARTS_CULTURE\n        elif any(word in text for word in ['lecture', 'talk', 'discussion', 'seminar', 'workshop']):\n            return EventCategory.LECTURES\n        elif any(word in text for word in ['theater', 'theatre', 'play', 'performance', 'drama']):\n            return EventCategory.THEATER\n        elif any(word in text for word in ['kids', 'children', 'family', 'toddler', 'baby', 'youth']):\n            return EventCategory.COMMUNITY\n        else:\n            return EventCategory.COMMUNITY\n\n    def scrape_events(self) -> List[EventCreate]:\n        \"\"\"Scrape events from Cambridge Public Library\"\"\"\n        events = []\n        \n        try:\n            html = self.fetch_html(self.source_url)\n            soup = self.parse_html(html)\n\n            # Find event containers - try multiple selectors\n            event_containers = []\n            \n            # Try different container patterns\n            event_containers.extend(soup.find_all('li', class_=re.compile(r'event', re.I)))\n            event_containers.extend(soup.find_all('div', class_=re.compile(r'event', re.I)))\n            event_containers.extend(soup.find_all('article', class_=re.compile(r'event', re.I)))\n\n            # If no events found with class, try data attributes\n            if not event_containers:\n                event_containers = soup.find_all(['div', 'li', 'article'], attrs={'data-event': True})\n\n            logger.info(f\"Found {len(event_containers)} potential event containers\")\n\n            for container in event_containers[:50]:  # Limit to 50 events\n                try:\n                    # Extract title\n                    title_elem = container.find(['h2', 'h3', 'h4', 'a'], class_=re.compile(r'title|name|heading', re.I))\n                    if not title_elem:\n                        title_elem = container.find(['h2', 'h3', 'h4'])\n                    if not title_elem:\n                        title_elem = container.find('a')\n                    \n                    if not title_elem:\n                        continue\n\n                    title = self.clean_text(title_elem.get_text())\n                    if not title or len(title) < 3:\n                        continue\n\n                    # Extract event URL\n                    event_url = None\n                    link_elem = container.find('a', href=True)\n                    if link_elem:\n                        event_url = link_elem.get('href')\n                        if event_url and not event_url.startswith('http'):\n                            event_url = f\"https://www.cambridgepubliclibrary.org{event_url}\"\n\n                    # Extract date\n                    date_elem = container.find(['time', 'span', 'div'], class_=re.compile(r'date', re.I))\n                    if not date_elem:\n                        date_elem = container.find('time')\n                    \n                    date_text = None\n                    if date_elem:\n                        date_text = self.clean_text(date_elem.get_text())\n                        # Also check for datetime attribute\n                        if not date_text and date_elem.get('datetime'):\n                            date_text = date_elem.get('datetime')\n\n                    # Extract time\n                    time_elem = container.find(['span', 'div'], class_=re.compile(r'time', re.I))\n                    time_text = self.clean_text(time_elem.get_text()) if time_elem else None\n\n                    # Parse datetime\n                    start_datetime = None\n                    if date_text:\n                        start_datetime = self.parse_event_datetime(date_text, time_text)\n                    \n                    if not start_datetime:\n                        # Try to find any date-like text in the container\n                        full_text = self.clean_text(container.get_text())\n                        date_match = re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December)\\s+\\d{1,2}(?:,\\s*\\d{4})?', full_text, re.I)\n                        if date_match:\n                            start_datetime = self.parse_event_datetime(date_match.group())\n                    \n                    if not start_datetime:\n                        continue\n\n                    # Extract location\n                    location_elem = container.find(['span', 'div'], class_=re.compile(r'location|venue', re.I))\n                    location_text = self.clean_text(location_elem.get_text()) if location_elem else \"\"\n                    location_info = self.extract_location_info(location_text)\n\n                    # Extract brief description from container\n                    desc_elem = container.find(['p', 'div'], class_=re.compile(r'description|summary|excerpt', re.I))\n                    brief_description = self.clean_text(desc_elem.get_text()) if desc_elem else \"\"\n\n                    # Fetch full details from event page if URL available\n                    full_description = brief_description\n                    image_url = None\n                    if event_url:\n                        detailed_desc, img_url = self.fetch_event_details(event_url)\n                        if detailed_desc:\n                            full_description = detailed_desc\n                        if img_url:\n                            image_url = img_url\n\n                    # Use title as description fallback\n                    if not full_description or len(full_description) < 20:\n                        full_description = f\"{title} at {location_info['venue_name']}\"\n\n                    # Determine if family friendly\n                    family_friendly = any(keyword in title.lower() or keyword in full_description.lower() \n                                        for keyword in ['children', 'kids', 'family', 'toddler', 'baby', 'youth', 'teen'])\n\n                    # Categorize event\n                    category = self.categorize_event(title, full_description)\n\n                    # Extract age restrictions if present\n                    age_restrictions = None\n                    age_match = re.search(r'(?:ages?|for)\\s+(\\d+(?:\\s*-\\s*\\d+)?(?:\\s*(?:and|&|\\+)\\s*(?:up|older))?)', \n                                        full_description, re.I)\n                    if age_match:\n                        age_restrictions = age_match.group(1)\n\n                    # Check for registration requirement\n                    registration_required = any(keyword in full_description.lower() \n                                              for keyword in ['registration required', 'register', 'sign up', 'rsvp'])\n\n                    event = EventCreate(\n                        title=title[:200],\n                        description=full_description[:2000],\n                        start_datetime=start_datetime,\n                        source_url=event_url or self.source_url,\n                        source_name=self.source_name,\n                        venue_name=location_info['venue_name'],\n                        street_address=location_info['street_address'],\n                        city=location_info['city'],\n                        state=location_info['state'],\n                        zip_code=location_info['zip_code'],\n                        category=category,\n                        family_friendly=family_friendly,\n                        age_restrictions=age_restrictions,\n                        registration_required=registration_required,\n                        cost='Free',  # Library events are typically free\n                        image_url=image_url\n                    )\n                    events.append(event)\n\n                except Exception as e:\n                    logger.warning(f\"Failed to parse event: {str(e)}\")\n                    continue\n\n        except Exception as e:\n            logger.error(f\"Failed to scrape Cambridge Public Library events: {str(e)}\")\n            raise\n\n        return events",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "events_found": 26,
+        "sample_titles": [
+          "Remembering Together: Grief Support Group (CANCELLED)",
+          "High Beginner ESOL (Central Square)",
+          "Drop In Tech Help (Valente)"
+        ]
+      },
+      "venue": "Cambridge Public Library",
+      "url": "https://www.cambridgepubliclibrary.org/events",
+      "written_to": "/Users/karanarakotaram/cambridgescraper/src/scrapers/cambridge_public_library.py",
+      "registered": true
+    },
+    {
+      "status": "error",
+      "investigation": {
+        "url": "https://www.mos.org/events",
+        "best_source": {
+          "type": "api",
+          "url": "https://www.mos.org/api/v1/event-listing/event_detail/96+101/all/all/all?items_per_page=18&amp;sort_by=date_asc",
+          "sample": [
+            {
+              "url": "https://www.mos.org/api/v1/event-listing/event_detail/96%20101/all/all/all?items_per_page=18&amp%3Bsort_by=date_asc&f%5B0%5D=event_type%3A96",
+              "raw_value": "96",
+              "values": {
+                "value": "Public Event",
+                "count": 19
+              }
+            },
+            {
+              "url": "https://www.mos.org/api/v1/event-listing/event_detail/96%20101/all/all/all?items_per_page=18&amp%3Bsort_by=date_asc&f%5B0%5D=event_type%3A101",
+              "raw_value": "101",
+              "values": {
+                "value": "Member Event",
+                "count": 1
+              }
+            }
+          ],
+          "total_items": 2
+        },
+        "apis": [
+          {
+            "url": "https://www.mos.org/api/v1/event-listing/event_detail/96+101/all/all/all?items_per_page=18&amp;sort_by=date_asc",
+            "item_count": 2,
+            "sample": [
+              {
+                "url": "https://www.mos.org/api/v1/event-listing/event_detail/96%20101/all/all/all?items_per_page=18&amp%3Bsort_by=date_asc&f%5B0%5D=event_type%3A96",
+                "raw_value": "96",
+                "values": {
+                  "value": "Public Event",
+                  "count": 19
+                }
+              },
+              {
+                "url": "https://www.mos.org/api/v1/event-listing/event_detail/96%20101/all/all/all?items_per_page=18&amp%3Bsort_by=date_asc&f%5B0%5D=event_type%3A101",
+                "raw_value": "101",
+                "values": {
+                  "value": "Member Event",
+                  "count": 1
+                }
+              }
+            ],
+            "keys": [
+              "url",
+              "raw_value",
+              "values"
+            ],
+            "params": null
+          }
+        ],
+        "embedded_json": [],
+        "feeds": [],
+        "static_html": {
+          "page_title": "Explore Events | Museum of Science",
+          "event_containers": [
+            {
+              "tag": "div",
+              "class": "js-event-listing event-listing"
+            }
+          ],
+          "has_pagination": true,
+          "needs_js": false,
+          "date_patterns": []
+        },
+        "fetch_error": null,
+        "json_ld": [],
+        "venue_name": "Museum of Science"
+      },
+      "code": "\"\"\"Scraper for Museum of Science Boston events\"\"\"\nimport logging\nfrom datetime import datetime\nfrom typing import List, Optional\nimport requests\nfrom dateutil import parser as dateparse\nfrom src.scrapers.base_scraper import BaseScraper\nfrom src.models.event import EventCreate, EventCategory\n\nlogger = logging.getLogger(__name__)\n\n\nclass MuseumOfScienceScraper(BaseScraper):\n    \"\"\"Scrape events from Museum of Science Boston\"\"\"\n\n    def __init__(self):\n        super().__init__(\n            source_name=\"Museum of Science\",\n            source_url=\"https://www.mos.org/events\",\n            use_selenium=False,\n        )\n\n    def scrape_events(self) -> List[EventCreate]:\n        \"\"\"Fetch events from the Museum of Science API\"\"\"\n        events = []\n        \n        api_url = \"https://www.mos.org/api/v1/event-listing/event_detail/96+101/all/all/all\"\n        params = {\n            \"items_per_page\": 100,\n            \"sort_by\": \"date_asc\"\n        }\n        \n        try:\n            response = requests.get(\n                api_url,\n                params=params,\n                headers=self.get_browser_headers(),\n                timeout=30,\n            )\n            response.raise_for_status()\n            data = response.json()\n            \n            event_items = data.get(\"events\", [])\n            if not event_items:\n                logger.warning(\"No events found in API response\")\n                return events\n            \n            for item in event_items:\n                try:\n                    event = self._parse_event(item)\n                    if event:\n                        events.append(event)\n                except Exception as e:\n                    logger.warning(f\"Failed to parse event: {e}\")\n                    continue\n            \n            logger.info(f\"Successfully parsed {len(events)} events from Museum of Science\")\n            \n        except Exception as e:\n            logger.error(f\"Failed to fetch events from Museum of Science API: {e}\")\n            raise\n        \n        return events\n\n    def _parse_event(self, item: dict) -> Optional[EventCreate]:\n        \"\"\"Parse a single event from the API response\"\"\"\n        \n        title = item.get(\"title\", \"\").strip()\n        if not title:\n            return None\n        \n        description_html = item.get(\"description\", \"\")\n        if description_html:\n            from bs4 import BeautifulSoup\n            soup = BeautifulSoup(description_html, 'html.parser')\n            description = self.clean_text(soup.get_text())\n        else:\n            description = title\n        \n        if not description:\n            description = title\n        \n        date_str = item.get(\"date\")\n        if not date_str:\n            return None\n        \n        try:\n            start_datetime = dateparse.parse(date_str)\n        except (ValueError, TypeError) as e:\n            logger.warning(f\"Could not parse date '{date_str}': {e}\")\n            return None\n        \n        end_date_str = item.get(\"end_date\")\n        end_datetime = None\n        if end_date_str:\n            try:\n                end_datetime = dateparse.parse(end_date_str)\n            except (ValueError, TypeError):\n                pass\n        \n        event_path = item.get(\"path\", \"\")\n        if event_path:\n            if event_path.startswith(\"http\"):\n                event_url = event_path\n            else:\n                event_url = f\"https://www.mos.org{event_path}\"\n        else:\n            event_url = self.source_url\n        \n        image_url = item.get(\"image\")\n        if image_url and not image_url.startswith(\"http\"):\n            image_url = f\"https://www.mos.org{image_url}\"\n        \n        location = item.get(\"location\", \"\").strip()\n        venue_name = location if location else \"Museum of Science\"\n        \n        event_type = item.get(\"event_type\", \"\").strip()\n        \n        category = EventCategory.OTHER\n        event_type_lower = event_type.lower() if event_type else \"\"\n        title_lower = title.lower()\n        desc_lower = description.lower()\n        \n        if any(word in event_type_lower or word in title_lower for word in [\"science\", \"exhibit\", \"planetarium\", \"theater\", \"show\"]):\n            category = EventCategory.ARTS_CULTURE\n        elif any(word in event_type_lower or word in title_lower for word in [\"lecture\", \"talk\", \"presentation\"]):\n            category = EventCategory.LECTURES\n        elif any(word in event_type_lower or word in title_lower for word in [\"community\", \"family\"]):\n            category = EventCategory.COMMUNITY\n        \n        family_friendly = True\n        age_restrictions = item.get(\"age_restrictions\")\n        \n        cost = item.get(\"cost\", \"\").strip()\n        if not cost:\n            cost = \"Museum admission required\"\n        \n        registration_required = bool(item.get(\"registration_required\", False))\n        \n        tags = []\n        if event_type:\n            tags.append(event_type)\n        \n        topics = item.get(\"topics\", [])\n        if topics:\n            if isinstance(topics, list):\n                tags.extend([t.strip() for t in topics if t])\n            elif isinstance(topics, str):\n                tags.append(topics.strip())\n        \n        tags = [tag for tag in tags if tag][:10]\n        \n        return EventCreate(\n            title=title[:200],\n            description=description[:2000],\n            start_datetime=start_datetime,\n            end_datetime=end_datetime,\n            source_url=event_url,\n            source_name=self.source_name,\n            venue_name=venue_name[:150] if venue_name else \"Museum of Science\",\n            city=\"Boston\",\n            state=\"MA\",\n            category=category,\n            tags=tags,\n            family_friendly=family_friendly,\n            age_restrictions=age_restrictions,\n            cost=cost,\n            registration_required=registration_required,\n            image_url=image_url,\n        )",
+      "validation": {
+        "valid": false,
+        "errors": [
+          "Scraper returned 0 events"
+        ],
+        "events_found": 0,
+        "error": "Scraper returned 0 events"
+      },
+      "venue": "Museum of Science",
+      "url": "https://www.mos.org/events"
+    },
+    {
+      "status": "ok",
+      "investigation": {
+        "url": "https://regenttheatre.com/events",
+        "best_source": {
+          "type": "feed",
+          "url": "https://regenttheatre.com/feed/",
+          "feed_type": "rss"
+        },
+        "apis": [],
+        "embedded_json": [],
+        "feeds": [
+          {
+            "url": "https://regenttheatre.com/feed/",
+            "type": "rss"
+          },
+          {
+            "url": "https://regenttheatre.com/comments/feed/",
+            "type": "rss"
+          },
+          {
+            "url": "https://regenttheatre.com/events/feed/",
+            "type": "rss"
+          }
+        ],
+        "static_html": {
+          "page_title": "Events - Regent Theatre",
+          "event_containers": [
+            {
+              "tag": "div",
+              "class": "evo_lightbox eventcard eventon_events_list"
+            },
+            {
+              "tag": "div",
+              "class": "evo_lightbox_body eventon_list_event evo_pop_body evcal_eventcard"
+            }
+          ],
+          "has_pagination": false,
+          "needs_js": true,
+          "date_patterns": []
+        },
+        "fetch_error": null,
+        "json_ld": [],
+        "venue_name": "Regent Theatre"
+      },
+      "code": "\"\"\"Custom scraper for Regent Theatre events\"\"\"\nimport logging\nimport re\nfrom datetime import datetime\nfrom typing import List\nfrom dateutil import parser as date_parser\nimport xml.etree.ElementTree as ET\n\nfrom src.scrapers.base_scraper import BaseScraper\nfrom src.models.event import EventCreate, EventCategory\n\nlogger = logging.getLogger(__name__)\n\n\nclass RegentTheatreScraper(BaseScraper):\n    \"\"\"Custom scraper for Regent Theatre events using RSS feed\"\"\"\n\n    def __init__(self):\n        super().__init__(\n            source_name=\"Regent Theatre\",\n            source_url=\"https://regenttheatre.com/feed/\",\n            use_selenium=False\n        )\n\n    def scrape_events(self) -> List[EventCreate]:\n        \"\"\"Scrape events from Regent Theatre RSS feed\"\"\"\n        try:\n            import requests\n            response = requests.get(self.source_url, timeout=30, headers=self.get_browser_headers())\n            response.raise_for_status()\n            \n            root = ET.fromstring(response.content)\n            \n            events = []\n            \n            for item in root.findall('.//item'):\n                try:\n                    title_elem = item.find('title')\n                    if title_elem is None or not title_elem.text:\n                        continue\n                    \n                    title = self.clean_text(title_elem.text)\n                    \n                    if len(title) < 3:\n                        continue\n                    \n                    link_elem = item.find('link')\n                    event_url = link_elem.text if link_elem is not None and link_elem.text else self.source_url\n                    \n                    description_elem = item.find('description')\n                    description_html = description_elem.text if description_elem is not None else \"\"\n                    \n                    if description_html:\n                        soup = self.parse_html(description_html)\n                        description = self.clean_text(soup.get_text())\n                    else:\n                        description = title\n                    \n                    if len(description) > 2000:\n                        description = description[:1997] + \"...\"\n                    \n                    pub_date_elem = item.find('pubDate')\n                    if pub_date_elem is not None and pub_date_elem.text:\n                        try:\n                            start_datetime = date_parser.parse(pub_date_elem.text)\n                        except:\n                            start_datetime = datetime.now()\n                    else:\n                        start_datetime = datetime.now()\n                    \n                    content_encoded = item.find('.//{http://purl.org/rss/1.0/modules/content/}encoded')\n                    if content_encoded is not None and content_encoded.text:\n                        content_soup = self.parse_html(content_encoded.text)\n                        content_text = content_soup.get_text()\n                        \n                        if len(content_text) > len(description):\n                            description = self.clean_text(content_text)\n                            if len(description) > 2000:\n                                description = description[:1997] + \"...\"\n                    \n                    image_url = None\n                    \n                    enclosure = item.find('enclosure')\n                    if enclosure is not None:\n                        enclosure_url = enclosure.get('url')\n                        if enclosure_url and any(ext in enclosure_url.lower() for ext in ['.jpg', '.jpeg', '.png', '.webp']):\n                            image_url = enclosure_url\n                    \n                    if not image_url:\n                        media_content = item.find('.//{http://search.yahoo.com/mrss/}content')\n                        if media_content is not None:\n                            image_url = media_content.get('url')\n                    \n                    if not image_url and content_encoded is not None and content_encoded.text:\n                        content_soup = self.parse_html(content_encoded.text)\n                        img = content_soup.find('img')\n                        if img:\n                            image_url = img.get('src') or img.get('data-src')\n                    \n                    if image_url and not image_url.startswith('http'):\n                        if image_url.startswith('//'):\n                            image_url = f'https:{image_url}'\n                        else:\n                            image_url = f'https://regenttheatre.com{image_url}'\n                    \n                    cost = None\n                    if description:\n                        cost_match = re.search(r'\\$\\d+(?:\\.\\d{2})?', description)\n                        if cost_match:\n                            cost = cost_match.group()\n                    \n                    category = self.categorize_event(title, description)\n                    \n                    venue_name = \"Regent Theatre\"\n                    street_address = \"7 Medford St\"\n                    city = \"Arlington\"\n                    state = \"MA\"\n                    zip_code = \"02474\"\n                    \n                    event = EventCreate(\n                        title=title[:200],\n                        description=description[:2000],\n                        start_datetime=start_datetime,\n                        source_url=event_url,\n                        source_name=self.source_name,\n                        venue_name=venue_name,\n                        street_address=street_address,\n                        city=city,\n                        state=state,\n                        zip_code=zip_code,\n                        category=category,\n                        cost=cost,\n                        image_url=image_url\n                    )\n                    events.append(event)\n                \n                except Exception as e:\n                    logger.warning(f\"Failed to parse event from RSS item: {str(e)}\")\n                    continue\n            \n            return events\n        \n        except Exception as e:\n            logger.error(f\"Failed to scrape Regent Theatre RSS feed: {str(e)}\")\n            return []\n\n    def categorize_event(self, title: str, description: str) -> EventCategory:\n        \"\"\"Categorize event based on keywords\"\"\"\n        text = f\"{title} {description}\".lower()\n        \n        if any(word in text for word in ['concert', 'music', 'band', 'singer', 'orchestra', 'symphony', 'jazz', 'rock', 'pop', 'folk', 'acoustic']):\n            return EventCategory.MUSIC\n        elif any(word in text for word in ['comedy', 'stand-up', 'comedian', 'improv']):\n            return EventCategory.THEATER\n        elif any(word in text for word in ['play', 'theater', 'theatre', 'drama', 'musical', 'show', 'performance']):\n            return EventCategory.THEATER\n        elif any(word in text for word in ['film', 'movie', 'cinema', 'screening']):\n            return EventCategory.ARTS_CULTURE\n        elif any(word in text for word in ['lecture', 'talk', 'discussion', 'presentation', 'speaker']):\n            return EventCategory.LECTURES\n        elif any(word in text for word in ['art', 'exhibition', 'gallery', 'museum']):\n            return EventCategory.ARTS_CULTURE\n        elif any(word in text for word in ['dance', 'ballet', 'contemporary']):\n            return EventCategory.ARTS_CULTURE\n        else:\n            return EventCategory.ARTS_CULTURE",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "events_found": 10,
+        "sample_titles": [
+          "V3 Weekend: Somergloom, Nate Bargatze, 'AngelHeaded Hipster'",
+          "V3 Weekend: Somergloom, Nate Bargatze, 'AngelHeaded Hipster'",
+          "V3 Weekend: Somergloom, Nate Bargatze, 'AngelHeaded Hipster'"
+        ]
+      },
+      "venue": "Regent Theatre",
+      "url": "https://regenttheatre.com/events",
+      "written_to": "/Users/karanarakotaram/cambridgescraper/src/scrapers/regent_theatre.py",
+      "registered": true
+    }
+  ],
+  "summary": {
+    "total_suggested": 10,
+    "validated": 4,
+    "scrapers_generated": 2
+  }
+}

@@ -121,6 +121,36 @@ class BasePlaywrightScraper(ABC):
         """
         return self.page.wait_for_selector(selector, timeout=timeout, state=state)
 
+    def wait_for_stable_count(self, selector: str, *, timeout: int = 20000,
+                              settle_ms: int = 700, min_count: int = 1) -> int:
+        """Wait until the number of matching elements stops growing.
+
+        `wait_for_selector` returns as soon as the *first* match appears, which
+        on a page that renders progressively means reading a partial list. That
+        is not a hypothetical: the Longfellow House calendar yielded 54 cards
+        when scraped alone and 4 inside a full run, because under load the first
+        card existed long before the rest. It produced a silent partial
+        collapse — failure mode 1 in docs/ARCHITECTURE.md — with no error.
+
+        Returns the settled count (0 if nothing ever appeared).
+        """
+        import time
+
+        deadline = time.monotonic() + timeout / 1000
+        previous, stable_since = -1, None
+        while time.monotonic() < deadline:
+            count = len(self.page.query_selector_all(selector))
+            if count != previous:
+                previous, stable_since = count, time.monotonic()
+            elif count >= min_count and (time.monotonic() - stable_since) * 1000 >= settle_ms:
+                return count
+            self.page.wait_for_timeout(150)
+
+        if previous < min_count:
+            logger.warning(f"{self.source_name}: only {max(previous, 0)} '{selector}' "
+                           f"after {timeout}ms (wanted at least {min_count})")
+        return max(previous, 0)
+
     def query_selector(self, selector: str):
         """Find first element matching selector"""
         return self.page.query_selector(selector)

@@ -26,6 +26,14 @@ from dateutil import parser as date_parser
 # 2026-08-31 failure produced 117. 20 leaves generous headroom.
 MAX_EVENTS_PER_TIMESTAMP = 20
 
+# The absolute cap above is blind to small sources. Cambridge Public Library
+# fabricated `datetime.now().replace(hour=10, minute=0, second=0)` for every
+# event it could not parse — 17 events on one timestamp, under the cap, with the
+# seconds zeroed so the clock_stamped rule could not see it either. A share of
+# the source's own output catches that regardless of size.
+UNIFORM_TIMESTAMP_SHARE = 0.70
+UNIFORM_TIMESTAMP_MIN_EVENTS = 8
+
 # Deliberately wide. The rule catches *impossible* dates — a year-parsing bug
 # putting an event in 2025 or 2126 — not merely stale ones. data/events.json
 # legitimately holds 258 past events: User Submitted is never re-scraped, and
@@ -144,6 +152,18 @@ def check_invariants(events: Iterable[dict], *, now: Optional[datetime] = None) 
             add("timestamp_pileup", "error",
                 f"{n} events share the exact start {when} (limit {MAX_EVENTS_PER_TIMESTAMP}) "
                 "— almost always a date fallback",
+                source, n, when)
+
+    # --- a source whose output is mostly one timestamp -----------------------
+    per_source = Counter(e.get("source_name") for e in events)
+    for (source, when), n in per_ts.items():
+        total = per_source[source]
+        if (total >= UNIFORM_TIMESTAMP_MIN_EVENTS
+                and n / total > UNIFORM_TIMESTAMP_SHARE
+                and n <= MAX_EVENTS_PER_TIMESTAMP):   # the cap already reported it
+            add("uniform_timestamp", "error",
+                f"{n} of {total} events ({n / total:.0%}) share the exact start {when} "
+                "— a real listing page does not schedule everything at one moment",
                 source, n, when)
 
     # --- plausible date range ------------------------------------------------

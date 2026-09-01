@@ -516,50 +516,91 @@ and accretive. 7–9 keep it from rotting.
 The point of building this was to stop finding things by hand. Two seconds after
 `cal doctor` first ran, it reported something nobody knew:
 
-**18 of 42 registered sources contribute zero events.**
+**18 of 42 registered sources contributed zero events**, and had for weeks — the
+preceding eight daily commits all carried 24–25 contributing sources. Every one
+has now been diagnosed, and all but three fixed.
 
-```
-The Dance Complex          Museum of Science         MIT Open Space
-Theatre at First           Regent Theatre            Skip the Small Talk
-First Parish in Cambridge  Longy School of Music     Longfellow House
-Grolier Poetry Book Shop   MIT Events                Harvard Square
-Porter Square Books        MIT Music & Theater
-Harvard-Radcliffe DC       Harvard Memorial Church
-Sanders Theatre            Cambridge Public Library
-```
+### The single cause behind five of them
 
-This is the production state, not something the rebuild introduced — the last
-eight daily commits all carry 24–25 sources against 42 registered. Spot-checking
-three found three different causes, which is why nothing had noticed:
+`scrape-events.yml` installed Chrome for Selenium but never ran
+`playwright install`. All nine Playwright scrapers failed in CI every night
+while working locally. Adding one step to the workflow recovered **MIT Events,
+MIT Open Space, MIT Music & Theater, Longy School of Music, and Skip the Small
+Talk** on the next run.
 
-| source | scraped locally | cause |
-|---|---|---|
-| MIT Events | 20 events, all valid | works locally; **absent from CI** — `scrape-events.yml` never installed Playwright browsers, so all nine Playwright scrapers failed there every night |
-| Theatre at First | 7 events, **all rejected** | every event it returns is >30 days old; `EventValidator` correctly drops them, silently |
-| Grolier Poetry Book Shop | 404 | the venue moved `/upcoming-readings`; the scraper has been dead since |
+### The other thirteen
 
-The missing `playwright install` step is now in the workflow, which should
-recover up to nine sources on the next run. The other two are real scraper bugs
-and are not fixed here — but they are now *visible*: `cal sources` lists every
-source with its event count and last-scraped age, `cal doctor` names the silent
-ones, and the run record will attribute each failure to a scraper error, a
-validation rejection, or a CI environment problem.
+No shared cause. The run record attributed each one:
 
-That is the difference the rebuild was for. The same 18 sources were failing
-yesterday; the difference is that today the system says so.
+| source | was | cause | now |
+|---|---|---|---|
+| The Dance Complex | 0 | iCal feed returns HTTP 200 with an empty body, every variant; HTML renders a day at a time in JS | **420** via Tribe REST API |
+| Harvard Square | 0 | walked `/events/YYYY-MM-DD/` for 30 days at 0.5s each — those URLs stopped listing anything, so it burned 127s producing nothing | **343** via Tribe REST API |
+| Longfellow House | 0 | written months earlier, never registered in `scrape.py` | **180** |
+| Porter Square Books | 0 | Selenium fingerprinted and 403'd; real data hidden inside `<template>` elements | **78** |
+| Regent Theatre | 0 | EventON loads over AJAX; the scraper parsed the empty shell | **36** |
+| Sanders Theatre | 0 | `calendar.college.harvard.edu` 404s; listings moved to the Harvard Box Office | **19** |
+| Grolier Poetry Book Shop | 0 | venue renamed `/upcoming-readings` to `/upcoming-events` | **14** |
+| Theatre at First | 0 | homepage still showed a November 2025 production; all 7 events rejected as too old | **6** via their public Google Calendar |
+| Museum of Science | 0 | selectors matched an older page | **5** |
+| Harvard-Radcliffe Dramatic Club | 0 | selectors matched an older page; also needlessly on Selenium | **4** (all they have posted) |
+| First Parish in Cambridge | 0 | **not broken** — the venue's own JSON reports `upcoming: 0` | 0, correctly |
+| Cambridge Public Library | 0 | fabricated every date, and wholly redundant | **retired** |
+| Harvard Memorial Church | 0 | 403 on every path, to every client | **retired** |
+
+### Three findings worth keeping
+
+**The Playwright base was spoofing its user-agent**, claiming macOS while the
+browser's client hints said Linux. Bot protection reads that contradiction for
+exactly what it is: Porter Square Books returns 403 for the spoofed UA and 200
+for the browser's own, from the same headless Chromium. Removing the spoof made
+one scraper work and affected none of the others.
+
+**Cambridge Public Library was the Sept 14 bug in a second scraper.** It
+defaulted to `datetime.now().replace(hour=10, minute=0, second=0)` for anything
+it could not parse — every event, at 10:00, on the day of the scrape. The
+existing invariants missed it twice over: the seconds were zeroed, so
+`clock_stamped` saw nothing, and 17 events was under the 20-event
+`timestamp_pileup` cap. Added `uniform_timestamp`, which fires when more than
+70% of a source's output shares one exact start, so size no longer matters. The
+source itself is retired rather than fixed — all 17 of its events already appear
+in City of Cambridge, which carries 802 library listings with their real times.
+
+**A failed scrape was deleting data.** Harvard Book Store began 403-ing from
+every IP, not just CI's. Because "preserve on failure" only applied inside CI, a
+local run dropped all 21 of its events and Somerville Theatre's with them.
+`build_publish_set` now keeps the still-upcoming events of any source that
+failed or came back empty. A scrape that failed is not evidence that a venue
+cancelled its programme.
+
+### And one the fixes surfaced
+
+Reading a progressively-rendered list races the render. Longfellow House yielded
+54 cards run alone and 4 inside a full scrape, because under load the first card
+existed long before the rest — `wait_for_selector` returns on the first match.
+Added `wait_for_stable_count()` to the Playwright base for the general case, and
+moved Longfellow itself onto the JSON its page fetches, which removes the race
+rather than timing it.
 
 ## What is deliberately still open
 
-- **The 18 silent sources.** Diagnosed, not fixed. Nine likely recover from the
-  Playwright fix alone; the rest need scraper work, one venue at a time.
-- **`GATE_DRIFT=report`.** Drift is recorded but does not block yet. Flip it in
-  `.github/workflows/scrape-events.yml` once a few weeks of alert volume is
-  known to be sane.
+- **`GATE_DRIFT=report`.** Drift is recorded but does not block. Invariants and
+  the collapse check do, from day one. Flip it in
+  `.github/workflows/scrape-events.yml` once a few weeks of alert volume looks
+  sane. It is already earning its keep in report mode: it flagged The Dance
+  Complex at "2341% of normal" the run after that scraper was fixed, which is a
+  true observation about a stale baseline and exactly the kind of alert that
+  should not have been able to block a deploy.
+- **Skip the Small Talk is national.** It returns events in Chicago, New York,
+  Washington, Austin, and Richmond, all stamped `city="Boston"`. Most land in
+  the past and are rejected, so the leakage is small, but the scraper should
+  filter on venue rather than trust the site's `?category=Boston` parameter.
+- **Harvard Book Store and Longy are being blocked**, the first permanently so
+  far, the second by rate limiting. Their events are preserved rather than
+  dropped; `scrape_local.py` is the intended path for the first.
 - **Editor's Picks still matches on `title + source_name`.** Now that ids are
   stable it could key on identity, but the existing mechanism works and changing
   it risks dropping live picks for no user-visible gain.
 - **One-time interaction history loss.** The id migration orphaned ~30 days of
-  click data. Expected and accepted; `WebsiteInteraction` already denormalizes
-  `event_title` and `source_name`, so a best-effort backfill is possible if the
-  ranking signal looks degraded.
+  click data. Expected and accepted.
 - **`presentation.html`** is unreferenced but kept — see item 9.

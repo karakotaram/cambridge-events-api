@@ -240,6 +240,29 @@ def record(fingerprints: dict[str, Fingerprint], *, path: Path | str = BASELINE_
         json.dump({"sources": baselines}, f, indent=2, default=str)
 
 
+def reset_baseline(sources: Iterable[str], *, path: Path | str = BASELINE_PATH) -> dict[str, int]:
+    """Forget a source's history so drift relearns it from scratch.
+
+    Necessary whenever a scraper is fixed. A source that was returning 4 events
+    because it was broken has a baseline of 4, and the corrected 132 then reads
+    as a 3300% duplicate explosion for as many runs as it takes to age out. The
+    pre-fix history describes a broken system and should not define normal.
+
+    Returns how many runs were discarded per source.
+    """
+    path = Path(path)
+    baselines = load_baselines(path)
+    dropped = {}
+    for name in sources:
+        if name in baselines:
+            dropped[name] = len(baselines.pop(name))
+    if dropped:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w") as f:
+            json.dump({"sources": baselines}, f, indent=2, default=str)
+    return dropped
+
+
 def check_drift(events: Iterable[dict], *,
                 path: Path | str = BASELINE_PATH) -> tuple[dict[str, Fingerprint], list[Drift]]:
     """Fingerprint everything and compare each source to its own baseline."""

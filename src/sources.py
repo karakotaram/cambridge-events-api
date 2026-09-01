@@ -86,6 +86,8 @@ SOURCES: tuple[Source, ...] = (
     Source("Harvard Athletics", "src.scrapers.harvard_athletics", "HarvardAthleticsScraper", "requests"),
     Source("Harvard GSD", "src.scrapers.harvard_gsd", "HarvardGSDScraper", "requests"),
     Source("The Sinclair", "src.scrapers.the_sinclair", "TheSinclairScraper", "requests"),
+    Source("Harvard-Radcliffe Dramatic Club", "src.scrapers.hrdc", "HRDCScraper", "requests",
+           notes="month-grid calendar; plain HTTP is enough, was needlessly on Selenium"),
     Source("City of Cambridge", "src.scrapers.cambridge_gov", "CambridgeGovScraper", "requests",
            notes="was Selenium until 2026-08-31; the browser died mid-run and the "
                  "scraper fabricated dates for everything after. Listing markup "
@@ -98,9 +100,7 @@ SOURCES: tuple[Source, ...] = (
     Source("The Middle East", "src.scrapers.mideast", "MideastClubScraper", "selenium"),
     Source("Portico Brewing", "src.scrapers.portico", "PorticoScraper", "selenium"),
     Source("Arts at the Armory", "src.scrapers.armory", "ArtsAtTheArmoryScraper", "selenium"),
-    Source("Harvard-Radcliffe Dramatic Club", "src.scrapers.hrdc", "HRDCScraper", "selenium"),
     Source("Central Square Theater", "src.scrapers.central_square", "CentralSquareTheaterScraper", "selenium"),
-    Source("Sanders Theatre", "src.scrapers.sanders_theatre", "SandersTheatreScraper", "selenium"),
     Source("American Repertory Theater", "src.scrapers.art", "AmericanRepertoryTheaterScraper", "selenium"),
     Source("Aeronaut Brewing", "src.scrapers.aeronaut", "AeronautScraper", "selenium",
            runs_in_ci=False, notes="blocks GitHub cloud IPs; run scrape_local.py"),
@@ -108,18 +108,36 @@ SOURCES: tuple[Source, ...] = (
     # ---- Playwright ----------------------------------------------------------
     Source("Porter Square Books", "src.scrapers.porter", "PorterSquareBooksScraper", "playwright",
            notes="Drupal behind bot protection: plain HTTP and Selenium both get 403, Playwright does not"),
+    Source("Sanders Theatre", "src.scrapers.sanders_theatre", "SandersTheatreScraper", "playwright",
+           notes="calendar.college.harvard.edu 404s; listings moved to the Harvard "
+                 "Box Office, an AudienceView storefront that renders client-side"),
+    Source("Longfellow House", "src.scrapers.longfellow_house", "LongfellowHouseScraper", "playwright",
+           notes="captures the NPS calendar JSON from the browser: parsing the cards "
+                 "races a progressive render, and calling the API directly takes ~150s"),
     Source("Museum of Science", "src.scrapers.museum_of_science", "MuseumOfScienceScraper", "playwright"),
     Source("Regent Theatre", "src.scrapers.regent_theatre", "RegentTheatreScraper", "playwright"),
-    Source("Longy School of Music", "src.scrapers.longy", "LongyScraper", "playwright"),
+    Source("Longy School of Music", "src.scrapers.longy", "LongyScraper", "playwright",
+           notes="rate-limits into an Imunify360 challenge page under repeated "
+                 "requests; a single daily scrape is fine, bursts are not"),
     Source("MIT Events", "src.scrapers.mit_calendar", "MITCalendarScraper", "playwright"),
     Source("MIT Music & Theater", "src.scrapers.mit_music_theater", "MITMusicTheaterScraper", "playwright"),
-    Source("Harvard Memorial Church", "src.scrapers.memorial_church", "MemorialChurchScraper", "playwright"),
-    Source("Cambridge Public Library", "src.scrapers.cambridge_library", "CambridgeLibraryScraper", "playwright"),
     Source("MIT Open Space", "src.scrapers.openspace_mit", "OpenSpaceMITScraper", "playwright"),
     Source("Skip the Small Talk", "src.scrapers.skip_small_talk", "SkipSmallTalkScraper", "playwright"),
-    Source("Longfellow House", "src.scrapers.longfellow_house", "LongfellowHouseScraper", "playwright",
-           notes="written but never wired into scrape.py until 2026-08-31, so it "
-                 "produced nothing for months. Registered here so monitoring sees it."),
+
+    # Retired 2026-09-01: "Harvard Memorial Church" returns 403 for every path on
+    # memorialchurch.harvard.edu — homepage, calendar, RSS, REST — to plain HTTP
+    # and to a real headless browser alike, from a residential IP as well as CI.
+    # That is a deliberate block, not a broken scraper, and the Harvard-wide
+    # calendar does not carry their listings either. Getting past it would mean
+    # working around protection the venue chose to put up. If they ever open
+    # access, git history has the scraper.
+
+    # Retired 2026-09-01: "Cambridge Public Library" had its own scraper, but it
+    # fabricated every date (datetime.now() at 10:00 for anything it could not
+    # parse) and was wholly redundant — all 17 events it produced already appear
+    # in City of Cambridge, which carries 802 library-branch listings with their
+    # real times. Fixing it would have meant maintaining a second, worse path to
+    # the same data. Library events still reach the calendar via City of Cambridge.
 
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),

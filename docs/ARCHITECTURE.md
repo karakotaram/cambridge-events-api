@@ -391,7 +391,8 @@ deliberate choice rather than an oversight.
 | Layer | Deviation | Why |
 |---|---|---|
 | 4 | Drift errors report but do not block (`GATE_DRIFT=report`) | Invariants block from day one; drift needs a few weeks of observed alert volume before it can be trusted to stop a deploy. Flip in `.github/workflows/scrape-events.yml`. |
-| 1 | 18 of 42 sources contribute zero events | Diagnosed, not fixed — three different causes, see [ROADMAP § What `doctor` found](ROADMAP.md#what-doctor-found). Now visible via `cal doctor` and `cal sources` rather than silent. |
+| 1 | 3 sources contribute zero events | Down from 18. First Parish has genuinely published nothing; Harvard Book Store and Longy are being blocked, and their events are preserved rather than dropped. Two sources were retired outright. See [ROADMAP § What `doctor` found](ROADMAP.md#what-doctor-found). |
+| 1 | Skip the Small Talk returns out-of-area events | It is a national brand and the site ignores its own `?category=Boston` filter. Most land in the past and are rejected; the scraper should filter on venue. |
 | 5 | Editor's Picks keys on `title + source_name`, not id | It was a workaround for unstable ids and could now use identity, but it works, and changing it risks dropping live picks for no user-visible gain. |
 | 6 | `src/api/main.py` is excluded from lint | Pre-existing findings unrelated to this work; cleaning it is not worth bundling into a structural change. |
 

@@ -127,7 +127,9 @@ def cmd_doctor(args) -> int:
         failed = [s["source"] for s in last.get("scrapers", []) if s.get("status") == "failed"]
         if failed:
             note(BAD, f"last run: {len(failed)} scraper(s) failed: {', '.join(failed[:5])}")
-        age = datetime.now() - datetime.fromisoformat(last["started_at"])
+        started = datetime.fromisoformat(last["started_at"])
+        reference = datetime.now(started.tzinfo) if started.tzinfo else datetime.now()
+        age = reference - started
         if age > timedelta(days=2):
             note(WARN, f"last run was {age.days} days ago ({last['run_id']})")
 
@@ -285,7 +287,19 @@ def _save_fixture(source) -> Path:
 # --------------------------------------------------------------------------- #
 
 def cmd_check(args) -> int:
-    from src.quality import check_drift, check_invariants
+    from src.quality import check_drift, check_invariants, reset_baseline
+
+    if args.rebaseline:
+        if not args.source:
+            print(f"{BAD} --rebaseline needs a source name")
+            return 2
+        dropped = reset_baseline([args.source])
+        if dropped:
+            print(f"{OK} forgot {dropped[args.source]} run(s) of history for {args.source}. "
+                  "Drift stays quiet for it until three fresh runs accumulate.")
+        else:
+            print(f"{DOT} {args.source} had no recorded history")
+        return 0
 
     events = _events()
     if args.source:
@@ -517,6 +531,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     c = sub.add_parser("check", help="invariants and drift against current state")
     c.add_argument("source", nargs="?")
+    c.add_argument("--rebaseline", action="store_true",
+                   help="forget a source's fingerprint history — use after fixing its scraper")
     c.set_defaults(func=cmd_check)
 
     r = sub.add_parser("runs", help="recent scrape runs")
