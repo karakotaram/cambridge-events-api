@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-08-31T13:48:57.512332",
-  "total_events": 2257,
-  "total_sources_registered": 38,
-  "total_sources_with_events": 24,
+  "timestamp": "2026-09-01T11:48:11.811930",
+  "total_events": 3126,
+  "total_sources_registered": 42,
+  "total_sources_with_events": 29,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 21,
+      "event_count": 19,
       "days_since_scrape": 0
     },
     {
@@ -17,7 +17,7 @@
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1068,
+      "event_count": 1051,
       "days_since_scrape": 0
     },
     {
@@ -27,7 +27,7 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 90,
+      "event_count": 86,
       "days_since_scrape": 0
     },
     {
@@ -56,8 +56,18 @@
       "days_since_scrape": 0
     },
     {
+      "source": "Harvard GSD",
+      "event_count": 17,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "The Sinclair",
+      "event_count": 9,
+      "days_since_scrape": 0
+    },
+    {
       "source": "City of Cambridge",
-      "event_count": 359,
+      "event_count": 1073,
       "days_since_scrape": 0
     },
     {
@@ -82,7 +92,7 @@
     },
     {
       "source": "Central Square Theater",
-      "event_count": 12,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
@@ -91,9 +101,34 @@
       "days_since_scrape": 0
     },
     {
+      "source": "Longy School of Music",
+      "event_count": 10,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "MIT Events",
+      "event_count": 19,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "MIT Music & Theater",
+      "event_count": 3,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "MIT Open Space",
+      "event_count": 32,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "Skip the Small Talk",
+      "event_count": 114,
+      "days_since_scrape": 0
+    },
+    {
       "source": "User Submitted",
-      "event_count": 231,
-      "days_since_scrape": 1
+      "event_count": 232,
+      "days_since_scrape": 0
     }
   ],
   "stale": [
@@ -101,37 +136,37 @@
       "source": "Harvard Book Store",
       "ci": false,
       "event_count": 21,
-      "days_stale": 60,
+      "days_stale": 61,
       "latest_scraped": "2026-07-01T18:51:01.973824",
       "threshold_days": 14,
-      "issue": "Last scraped 60 days ago (threshold: 14)"
+      "issue": "Last scraped 61 days ago (threshold: 14)"
     },
     {
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 3,
-      "days_stale": 60,
+      "days_stale": 61,
       "latest_scraped": "2026-07-01T18:51:01.973874",
       "threshold_days": 14,
-      "issue": "Last scraped 60 days ago (threshold: 14)"
-    },
-    {
-      "source": "Aeronaut Brewing",
-      "ci": false,
-      "event_count": 9,
-      "days_stale": 60,
-      "latest_scraped": "2026-07-01T18:51:01.974021",
-      "threshold_days": 14,
-      "issue": "Last scraped 60 days ago (threshold: 14)"
+      "issue": "Last scraped 61 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 9,
-      "days_stale": 60,
+      "days_stale": 61,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 60 days ago (threshold: 14)"
+      "issue": "Last scraped 61 days ago (threshold: 14)"
+    },
+    {
+      "source": "Aeronaut Brewing",
+      "ci": false,
+      "event_count": 9,
+      "days_stale": 61,
+      "latest_scraped": "2026-07-01T18:51:01.974021",
+      "threshold_days": 14,
+      "issue": "Last scraped 61 days ago (threshold: 14)"
     }
   ],
   "missing": [
@@ -171,17 +206,12 @@
       "issue": "No events in data"
     },
     {
-      "source": "Longy School of Music",
+      "source": "Museum of Science",
       "ci": true,
       "issue": "No events in data"
     },
     {
-      "source": "MIT Events",
-      "ci": true,
-      "issue": "No events in data"
-    },
-    {
-      "source": "MIT Music & Theater",
+      "source": "Regent Theatre",
       "ci": true,
       "issue": "No events in data"
     },
@@ -196,16 +226,6 @@
       "issue": "No events in data"
     },
     {
-      "source": "MIT Open Space",
-      "ci": true,
-      "issue": "No events in data"
-    },
-    {
-      "source": "Skip the Small Talk",
-      "ci": true,
-      "issue": "No events in data"
-    },
-    {
       "source": "Longfellow House",
       "ci": true,
       "issue": "No events in data"
@@ -216,20 +236,11 @@
       "issue": "No events in data"
     }
   ],
-  "unregistered": [
-    {
-      "source": "Harvard GSD",
-      "event_count": 16
-    },
-    {
-      "source": "The Sinclair",
-      "event_count": 9
-    }
-  ],
+  "unregistered": [],
   "summary": {
-    "healthy": 18,
+    "healthy": 25,
     "stale": 4,
-    "missing": 16,
-    "unregistered": 2
+    "missing": 13,
+    "unregistered": 0
   }
 }
