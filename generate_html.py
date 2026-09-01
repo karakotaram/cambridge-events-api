@@ -406,11 +406,11 @@ def generate_events_html():
 """
 
     # Write HTML file
-    with open('events.html', 'w', encoding='utf-8') as f:
+    with open('data/events.html', 'w', encoding='utf-8') as f:
         f.write(html)
 
-    print(f"✓ Generated events.html with {len(events)} events")
-    print(f"✓ Open events.html in your browser to view")
+    print(f"✓ Generated data/events.html with {len(events)} events")
+    print(f"✓ Open data/events.html in your browser to view")
 
 if __name__ == '__main__':
     generate_events_html()

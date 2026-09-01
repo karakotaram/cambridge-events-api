@@ -20,6 +20,7 @@ from src.scrapers.aeronaut import AeronautScraper
 from src.scrapers.somerville_theatre import SomervilleTheatreScraper
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
+from src.utils.storage import sort_events
 from src.models.event import Event
 
 # Configure logging
@@ -87,11 +88,7 @@ def main():
     # Convert to Event objects with IDs
     new_events = []
     for event_create in deduplicated_events:
-        event = Event(
-            id=str(uuid.uuid4()),
-            **event_create.model_dump()
-        )
-        new_events.append(event.model_dump(mode='json'))
+        new_events.append(Event.from_create(event_create).model_dump(mode='json'))
 
     # Load existing events
     try:
@@ -110,9 +107,9 @@ def main():
     # Combine
     final_events = filtered_events + new_events
 
-    # Save
+    # Save in deterministic order so the diff stays readable
     with open('data/events.json', 'w') as f:
-        json.dump(final_events, f, indent=2, default=str)
+        json.dump(sort_events(final_events), f, indent=2, default=str)
 
     logger.info("=" * 60)
     logger.info(f"LOCAL SCRAPE COMPLETE")

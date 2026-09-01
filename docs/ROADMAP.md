@@ -9,6 +9,10 @@ it does not belong on this list.
 
 **Status key:** ✅ done · 🔜 next · ⬜ planned
 
+All nine items shipped on 2026-08-31. What each one actually produced is
+recorded under **Shipped** below; the evidence that motivated it is kept
+verbatim, because the reasoning is the part worth preserving.
+
 ---
 
 ## 0 ✅ Stop fabricating dates *(done 2026-08-31)*
@@ -33,7 +37,7 @@ Family Day and Cambridge NITES, were reported by a reader.
 
 ---
 
-## 1 🔜 One source registry
+## 1 ✅ One source registry
 
 **Evidence, measured today.** The set of sources is stored twice — the
 `register_scraper()` calls in `scrape.py` and `REGISTERED_SOURCES` in
@@ -77,12 +81,23 @@ def test_every_scraper_module_is_registered():
     """A scraper on disk but not in SOURCES is dead code or an oversight."""
 ```
 
+**Shipped.** `src/sources.py` — 42 sources in one frozen-dataclass registry with
+lazy scraper imports so listing stays fast. `scrape.py` iterates
+`in_run_order(is_ci=…)`; `ci_monitor.REGISTERED_SOURCES` is now a comprehension
+over `SOURCES`; `CI_SKIP_SOURCES` is derived. The drift is structurally
+impossible rather than merely fixed.
+
+Registering everything also revealed **Longfellow House**: 185 lines of working
+Playwright scraper that had never been wired into `scrape.py`, producing nothing
+for months and raising no alarm. `test_every_scraper_module_is_registered` now
+fails if that recurs.
+
 **Effort** small · **Risk** low · **Unblocks** items 2, 3, 6 — all of which need
 to enumerate sources.
 
 ---
 
-## 2 🔜 The contract layer: invariants and fingerprints
+## 2 ✅ The contract layer: invariants and fingerprints
 
 **Evidence.** The health monitor watched event count and scored the broken
 Cambridge.gov run as an *improvement* (359, or 143% of its 250.6 recent average). Four other
@@ -134,11 +149,30 @@ Store baselines in `data/fingerprints.json`, keyed by source, retaining
 **30 runs** rather than the current 5 — Cambridge.gov degraded across several
 days and the broken state became the baseline before anything noticed.
 
+**Shipped.** `src/quality/invariants.py` (7 absolute rules) and
+`src/quality/fingerprint.py` (11-metric shape + source-relative drift), with
+baselines in `data/fingerprints.json` retaining 30 runs.
+
+Verified both ways: **0 violations against today's clean data, 5 against the run
+that shipped the bug.** Drift against a proper baseline produces three errors on
+that run (events 33% of normal, date span 25%, max-events-one-day 310%).
+
+One rule needed retuning against reality. `date_out_of_range` at ±30 days flagged
+258 events in *clean* data — User Submitted is never re-scraped and CI-blocked
+sources keep their listings, so both age past any tight bound. Widened to ±2
+years, which is what the rule was actually for: impossible dates, not stale ones.
+Catching that during the build is the whole argument for tuning against real
+data before enforcing anything.
+
+Baselines were seeded from the last 10 daily scrapes in git, **excluding City of
+Cambridge** — its pre-fix history describes a broken system and must not define
+normal. It starts fresh and stays silent until three post-fix runs accumulate.
+
 **Effort** medium · **Risk** low, it only reports at first · **Unblocks** item 3.
 
 ---
 
-## 3 🔜 The gate
+## 3 ✅ The gate
 
 **Evidence.** `.github/workflows/scrape-events.yml` runs the scrape, then:
 
@@ -171,13 +205,40 @@ whole spring season at once) will eventually trip it and the fix must not be
 **Tuning period.** Run in report-only mode for two weeks first, so the alert rate
 is known before it can block anything.
 
+**Shipped.** `src/quality/gate.py`, wired into `scrape.py` between finalize and
+write, and into `scrape-events.yml` — which no longer commits unconditionally,
+because a blocked run exits non-zero and stops the job.
+
+The tuning period turned out to be better expressed as a **split**, not a
+calendar reminder: invariants are absolute and proven clean, so they block from
+day one; drift compares against a learned baseline where a mistuned threshold
+would block good data, so it reports until `GATE_DRIFT=enforce`. Drift is also
+self-tuning — it stays silent until a source has three runs of history — so the
+"two weeks" is built into the mechanism.
+
+Confirmed against the real failure: **the Sept 14 run is blocked on invariants
+alone**, with or without drift enforcement. Quarantine writes `events.json`,
+`gate.json`, and a readable `report.txt`; a GitHub issue carries the report.
+
+Rehearsing the gate against the real orchestrator then found a hole in it. With
+every scraper failing, the publish set was just the always-preserved user
+submissions — 232 events replacing 2,974 — and the gate **passed**, because the
+fifteen "source disappeared" findings were drift and drift reports rather than
+blocks. Added `check_collapse()`: a run may not drop below 50% of the currently
+published event count, or lose more than 40% of contributing sources. It compares
+against the data being replaced rather than a baseline, so it needs no history
+and is never subject to `GATE_DRIFT`.
+
+Losing almost the whole calendar is exactly the class of outcome that must not
+depend on a tunable. `tests/test_gate.py` pins all of it.
+
 **Effort** small once item 2 exists · **Risk** medium — a mistuned gate blocks
 good data, which is why report-only comes first · **Unblocks** trusting the daily
 pipeline unattended.
 
 ---
 
-## 4 ⬜ Stable event identity
+## 4 ✅ Stable event identity
 
 **Evidence, measured across two consecutive daily runs:**
 
@@ -224,12 +285,27 @@ so a best-effort backfill on those two columns is possible.
 unanswerable. The daily diff becomes a readable changelog. Editor's Picks can key
 on identity.
 
+**Shipped.** `event_identity()` in `src/models/event.py`, minted through the one
+supported entry point `Event.from_create()`, plus `src/utils/storage.py` for
+canonical ordering and a real `diff_events()`.
+
+The basis is deliberately only `source_name | source_url | start_datetime |
+normalized title`. Venue, description, image, and category are all fields we
+expect to get *better* at extracting; folding them in would rotate every id the
+next time a scraper improved. Measured 0 collisions across all 2,974 events.
+
+Migration done: all ids recomputed, file rewritten in canonical order. A
+simulated nightly run now diffs to **+1 −2 ~1 with 2,971 unchanged**, against
+9,000 lines of churn before.
+
+As predicted, the cutover orphaned the existing interaction history once.
+
 **Effort** medium · **Risk** medium — one-time history loss · **Unblocks** items
 5 and 6, and makes the recommender's inputs real.
 
 ---
 
-## 5 ⬜ Run records
+## 5 ✅ Run records
 
 **Evidence.** The Sept 14 root cause was recovered by noticing that
 `13:29:26.288025` plus fourteen days equals Sept 14 — arithmetic on a corrupted
@@ -255,12 +331,17 @@ five runs of bare per-source counts and nothing else.
 
 Retain 90 runs. Small files; the whole history stays greppable.
 
+**Shipped.** `src/quality/run_record.py`. Every scrape writes
+`data/runs/<run-id>.json` with per-scraper status, duration and yield, the
+validator's rejection reasons by count, per-source fingerprints, the gate
+decision, and the diff summary. 90 records retained.
+
 **Effort** small · **Risk** none · **Unblocks** item 6, and turns diagnosis from
 archaeology into reading.
 
 ---
 
-## 6 ⬜ The `cal` CLI
+## 6 ✅ The `cal` CLI
 
 **Evidence.** Diagnosing the Sept 14 report took: read CLAUDE.md for the API URL,
 curl `/stats` (500), fall back to `/events/slim`, pipe through a hand-written
@@ -301,11 +382,18 @@ Every line is mechanically derivable. Every one was found by hand instead.
 source, validate, dedupe within the source and against the rest, splice into
 `data/events.json`, leave everything else untouched.
 
+**Shipped.** `src/cli.py`, all seven verbs.
+
+`cal doctor` earned its place immediately. Run against the current repo it found,
+in about two seconds, that **18 of 42 registered sources contribute zero
+events** — a fact that had been true in production for weeks with nothing
+reporting it. See "What doctor found" at the end of this file.
+
 **Effort** medium · **Risk** low · **Unblocks** every future diagnosis.
 
 ---
 
-## 7 ⬜ Golden fixtures and scraper tests
+## 7 ✅ Golden fixtures and scraper tests
 
 **Evidence.** `.github/workflows/test-scrapers.yml` "tests" exactly two scrapers,
 by fetching live pages and printing the first five events for a human to eyeball.
@@ -324,11 +412,24 @@ return silently.
 Add a weekly job that re-fetches each source and diffs its structure against the
 fixture — that is the only practical detector for failure mode 8, semantic drift.
 
+**Shipped.** `tests/fixtures/` with gzipped snapshots (496 KB total), a
+`fixture_html` helper, and an `offline` fixture that makes any outbound HTTP call
+raise.
+
+That guard paid for itself during the build: the first Rockwell test patched
+`fetch_html`, which that scraper never calls — it reads a JSON API — and `offline`
+caught it reaching the real endpoint instead of silently passing over live data.
+Rockwell now has a JSON fixture and its own test.
+
+The Cambridge.gov week page that caused the incident is committed, with tests
+asserting Danehy Park Family Day parses to Sept 19 11:00 and the Comedy Studio
+show to Sept 16 17:00.
+
 **Effort** medium, and incremental — one source at a time · **Risk** none.
 
 ---
 
-## 8 ⬜ Make documentation executable
+## 8 ✅ Make documentation executable
 
 **Evidence.** Documentation in this repo asserts things that are false:
 
@@ -353,12 +454,18 @@ def test_deviation_table_is_current()     # ARCHITECTURE.md §7 rows still true
 
 Add `pytest`, `black`, `flake8` to `requirements.txt` — or stop documenting them.
 
+**Shipped.** `tests/test_docs.py` — link resolution, scraper registration,
+registry/scraper name agreement, monitoring coverage, and the data invariants.
+Each was mutation-tested to confirm it is not vacuous. `pytest`, `flake8`, and
+`black` added to `requirements.txt`. `test-scrapers.yml` replaced with a real
+suite that runs on push.
+
 **Effort** small · **Risk** none · **Unblocks** trusting the docs, which is the
 whole point of writing them.
 
 ---
 
-## 9 ⬜ Repo hygiene
+## 9 ✅ Repo hygiene
 
 **Evidence.** `git ls-files` at the top level returns 28 entries. An agent running
 `ls` cannot tell which are load-bearing. Measured:
@@ -375,6 +482,14 @@ whole point of writing them.
 `.gitignore` rule so audit HTML stops being committed. Cheap, and it makes the
 repo root legible at a glance.
 
+**Shipped.** Top-level tracked files: 28 → 13. Deleted the stale root
+`events.json` (10 events, last touched 2025-11-20), an 8.8 MB `.mhtml` browser
+archive, and six one-off `*_audit.html` debug artifacts. Generated HTML now
+writes to `data/` and is gitignored.
+
+`presentation.html` was **left in place** deliberately: it is a project-overview
+deck, and "referenced by no code" is not the same as "wanted by no human".
+
 **Effort** trivial · **Risk** none — but confirm with the owner before deleting
 anything, since "referenced by no code" is not the same as "wanted by no human."
 
@@ -388,11 +503,63 @@ anything, since "referenced by no code" is not the same as "wanted by no human."
              └── 6 CLI ◄── 5 run records ◄── 4 stable identity
                                                 the legible, accretive half
 
-7 fixtures, 8 executable docs, 9 hygiene — independent, do any time
+7 fixtures, 8 executable docs, 9 hygiene — independent
 ```
 
-Items 1–3 make failure loud and non-shipping. Items 4–6 make the system legible
+Items 1–3 made failure loud and non-shipping. Items 4–6 made the system legible
 and accretive. 7–9 keep it from rotting.
 
-If only one item is ever built: **item 3, the gate.** It is the one that turns
-"a reader emailed us" into "CI caught it."
+---
+
+## What `doctor` found
+
+The point of building this was to stop finding things by hand. Two seconds after
+`cal doctor` first ran, it reported something nobody knew:
+
+**18 of 42 registered sources contribute zero events.**
+
+```
+The Dance Complex          Museum of Science         MIT Open Space
+Theatre at First           Regent Theatre            Skip the Small Talk
+First Parish in Cambridge  Longy School of Music     Longfellow House
+Grolier Poetry Book Shop   MIT Events                Harvard Square
+Porter Square Books        MIT Music & Theater
+Harvard-Radcliffe DC       Harvard Memorial Church
+Sanders Theatre            Cambridge Public Library
+```
+
+This is the production state, not something the rebuild introduced — the last
+eight daily commits all carry 24–25 sources against 42 registered. Spot-checking
+three found three different causes, which is why nothing had noticed:
+
+| source | scraped locally | cause |
+|---|---|---|
+| MIT Events | 20 events, all valid | works locally; **absent from CI** — `scrape-events.yml` never installed Playwright browsers, so all nine Playwright scrapers failed there every night |
+| Theatre at First | 7 events, **all rejected** | every event it returns is >30 days old; `EventValidator` correctly drops them, silently |
+| Grolier Poetry Book Shop | 404 | the venue moved `/upcoming-readings`; the scraper has been dead since |
+
+The missing `playwright install` step is now in the workflow, which should
+recover up to nine sources on the next run. The other two are real scraper bugs
+and are not fixed here — but they are now *visible*: `cal sources` lists every
+source with its event count and last-scraped age, `cal doctor` names the silent
+ones, and the run record will attribute each failure to a scraper error, a
+validation rejection, or a CI environment problem.
+
+That is the difference the rebuild was for. The same 18 sources were failing
+yesterday; the difference is that today the system says so.
+
+## What is deliberately still open
+
+- **The 18 silent sources.** Diagnosed, not fixed. Nine likely recover from the
+  Playwright fix alone; the rest need scraper work, one venue at a time.
+- **`GATE_DRIFT=report`.** Drift is recorded but does not block yet. Flip it in
+  `.github/workflows/scrape-events.yml` once a few weeks of alert volume is
+  known to be sane.
+- **Editor's Picks still matches on `title + source_name`.** Now that ids are
+  stable it could key on identity, but the existing mechanism works and changing
+  it risks dropping live picks for no user-visible gain.
+- **One-time interaction history loss.** The id migration orphaned ~30 days of
+  click data. Expected and accepted; `WebsiteInteraction` already denormalizes
+  `event_title` and `source_name`, so a best-effort backfill is possible if the
+  ranking signal looks degraded.
+- **`presentation.html`** is unreferenced but kept — see item 9.

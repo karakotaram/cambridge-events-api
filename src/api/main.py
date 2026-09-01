@@ -171,8 +171,7 @@ def as_local_naive(dt: datetime) -> datetime:
 
 def load_events(use_cache: bool = True) -> List[Event]:
     """Load events from JSON file with optional caching"""
-    global _events_cache
-
+    # _events_cache is mutated in place, never rebound, so no `global` needed
     # Check cache first
     if use_cache and _events_cache["events"] is not None:
         if time.time() - _events_cache["loaded_at"] < _events_cache["ttl"]:
@@ -868,7 +867,6 @@ async def get_featured():
 @app.post("/events/{event_id}/feature")
 async def feature_event(event_id: str):
     """Mark an event as an Editor's Pick by its current ID"""
-    global _events_cache
     events = load_events()
     event = next((e for e in events if e.id == event_id), None)
     if not event:
@@ -890,7 +888,6 @@ async def feature_event(event_id: str):
 @app.delete("/events/{event_id}/feature")
 async def unfeature_event(event_id: str):
     """Remove an event from Editor's Picks"""
-    global _events_cache
     events = load_events()
     event = next((e for e in events if e.id == event_id), None)
     if not event:

@@ -8,7 +8,6 @@ a monitoring list four scrapers behind reality.
 Prose that nothing verifies decays. These are the checks that keep the
 architecture and roadmap honest. See docs/ROADMAP.md item 8.
 """
-import importlib
 import os
 import re
 from pathlib import Path
@@ -38,57 +37,57 @@ def test_all_markdown_links_resolve():
     assert not broken, "broken relative links:\n  " + "\n  ".join(broken)
 
 
-def registered_source_names():
-    """Instantiate everything scrape.py registers and collect its source_name."""
-    scrape_src = (REPO / "scrape.py").read_text()
-    names = {}
-    for cls_name in re.findall(r"orchestrator\.register_scraper\((\w+)\(\)\)", scrape_src):
-        module_match = re.search(rf"from (\S+) import .*\b{cls_name}\b", scrape_src)
-        assert module_match, f"{cls_name} is registered but never imported"
-        cls = getattr(importlib.import_module(module_match.group(1)), cls_name)
-        names[cls().source_name] = cls_name
-    return names
-
-
 def test_every_scraper_module_is_registered():
-    """A scraper on disk that nothing runs is dead code or a forgotten wiring step."""
+    """A scraper on disk that the registry does not list is dead code.
+
+    Longfellow House was exactly this for months: 185 lines of working Playwright
+    scraper that nothing ever called, producing zero events and raising no alarm.
+    """
+    from src.sources import SOURCES
+
     on_disk = {
         f[:-3] for f in os.listdir(REPO / "src" / "scrapers")
         if f.endswith(".py") and not f.startswith("__") and "base" not in f
     }
-    imported = set(re.findall(r"from src\.scrapers\.(\w+) import", (REPO / "scrape.py").read_text()))
-    unregistered = on_disk - imported
+    registered = {s.module.rsplit(".", 1)[-1] for s in SOURCES if s.is_scraped}
+    unregistered = on_disk - registered
 
-    # google_sheets is driven by sync_user_events.py, not the scrape pipeline.
-    assert unregistered <= {"google_sheets", "longfellow_house"}, (
+    # google_sheets backs sync_user_events.py, not the scrape pipeline.
+    assert unregistered <= {"google_sheets"}, (
         f"scraper modules that nothing runs: {sorted(unregistered)}. "
-        "Register them in scrape.py or delete them."
+        "Add them to src/sources.py or delete them."
     )
+
+
+def test_registry_names_match_what_scrapers_emit():
+    """A Source.name that disagrees with its scraper's source_name silently
+    unmonitors that source: events land under one name, monitoring watches another."""
+    from src.sources import SOURCES
+
+    mismatched = []
+    for source in SOURCES:
+        if not source.is_scraped:
+            continue
+        emitted = source.load().source_name
+        if emitted != source.name:
+            mismatched.append(f"{source.name!r} registered but scraper emits {emitted!r}")
+    assert not mismatched, "\n  ".join(["registry/scraper name mismatch:"] + mismatched)
 
 
 def test_monitoring_covers_every_registered_source():
-    """ci_monitor.REGISTERED_SOURCES and scrape.py are two hand-kept copies of one
-    fact. They have drifted before. This test pins the drift so that fixing it, or
-    making it worse, forces the documentation to be updated in the same commit.
+    """ci_monitor must see everything the pipeline runs.
 
-    docs/ROADMAP.md item 1 deletes one of the two lists; when that lands, this
-    assertion becomes `assert not unmonitored` and the doc references go away.
+    This used to fail: REGISTERED_SOURCES was a second hand-kept copy of the
+    source list and had drifted four scrapers behind scrape.py, leaving Harvard
+    GSD, Museum of Science, Regent Theatre, and The Sinclair unmonitored. Both
+    now derive from src/sources.py, so the drift is structurally impossible —
+    this test is what keeps it that way.
     """
     from src.agents.ci_monitor import REGISTERED_SOURCES
+    from src.sources import SOURCES
 
-    registered = set(registered_source_names())
-    monitored = set(REGISTERED_SOURCES)
-    unmonitored = registered - monitored
-
-    documented = {"Harvard GSD", "Museum of Science", "Regent Theatre", "The Sinclair"}
-    assert unmonitored == documented, (
-        f"monitoring drift changed.\n"
-        f"  unmonitored now: {sorted(unmonitored)}\n"
-        f"  documented:      {sorted(documented)}\n"
-        "If you fixed this, update CLAUDE.md, docs/ARCHITECTURE.md (Layer 0 and the "
-        "deviation table), docs/ROADMAP.md item 1, docs/OPERATIONS.md, and "
-        "src/agents/README.md, then relax this assertion."
-    )
+    unmonitored = {s.name for s in SOURCES} - set(REGISTERED_SOURCES)
+    assert not unmonitored, f"sources with no freshness monitoring: {sorted(unmonitored)}"
 
 
 @pytest.mark.parametrize("check", ["clock_stamped", "tz_aware", "timestamp_pileup"])

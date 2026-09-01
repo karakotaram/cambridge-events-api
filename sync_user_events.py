@@ -21,6 +21,7 @@ from typing import List
 from src.scrapers.google_sheets import GoogleSheetsScraper
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
+from src.utils.storage import sort_events
 from src.models.event import Event, EventCreate
 
 # Configure logging
@@ -35,7 +36,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 SOURCE_NAME = "User Submitted"
-AUDIT_FILE = "user_submitted_audit.html"
+AUDIT_FILE = "data/user_submitted_audit.html"
 EVENTS_FILE = "data/events.json"
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "")
 
@@ -207,7 +208,7 @@ def save_events(events: List[dict]):
     """Save events to JSON file"""
     os.makedirs('data', exist_ok=True)
     with open(EVENTS_FILE, 'w') as f:
-        json.dump(events, f, indent=2, default=str)
+        json.dump(sort_events(events), f, indent=2, default=str)
     logger.info(f"Saved {len(events)} events to {EVENTS_FILE}")
 
 
@@ -217,11 +218,8 @@ def finalize_events(events: List[EventCreate]) -> List[Event]:
     now = datetime.utcnow()
 
     for event_create in events:
-        event = Event(
-            id=str(uuid.uuid4()),
-            scraped_at=now,
-            last_updated=now,
-            **event_create.model_dump()
+        event = Event.from_create(event_create).model_copy(
+            update={"scraped_at": now, "last_updated": now}
         )
         finalized.append(event)
 

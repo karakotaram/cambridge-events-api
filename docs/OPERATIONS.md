@@ -2,9 +2,25 @@
 
 Runbooks for running, diagnosing, repairing, and deploying this system.
 
-Every recipe here has been executed against this repo. Where a future `cal`
-command ([ROADMAP item 6](ROADMAP.md#6--the-cal-cli)) would replace a manual
-recipe, that is noted — until it exists, the manual version is the real one.
+Every recipe here has been executed against this repo.
+
+Almost everything runs through `cal` (`src/cli.py`), which has one verb per layer
+of [the architecture](ARCHITECTURE.md#3-the-tower):
+
+```bash
+alias cal='.venv/bin/python -m src.cli'     # or python -m src.cli
+
+cal doctor          # what is wrong right now                    (all layers)
+cal sources         # what we scrape, counts, freshness, notes   (layer 0)
+cal scrape <name>   # run one scraper, show what it would produce (layer 1)
+cal check [<name>]  # invariants and drift on current state      (layer 2)
+cal runs            # recent scrape runs
+cal run <id>        # one run in full                            (layer 3)
+cal diff [--live]   # what changed vs HEAD, or vs production     (layer 5)
+cal repair <name>   # re-scrape one source and splice it in      (layer 5)
+```
+
+**Start with `cal doctor`.** It is the only command you need to remember.
 
 ---
 
@@ -15,7 +31,7 @@ recipe, that is noted — until it exists, the manual version is the real one.
 | Scrapers + API (this repo) | Railway, `https://web-production-00281.up.railway.app` | `main`, automatically |
 | Frontend | Vercel, `cambridgecalendar.com` | `main` of `~/Projects/cambridge-event-compass` |
 | Event data | `data/events.json`, served by the API | committed to `main` |
-| Daily refresh | `.github/workflows/scrape-events.yml`, 06:00 UTC | commits and pushes unconditionally — see [ROADMAP item 3](ROADMAP.md#3--the-gate) |
+| Daily refresh | `.github/workflows/scrape-events.yml`, 06:00 UTC | commits only if the gate passes; a blocked run quarantines and opens an issue |
 
 The frontend proxies `/signup`, `/admin`, `/onboarding/*`, `/events/*`, and
 `/featured` through to Railway, so those pages appear on the main domain while
@@ -28,8 +44,8 @@ about two minutes; watch `/health` until `total_events` changes.
 
 ```bash
 python3.12 -m venv .venv          # 3.12; production pins 3.11, avoid 3.13+
-.venv/bin/pip install -r requirements.txt
-.venv/bin/pip install pytest      # documented but not yet in requirements.txt
+.venv/bin/pip install -r requirements.txt   # includes pytest, flake8, black
+alias cal='.venv/bin/python -m src.cli'
 ```
 
 `.venv/` is gitignored. Use `.venv/bin/python` explicitly rather than relying on
@@ -39,208 +55,127 @@ an activated shell — activation does not survive between tool calls.
 .venv/bin/python -m pytest tests/ -q                       # tests
 .venv/bin/python -m uvicorn src.api.main:app --port 8199   # API on :8199
 .venv/bin/python scrape.py                                 # full scrape (slow: ~20 min, needs Chrome)
+.venv/bin/python scrape.py --force                         # publish past a failing gate
 ```
+
+Tests are offline: scrapers are parsed against saved pages in `tests/fixtures/`,
+and an `offline` fixture makes any outbound HTTP call in a test raise. Capture a
+new fixture with `cal scrape "<source>" --save-fixture`.
 
 ---
 
 ## Runbook: a reader reports a wrong date
 
-This is the highest-value runbook in the file, because it is the failure that
-reaches readers. Recovered from the 2026-08-31 incident.
-
-**1. Reproduce against production, not your checkout.** Your local
-`data/events.json` may be far behind — it was 26 commits stale when this incident
-was diagnosed.
+The highest-value runbook here, because it is the failure that reaches readers.
 
 ```bash
-git fetch origin && git rev-list --count main..origin/main   # 0 means you are current
+git fetch origin && git rev-list --count main..origin/main   # 0 = your checkout is current
+cal doctor --live
 ```
 
-**2. Get the day's actual contents from the live API.**
+`doctor` checks the invariants and per-source drift, flags a stale checkout,
+compares local event count against production, and probes the endpoints. During
+the 2026-08-31 incident it would have printed, in about two seconds:
+
+```
+✗ City of Cambridge: 117 start times carry seconds/microseconds — a clock reading, not a listing
+✗ City of Cambridge: 117 events share the exact start 2026-09-14T13:29:26.288025
+✗ City of Cambridge: date_span_days 16 vs baseline 63 — reaching less far ahead
+✗ GET /stats -> HTTPError: 500
+! local checkout is 26 commits behind origin/main
+```
+
+Each of those took minutes to find by hand. All are mechanically derivable.
+
+Then narrow it down:
 
 ```bash
-curl -s "https://web-production-00281.up.railway.app/events/slim?limit=5000" \
-| python3 -c "
-import sys, json
-from collections import Counter
-evs = json.load(sys.stdin)
-c = Counter(e['start_datetime'][:10] for e in evs)
-for d, n in sorted(c.items())[:40]: print(d, n)
-print('max any day:', max(c.values()))
-"
+cal check "City of Cambridge"      # that source's invariants and drift
+cal run <run-id>                   # what that scrape did: per-scraper yield, rejections, gate
+cal scrape "City of Cambridge"     # re-run the scraper now, see what it produces, write nothing
 ```
 
-A day standing far above its neighbours is the tell. Healthy days run 40–70.
+`cal scrape` prints the parsed events, runs the invariants over them, and shows
+the shape against baseline — so you can compare our output against the venue's
+own page directly.
 
-**3. Look at the *times*, not just the count.** This is the step that finds the
-cause:
+Reading the signals:
 
-```bash
-curl -s ".../events/slim?limit=5000" | python3 -c "
-import sys, json
-from collections import Counter
-evs = [e for e in json.load(sys.stdin) if e['start_datetime'].startswith('2026-09-14')]
-print(Counter(e['start_datetime'][11:] for e in evs))
-"
-```
+- **Many events sharing one exact timestamp** means a scraper substituted a clock
+  reading for a date it could not parse. Sub-minute precision (`13:29:26.288025`)
+  confirms it — real listings are always on the minute.
+- **A short `date_span_days`** means the run was truncated: pagination broke, or a
+  browser died mid-run.
+- **A day standing far above its neighbours** is the same fabrication seen from
+  the other end. Healthy days run 40–70.
 
-More than a handful of events sharing one exact timestamp means a scraper substituted a clock
-reading for a date it could not parse. Sub-minute precision (`13:29:26.288025`)
-confirms it — real listings are always on the minute.
-
-**4. Identify the source and check it against the venue's own page.**
-
-```bash
-curl -s ".../events?limit=5000" | python3 -c "
-import sys, json
-from collections import Counter
-bad = [e for e in json.load(sys.stdin) if e['start_datetime'].startswith('2026-09-14T13:29:26')]
-print(Counter(e['source_name'] for e in bad))
-print(bad[0]['source_url'])
-"
-```
-
-Open that `source_url` and compare. If the venue's page is right and ours is
-wrong, the scraper is the bug.
-
-**5. Fix the scraper so it skips rather than guesses**, add a test, then repair
-the data (next runbook).
-
-> `cal doctor` will collapse steps 1–4 into one command.
+Fix the scraper so it *skips* rather than guesses, add a fixture-backed test
+(`cal scrape <name> --save-fixture`), then repair the data.
 
 ## Runbook: repair one source
 
-Re-scrape a single source and splice it into `data/events.json`, leaving every
-other source untouched. Use after fixing a scraper, when you do not want to wait
-for the 06:00 UTC job or run a full 20-minute scrape.
+Re-scrape a single source and splice it in, leaving every other source untouched.
+Use after fixing a scraper, when you do not want to wait for 06:00 UTC or run a
+full 20-minute scrape.
 
-```python
-# repair.py — delete when cal repair exists
-import json, uuid
-from collections import defaultdict
-from src.scrapers.cambridge_gov import CambridgeGovScraper   # <- the one you fixed
-from src.utils.validator import EventValidator
-from src.utils.deduplicator import EventDeduplicator
-from src.models.event import Event, EventCreate
-
-SOURCE, PATH = "City of Cambridge", "data/events.json"
-
-existing = json.load(open(PATH))
-others = [e for e in existing if e.get("source_name") != SOURCE]
-print(f"keeping {len(others)}, replacing {len(existing) - len(others)}")
-
-raw = CambridgeGovScraper().run()
-validator = EventValidator()
-valid, rejected = [], defaultdict(int)
-for ev in raw:
-    ev = validator.clean_and_enhance(ev)
-    ok, err = validator.validate_event(ev)
-    valid.append(ev) if ok else rejected.__setitem__(err, rejected[err] + 1)
-print(f"scraped {len(raw)}, valid {len(valid)}, rejected {dict(rejected)}")
-
-kept = EventDeduplicator.deduplicate_events(valid)
-
-# drop anything duplicating a source we are keeping (bucket by day; the
-# comparison is O(n*m) and does fuzzy title matching)
-by_day = defaultdict(list)
-for e in others:
-    try:
-        oc = EventCreate(**{k: v for k, v in e.items() if k != "id"})
-    except Exception:
-        continue
-    by_day[EventDeduplicator.normalize_datetime(oc.start_datetime).date()].append(oc)
-
-final = [e for e in kept
-         if not any(EventDeduplicator.are_duplicates(e, o)
-                    for o in by_day.get(EventDeduplicator.normalize_datetime(e.start_datetime).date(), ()))]
-
-out = [Event(id=str(uuid.uuid4()), **e.model_dump()).model_dump(mode="json") for e in final] + others
-json.dump(out, open(PATH, "w"), indent=2, default=str)
-print(f"wrote {len(out)}")
+```bash
+cal repair "City of Cambridge" --dry-run   # scrape, validate, dedupe, report — write nothing
+cal repair "City of Cambridge"             # same, then write data/events.json
+cal check                                  # confirm
+git add data/events.json && git commit && git push
 ```
 
-Run it from the repo root (`src` must be importable), then verify with the
-pre-push checklist below.
+It validates, dedupes within the source *and* against every other source, runs
+the invariants, and refuses to write if any are violated (`--force` overrides).
 
-**Do not skip the dedup-against-others step.** Several venues are covered by both
-their own scraper and an aggregator, and re-splicing without it produces visible
+The cross-source dedup step is not optional: several venues are covered by both
+their own scraper and an aggregator, and splicing without it produces visible
 double listings.
 
 ## Runbook: a source went quiet
 
 ```bash
-.venv/bin/python -m src.agents.health_monitor   # count vs. 5-run rolling average
-.venv/bin/python -m src.agents.ci_monitor       # freshness / staleness
-curl -s ".../health/scrapers"                   # the CI monitor report, live
+cal sources             # every source with its event count, furthest-out date, last scrape
+cal scrape "The Sinclair"   # run just that one and see what comes back
+cal runs                # was it failing in recent runs?
+cal run <run-id>        # per-scraper status and error for that run
 ```
 
-Two known limits of these, both being addressed in
-[ROADMAP items 1–2](ROADMAP.md):
+`cal sources` marks any source contributing zero events. There are three
+different reasons a source goes quiet, and they need different fixes — `cal run`
+distinguishes them:
 
-- The rolling window is **5 runs**. A source that degrades over several days has
-  its broken state absorbed into the baseline before anything alerts.
-- Four registered scrapers are **not in `ci_monitor.REGISTERED_SOURCES`** at all —
-  Harvard GSD, Museum of Science, Regent Theatre, The Sinclair. They are
-  unmonitored. If one of those is your suspect, the monitors will not help; run
-  it directly:
+| what you see | cause | fix |
+|---|---|---|
+| scraper status `failed` in the run record | the venue changed or is blocking us | fix the scraper |
+| scrapes fine locally, `failed` only in CI | environment — a missing browser, or the venue blocking GitHub's IPs | fix the workflow, or add `runs_in_ci=False` in `src/sources.py` |
+| status `ok` with events, but none in the data | validation rejected them all — check the run record's `rejected` counts | usually the scraper is returning stale or misdated events |
 
-```bash
-.venv/bin/python -c "
-from src.scrapers.the_sinclair import TheSinclairScraper
-evs = TheSinclairScraper().run()
-print(len(evs))
-for e in evs[:5]: print(' ', e.start_datetime, e.title[:60])
-"
-```
+That third case is easy to miss. Theatre at First returns seven events every run,
+all of them more than 30 days old, all correctly dropped by `EventValidator` —
+so it looks alive and contributes nothing.
 
 ## Runbook: before you push data
 
-Run all four. Each corresponds to a failure that has actually shipped.
-
 ```bash
-python3 -c "
-import json, re
-from collections import Counter
-evs = json.load(open('data/events.json'))
-print('total', len(evs))
-
-# 1. fabricated dates — sub-minute precision only comes from a clock reading
-print('clock-stamped:', sum(1 for e in evs if re.search(r'T\d{2}:\d{2}:(?!00)', e['start_datetime'])))
-
-# 2. timestamp pileups — legit max is 8 for one source; a big number means a date fallback fired
-print('largest timestamp pileup:', Counter(e['start_datetime'] for e in evs).most_common(1))
-
-# 3. tz-aware values — must be zero, everything is naive Eastern
-A = re.compile(r'([+-]\d{2}:?\d{2}|Z)\$')
-print('tz-aware:', sum(1 for e in evs for f in ('start_datetime','end_datetime')
-                       if isinstance(e.get(f), str) and A.search(e[f])))
-
-# 4. day distribution — a spike is the Sept 14 signature
-c = Counter(e['start_datetime'][:10] for e in evs)
-print('max any day:', max(c.values()), '| healthy range 40-70')
-"
+cal check                                # invariants + drift
+.venv/bin/python -m pytest tests/ -q     # includes the data invariants
+cal diff                                 # exactly what changed vs HEAD
 ```
 
-Then the API must actually serve it:
+`cal diff` is meaningful because event ids are stable: it reports added, removed,
+and field-level changes rather than the whole file. A normal daily run is tens of
+changes. Thousands means something rotated every id — which should not be
+possible, and is worth stopping to understand.
 
-```bash
-.venv/bin/python -m uvicorn src.api.main:app --port 8199 &
-sleep 8
-for p in /health /stats "/events?start_date=2026-09-14T00:00:00&end_date=2026-09-14T23:59:59"; do
-  printf "%-70s " "$p"; curl -s -o /dev/null -w "%{http_code}\n" "http://127.0.0.1:8199$p"
-done
-```
-
-`/stats` and the date-filtered `/events` both returned 500 in production for an
-unknown length of time. They are in this list because nothing else was checking
-them.
-
-> `cal check` will replace this whole section.
+The same checks run inside `scrape.py` as the gate, so a normal scrape enforces
+them without anyone remembering to. This runbook is for hand-edited data.
 
 ## Runbook: deploy and verify
 
 ```bash
 .venv/bin/python -m pytest tests/ -q
+cal check
 git push origin main          # Railway redeploys automatically, ~2 minutes
 ```
 
@@ -299,23 +234,56 @@ as a finding, not a non-event.
 Things that have cost real time. Add to this list whenever something surprises
 you — that is how this file earns its keep.
 
-- **Your checkout is probably stale.** The daily job commits to `main`. Always
-  `git fetch` before diagnosing anything.
-- **Local `data/events.json` is not what production serves** unless you are
-  current with `origin/main`.
+- **Your checkout is probably stale.** The daily job commits to `main`.
+  `cal doctor` checks this for you.
 - **`Event.category` is a `str`, not an enum.** Both models set
-  `use_enum_values = True`. Calling `.value` on it raises `AttributeError` — this
-  is what made `/stats` return 500.
-- **Mixed tz-awareness raises `TypeError` on comparison.** The model now
-  normalizes to naive Eastern, but any datetime arriving from a query parameter
-  still needs `as_local_naive()` in `src/api/main.py`.
-- **Event IDs change on every scrape.** Do not build anything that assumes an ID
-  survives the night ([ROADMAP item 4](ROADMAP.md#4--stable-event-identity)).
-- **`CI_SKIP_SOURCES` sources are preserved, not re-scraped**, by CI. Their events
-  can go stale for weeks without any signal. Run `scrape_local.py` to refresh
-  them.
+  `use_enum_values = True`. Calling `.value` on it raises `AttributeError` —
+  that is what made `/stats` return 500.
+- **Mixed tz-awareness raises `TypeError` on comparison.** The model normalizes
+  to naive Eastern, but a datetime arriving from a query parameter still needs
+  `as_local_naive()` in `src/api/main.py`.
+- **`CI_SKIP_SOURCES` sources are preserved, not re-scraped**, so their events go
+  stale for weeks with no signal. `cal sources` shows the age in "last scraped";
+  run `scrape_local.py` to refresh them.
+- **A source can look alive and contribute nothing.** If everything it returns is
+  more than 30 days old, `EventValidator` drops all of it. Check the run record's
+  `rejected` counts, not just the scraper's status.
+- **Playwright scrapers need `playwright install` in CI.** Nine sources failed
+  every night in GitHub Actions while working locally, because the workflow
+  installed Chrome for Selenium but never the Playwright browsers.
 - **Selenium scrapers die mid-run and the pipeline continues.** A source silently
-  returning a third of its events is the normal shape of that failure.
-- **The daily job pushes whatever the scrape produced.** Until
-  [ROADMAP item 3](ROADMAP.md#3--the-gate) exists, a bad scrape reaches readers
-  within minutes.
+  returning a third of its events is the normal shape of that failure — which is
+  why `date_span_days` is a drift metric.
+- **Never mint an event id by hand.** `Event.from_create()` is the only supported
+  way; `uuid4()` would break the interaction join, the diff, and the changelog.
+- **Do not record a fingerprint for a run that failed the gate.** That is exactly
+  how a slow degradation becomes the baseline. `scrape.py` only records after a
+  pass.
+
+## When the gate blocks a run
+
+A blocked run leaves production untouched and writes everything you need:
+
+```bash
+cal runs                                  # find the run id
+cal run <run-id>                          # gate reasons, per-scraper detail, rejections
+cat data/quarantine/<run-id>/report.txt   # the same report the issue carries
+```
+
+The report names which of three checks fired:
+
+| check | tunable? | means |
+|---|---|---|
+| **catastrophic collapse** | no | the run would delete most of the calendar — usually mass scraper failure, not a data problem |
+| **invariant violation** | no | an event is malformed: a fabricated date, a tz-aware value, chrome in a title |
+| **drift** | yes (`GATE_DRIFT`) | a source's shape moved against its own baseline |
+
+`data/quarantine/<run-id>/events.json` is the rejected output, kept because the
+bad run is the evidence. Options, in order of preference:
+
+1. **Fix the scraper**, then `cal repair <source>` — the usual case.
+2. **The change is real and large** (a venue posted its whole spring season):
+   re-run with `python scrape.py --force`, or dispatch the workflow with
+   `force: true`.
+3. **The threshold is wrong**: tune it in `src/quality/fingerprint.py` and say so
+   in the commit. Do not disable the gate.

@@ -1,4 +1,6 @@
 """Event data models following PRD schema"""
+import hashlib
+import re
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field, HttpUrl, EmailStr, field_validator
@@ -7,6 +9,39 @@ import pytz
 
 # All events are in Eastern Time (Cambridge/Somerville, MA)
 EASTERN_TZ = pytz.timezone('America/New_York')
+
+
+def _identity_title(title: str) -> str:
+    """Fold a title down to what identifies it, ignoring cosmetic churn."""
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", "", (title or "").lower())).strip()
+
+
+def event_identity(source_name: str, source_url: str,
+                   start_datetime: datetime, title: str) -> str:
+    """A stable id for one event occurrence, derived from its content.
+
+    The same occurrence scraped tomorrow gets the same id. That is what lets
+    anything accumulate on top of an event: click history joins across days, the
+    recommender sees real signal, Editor's Picks can key on identity instead of
+    matching titles, and `git diff data/events.json` becomes a readable changelog
+    of what actually changed rather than 9,000 lines of fresh UUIDs.
+
+    Before this existed, 269 of ~2,260 ids survived a nightly run — 88% churn.
+
+    The basis deliberately contains only fields that *identify the occurrence*.
+    Venue, description, image, and category are all fields we expect to get
+    better at extracting; folding them in would rotate every id the next time a
+    scraper improved. A rescheduled event does get a new id, which is correct —
+    it is a different occurrence, and the diff reads as one removal plus one
+    addition.
+    """
+    basis = "|".join([
+        source_name or "",
+        source_url or "",
+        to_eastern_naive(start_datetime).isoformat() if start_datetime else "",
+        _identity_title(title),
+    ])
+    return hashlib.sha256(basis.encode("utf-8")).hexdigest()[:32]
 
 
 def to_eastern_naive(dt: Optional[datetime]) -> Optional[datetime]:
@@ -87,6 +122,19 @@ class Event(BaseModel):
     @classmethod
     def _store_times_as_eastern(cls, dt: Optional[datetime]) -> Optional[datetime]:
         return to_eastern_naive(dt)
+
+    @classmethod
+    def from_create(cls, event: "EventCreate") -> "Event":
+        """Promote an EventCreate to an Event with a stable, content-derived id.
+
+        The only supported way to mint an Event id. Do not call uuid4() — see
+        event_identity().
+        """
+        return cls(
+            id=event_identity(event.source_name, event.source_url,
+                              event.start_datetime, event.title),
+            **event.model_dump(),
+        )
 
     class Config:
         use_enum_values = True

@@ -55,3 +55,12 @@ output/
 
 # Test cache
 .pytest_cache/
+
+# Generated HTML output (regenerated every scrape; see generate_html.py)
+data/*.html
+events.html
+user_submitted_audit.html
+*_audit.html
+
+# Rejected scrape runs — evidence for diagnosis, not repo content
+data/quarantine/

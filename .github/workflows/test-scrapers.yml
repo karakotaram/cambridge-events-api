@@ -1,66 +1,63 @@
-name: Test New Scrapers
+name: Tests
+
+# Replaces a manual-dispatch job that fetched two live pages and printed the
+# first five events for a human to eyeball. Nothing asserted anything, so it
+# could not fail, which meant it never told anyone anything.
+#
+# The suite here is offline and deterministic: scrapers are parsed against saved
+# fixtures in tests/fixtures/, so it runs in seconds and does not break when a
+# venue is down. See docs/ROADMAP.md item 7.
 
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+          cache: pip
 
-      - name: Install Chrome for Selenium
-        uses: browser-actions/setup-chrome@latest
-        with:
-          chrome-version: stable
-
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Test Sanders Theatre scraper
-        run: |
-          python3 -c "
-          from src.scrapers.sanders_theatre import SandersTheatreScraper
-          import logging
-          logging.basicConfig(level=logging.INFO)
-          scraper = SandersTheatreScraper()
-          events = scraper.run()
-          print(f'Sanders Theatre: {len(events)} events')
-          for e in events[:5]:
-              print(f'  - {e.title[:60]} | {e.start_datetime}')
-              print(f'    img: {\"yes\" if e.image_url else \"no\"} | desc: {len(e.description)} chars')
-          "
+      - name: Run tests
+        run: pytest tests/ -q
 
-      - name: Test American Repertory Theater scraper
-        run: |
-          python3 -c "
-          from src.scrapers.art import AmericanRepertoryTheaterScraper
-          import logging
-          logging.basicConfig(level=logging.INFO)
-          scraper = AmericanRepertoryTheaterScraper()
-          events = scraper.run()
-          print(f'American Repertory Theater: {len(events)} events')
-          for e in events[:5]:
-              print(f'  - {e.title[:60]} | {e.start_datetime}')
-              print(f'    img: {\"yes\" if e.image_url else \"no\"} | desc: {len(e.description)} chars')
-          "
+      # E9 syntax errors, F63/F7 broken constructs, F82 undefined names — the
+      # checks that catch code which cannot run. F401 (unused imports) is
+      # deliberately excluded: there are ~60 pre-existing across the repo and
+      # turning them on here would mean a permanently red build, which teaches
+      # everyone to ignore it.
+      - name: Lint
+        run: flake8 src/ tests/ --select=E9,F63,F7,F82 --max-line-length=200
 
-      - name: Note about Somerville Theatre
+  # Live scrapers are checked on a schedule rather than on every push, because
+  # they depend on venue websites being up and are therefore not a signal about
+  # the commit. A failure here means a venue changed, not that someone broke
+  # something. Detects failure mode 8 (semantic drift) — see the taxonomy in
+  # docs/ARCHITECTURE.md.
+  live-sources:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
         run: |
-          echo "Somerville Theatre scraper uses cloudscraper which has SSL issues in CI"
-          echo "This scraper runs locally only - events are preserved from local runs"
-
-      - name: Summary
-        run: |
-          echo "=== Test Complete ==="
-          echo "Sanders Theatre and A.R.T. scrapers work in CI"
-          echo "Somerville Theatre runs locally only (SSL handshake issues in CI)"
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Check every source still produces plausible events
+        run: python -m src.cli sources --json > /tmp/before.json && python -m src.cli check

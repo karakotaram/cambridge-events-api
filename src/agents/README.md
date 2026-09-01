@@ -37,7 +37,8 @@ Agents run automatically in the scrape pipeline (`scrape.py`):
 Both are wrapped in try/except — agent failures never block the scrape pipeline.
 
 Both also run **after** `data/events.json` is written, so neither can stop a bad
-run from shipping. That gate is [ROADMAP item 3](../../docs/ROADMAP.md#3--the-gate).
+run from shipping. Blocking is now the gate's job
+([`src/quality/gate.py`](../quality/gate.py)), which runs *before* the write.
 
 ## API Endpoint
 
@@ -77,12 +78,15 @@ python -m src.agents.scraper_generator --url "https://example.com/events" --venu
 5. Use `self.save_report(data, filename)` to save output
 6. Use `self.create_github_issue(title, body)` for alerts (auto-dedupes by title prefix)
 
-## Known limitations
+## What these agents do and do not cover
 
-Measured, not hypothetical. Each is on the [roadmap](../../docs/ROADMAP.md).
+Measured, not hypothetical. The structural gaps below were closed by
+[`src/quality/`](../quality/); the agents remain useful for freshness reporting
+and LLM-assisted diagnosis, but they are no longer the safety net.
 
 **Health Monitor watches volume, which is the signal that moves least during a
-real failure.** On 2026-08-31 the Cambridge.gov scraper shipped 117 events
+real failure.** Shape is now measured by `src/quality/fingerprint.py`, which is
+what the gate uses. On 2026-08-31 the Cambridge.gov scraper shipped 117 events
 stamped with a clock reading; the monitor saw 359 events against a 250.6 recent
 average — 143% of normal — and reported the run as healthy. Four other metrics on the same data — date
 span, max events per day, max events per *timestamp*, distinct start times —
@@ -91,13 +95,14 @@ were all screaming. See
 
 **The rolling window is 5 runs (`MAX_HISTORY`).** A source that degrades over
 several days has its broken state absorbed into the baseline before anything
-alerts. Cambridge.gov did exactly that.
+alerts. Cambridge.gov did exactly that. `data/fingerprints.json` keeps 30 runs
+for this reason, and only records a run that passed the gate.
 
-**`REGISTERED_SOURCES` in `ci_monitor.py` has drifted from `scrape.py`.** Four
-scrapers run daily with no freshness monitoring at all — Harvard GSD, Museum of
-Science, Regent Theatre, The Sinclair — and two monitored entries are not
-registered. Two hand-maintained lists of one fact; the fix is deleting one of
-them ([ROADMAP item 1](../../docs/ROADMAP.md#1--one-source-registry)).
+**`REGISTERED_SOURCES` is now derived from [`src/sources.py`](../sources.py).**
+It used to be a hand-kept second copy and had drifted four scrapers behind
+`scrape.py` — Harvard GSD, Museum of Science, Regent Theatre, The Sinclair ran
+daily with no freshness monitoring at all. Do not reintroduce a literal here;
+`test_monitoring_covers_every_registered_source` guards it.
 
 ## Design Principles
 

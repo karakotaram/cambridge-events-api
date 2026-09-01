@@ -5,57 +5,14 @@ from datetime import datetime, timedelta
 from dateutil import parser as dateparse
 
 from src.agents.base_agent import BaseAgent
+from src.sources import SOURCES
 
 logger = logging.getLogger(__name__)
 
-# All registered scrapers with CI availability flag
-# ci=True means the scraper runs in GitHub Actions; ci=False means local-only
-REGISTERED_SOURCES = {
-    # Non-Selenium scrapers (source_name values must match scraper definitions exactly)
-    "Lamplighter Brewing": {"ci": True},
-    "Harvard Book Store": {"ci": False},
-    "Boston Swing Central": {"ci": False},
-    "The Comedy Studio": {"ci": True},
-    "The Dance Complex": {"ci": True},
-    "BostonShows.org": {"ci": True},
-    "Theatre at First": {"ci": True},
-    "First Parish in Cambridge": {"ci": True},
-    "Harvard Art Museums": {"ci": True},
-    "Brattle Theatre": {"ci": True},
-    "Grolier Poetry Book Shop": {"ci": True},
-    "Multicultural Arts Center": {"ci": True},
-    "The Rockwell": {"ci": True},
-    "The Mad Monkfish": {"ci": True},
-    "Mount Auburn Cemetery": {"ci": True},
-    "Harvard Athletics": {"ci": True},
-    # Selenium scrapers
-    "City of Cambridge": {"ci": True},
-    "The Lily Pad": {"ci": True},
-    "The Middle East": {"ci": True},
-    "Portico Brewing": {"ci": True},
-    "Porter Square Books": {"ci": True},
-    "Arts at the Armory": {"ci": True},
-    "Harvard-Radcliffe Dramatic Club": {"ci": True},
-    "Central Square Theater": {"ci": True},
-    "Sanders Theatre": {"ci": True},
-    "American Repertory Theater": {"ci": True},
-    "Aeronaut Brewing": {"ci": False},
-    "Somerville Theatre": {"ci": False},
-    # Playwright scrapers
-    "Longy School of Music": {"ci": True},
-    "MIT Events": {"ci": True},
-    "MIT Music & Theater": {"ci": True},
-    "Harvard Memorial Church": {"ci": True},
-    "Cambridge Public Library": {"ci": True},
-    "MIT Open Space": {"ci": True},
-    "Skip the Small Talk": {"ci": True},
-    # Other scrapers
-    "Longfellow House": {"ci": True},
-    # Aggregator
-    "Harvard Square": {"ci": True},
-    # User-submitted (always preserved)
-    "User Submitted": {"ci": True},
-}
+# Derived from the one source registry — see src/sources.py. This used to be a
+# hand-maintained copy and had drifted four scrapers out of sync with what
+# scrape.py actually runs, leaving them completely unmonitored.
+REGISTERED_SOURCES = {s.name: {"ci": s.runs_in_ci} for s in SOURCES}
 
 # Staleness thresholds
 CI_STALE_DAYS = 3

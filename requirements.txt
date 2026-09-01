@@ -28,3 +28,8 @@ anthropic>=0.20.0
 # Recommendation engine (LightFM collaborative filtering)
 # lightfm installed separately in nixpacks.toml (needs --no-build-isolation)
 scipy>=1.11.0
+# Development — documented in CLAUDE.md, so they belong here rather than in a
+# "just install this too" note that nobody reads
+pytest>=8.0.0
+flake8>=7.0.0
+black>=24.0.0

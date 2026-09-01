@@ -15,10 +15,13 @@ This repository is the scrapers, the data, and the API. The frontend lives in
 ```bash
 python3.12 -m venv .venv
 .venv/bin/pip install -r requirements.txt
+alias cal='.venv/bin/python -m src.cli'
 
-.venv/bin/python -m uvicorn src.api.main:app --port 8000   # API on :8000, docs at /docs
+cal doctor                                                  # is anything wrong?
+cal sources                                                 # what we scrape, and is it fresh?
+.venv/bin/python -m uvicorn src.api.main:app --port 8000    # API on :8000, docs at /docs
 .venv/bin/python scrape.py                                  # full scrape (~20 min, needs Chrome)
-.venv/bin/python -m pytest tests/ -q                        # tests
+.venv/bin/python -m pytest tests/ -q                        # tests (offline, ~2s)
 ```
 
 The public API is live at `https://web-production-00281.up.railway.app` and
@@ -41,18 +44,26 @@ kept for history; their numbers are stale.
 ## How it works
 
 ```
-scrapers → validate → deduplicate → enrich → data/events.json
-                                                    ↓
-                                    Railway (API) → Vercel (frontend)
+registry → scrapers → validate → deduplicate → enrich → identify
+                                                            ↓
+                                                    fingerprint → GATE
+                                                            ↓         ↓
+                                              data/events.json    quarantine
+                                                            ↓     + issue
+                                        Railway (API) → Vercel (frontend)
 ```
 
-A GitHub Action re-scrapes daily at 06:00 UTC and commits the result. Pushing to
-`main` deploys to production.
+Every scraper eventually breaks, usually silently, so the system's job is to make
+breakage **loud** and **non-shipping**. A run that violates the contract in
+`src/quality/` is quarantined instead of published, and readers keep yesterday's
+data — a much smaller harm than today's wrong data.
 
-Each venue has a scraper in `src/scrapers/` extending `BaseScraper` and
-implementing `scrape_events() -> List[EventCreate]`. `scrape.py` orchestrates
-them. Events are validated against the invariants in `src/utils/validator.py`,
-deduplicated across sources, and written to `data/events.json`.
+A GitHub Action re-scrapes daily at 06:00 UTC and commits only if the gate
+passes. Pushing to `main` deploys to production.
+
+Sources are declared once in `src/sources.py`; `scrape.py`, monitoring, and the
+CLI all derive from it. Each venue's scraper lives in `src/scrapers/`, extends
+`BaseScraper`, and implements `scrape_events() -> List[EventCreate]`.
 
 ## Contributing a scraper
 
@@ -82,8 +93,9 @@ class MyVenueScraper(BaseScraper):
         return events
 ```
 
-Then register it in `scrape.py` **and** `src/agents/ci_monitor.py`, and add a
-test backed by a saved HTML fixture rather than a live fetch.
+Then add one row to `src/sources.py` — that is the whole registration — and a
+test backed by a saved fixture (`cal scrape "<name>" --save-fixture`) rather than
+a live fetch.
 
 ## Event schema
 
@@ -95,7 +107,12 @@ Categories: `music`, `arts and culture`, `food and drink`, `theater`, `lectures`
 
 **All datetimes are naive Eastern wall clock.** Every venue is in Greater Boston,
 so a published time is an Eastern time whether the source said so or not; the
-model enforces this. See [docs/ARCHITECTURE.md § Layer 2](docs/ARCHITECTURE.md#layer-2--contract).
+model enforces this.
+
+**Event ids are a content hash**, stable across scrapes, so click history joins,
+`git diff data/events.json` reads as a changelog, and `git log -S<id>` answers
+"when did this event's time change?". Mint them only via `Event.from_create()`.
+See [docs/ARCHITECTURE.md § Layer 5](docs/ARCHITECTURE.md#layer-5--state).
 
 ## License
 

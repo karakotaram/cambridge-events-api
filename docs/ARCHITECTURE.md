@@ -89,17 +89,20 @@ ship?" is layer 4. An agent that knows the tower does not have to search.
 
 ### Layer 0 — Sources
 
-One registry. Today this fact is stored twice — the registration calls in
-`scrape.py` and `REGISTERED_SOURCES` in `src/agents/ci_monitor.py` — and they
-have already drifted:
+`src/sources.py`. One frozen-dataclass row per source, with lazy scraper imports
+so that listing sources stays fast. `scrape.py` iterates it, `ci_monitor` derives
+`REGISTERED_SOURCES` from it, `CI_SKIP_SOURCES` is a comprehension over it.
 
-- **4 scrapers run daily but are invisible to monitoring**: Harvard GSD, Museum
-  of Science, Regent Theatre, The Sinclair. If any dies, nothing will say so.
-- **2 monitored sources are not registered**: Longfellow House, User Submitted.
+It used to be stored twice — the registration calls in `scrape.py` and a
+hand-kept dict in `src/agents/ci_monitor.py` — and had drifted: four scrapers ran
+daily with no monitoring (Harvard GSD, Museum of Science, Regent Theatre, The
+Sinclair) and two monitored entries pointed at nothing. Nobody was careless. Two
+hand-maintained lists of one fact drift; that is what they do, and the fix was
+not vigilance but deleting one of the lists.
 
-Nobody did anything wrong. Two hand-maintained lists of the same fact drift;
-that is what they do. The fix is not vigilance, it is deleting one of the lists.
-See ROADMAP item 1.
+Consolidating also surfaced **Longfellow House**: a complete 185-line Playwright
+scraper that had never been wired into `scrape.py` at all, producing nothing for
+months. `test_every_scraper_module_is_registered` fails if that recurs.
 
 ### Layer 1 — Scrapers
 
@@ -140,7 +143,8 @@ no history, and a violation fails the run:
 | title is not navigation text | catches selector drift onto chrome |
 
 **Drift checks** are source-relative. Each source has a fingerprint learned from
-its own recent good runs, and the check compares this run to that baseline.
+its own recent good runs (`data/fingerprints.json`, 30 runs deep), and the check
+compares this run to that baseline.
 
 This distinction is not pedantry — a global threshold is actively harmful here.
 Measured against today's data, naive global rules flag:
@@ -160,30 +164,66 @@ suddenly has 1 venue when it always had 12" while staying quiet on "Brattle has
 The fingerprint is also the accretive artifact: the longer a source runs, the
 better the system knows its shape.
 
+One rule had to be retuned against reality during the build. `date_out_of_range`
+at ±30 days flagged 258 events in *clean* data, because `data/events.json`
+legitimately holds past events — User Submitted is never re-scraped, and
+CI-blocked sources keep their listings until `scrape_local.py` runs, so both age
+past any tight bound. Widened to ±2 years, which is what the rule was always
+for: impossible dates, not stale ones. An invariant that fires on healthy data is
+not a strict invariant, it is a broken one.
+
 ### Layer 3 — Run
 
 A scrape must leave evidence: which scrapers ran, how long each took, what each
 returned, what validation rejected and why, the fingerprint per source, and the
 resulting diff summary.
 
-Today this layer barely exists. `data/scraper_health.json` keeps five runs of
-bare per-source counts. When the Sept 14 failure was investigated, the cause was
-recovered by noticing that `13:29:26.288025` plus fourteen days is Sept 14 —
-arithmetic on a corrupted value, because no record of the run survived.
+`src/quality/run_record.py` writes `data/runs/<run-id>.json` per scrape: every
+scraper's status, duration and yield; the validator's rejection reasons by count;
+per-source fingerprints; the gate decision; and the diff summary. 90 retained.
 
-Five runs is also too short a memory. Cambridge.gov degraded across several days
-and the broken state became the baseline before anything noticed.
+Before it existed, the Sept 14 cause was recovered by noticing that
+`13:29:26.288025` plus fourteen days is Sept 14 — arithmetic on a corrupted
+value, because nothing about the run survived it. `data/scraper_health.json` kept
+five runs of bare counts, which was also too short a memory: Cambridge.gov
+degraded across several days and the broken state became the baseline before
+anything noticed. Fingerprint history is 30 runs for that reason.
 
 ### Layer 4 — Gate
 
-Today `scrape-events.yml` runs the scrape and unconditionally commits and pushes
-whatever came out. There is no step between "the scraper finished" and "readers
-see it."
+`src/quality/gate.py`, called from `scrape.py` between finalize and write. A
+blocked run exits non-zero, which stops `scrape-events.yml` before its commit
+step — the workflow used to commit and push unconditionally, with no step at all
+between "the scraper finished" and "readers see it."
 
-The gate is one decision: does this run satisfy the contract relative to the
-last known-good run? If yes, publish and record it as the new baseline. If no,
-write it to a quarantine path, open an issue with the fingerprint diff, and
-leave production on the last good data.
+One decision: does this run satisfy the contract relative to the last known-good
+run? If yes, publish and record it as the new baseline. If no, write it to
+`data/quarantine/<run-id>/`, open an issue with the report, and leave production
+on the last good data.
+
+There is a third check above both tiers: **catastrophic collapse**, measured
+against the data being replaced rather than any baseline. A run may not cut the
+event count below 50% of what is currently published, or lose more than 40% of
+the contributing sources.
+
+That guard exists because a rehearsal of this gate caught it *passing* a run
+that would have replaced 2,974 events with 232 — every scraper had failed, only
+the always-preserved user submissions survived, and the fifteen "source
+disappeared" findings were drift, which is in report mode. Losing almost the
+whole calendar is the one outcome that must never depend on a tunable, so it
+does not consult one.
+
+The two tiers below it are enforced separately, and that follows from what each
+one is.
+Invariants are absolute and verified clean against current data, so they block
+from day one. Drift compares against a learned baseline where a mistuned
+threshold blocks *good* data, so it reports until `GATE_DRIFT=enforce`. Drift is
+additionally self-tuning: it stays silent until a source has three runs of
+post-fix history, so the tuning period is a property of the mechanism rather than
+a calendar reminder.
+
+Confirmed against the real failure: the Sept 14 run is blocked on invariants
+alone, regardless of drift mode.
 
 Stale data is a much smaller harm than wrong data. A calendar a day behind is
 mildly annoying; a calendar confidently showing the wrong day is the thing that
@@ -191,14 +231,23 @@ makes someone stop using it.
 
 ### Layer 5 — State
 
-`data/events.json` is the state. Two properties it needs and does not have:
+`data/events.json` is the state, plus `src/utils/storage.py`, which owns how it
+is read, ordered, written, and diffed. Two properties it now has and did not:
 
-**Stable identity.** Every scrape assigns fresh `uuid4()` to every event.
-Measured across two consecutive daily runs: **269 of ~2,260 IDs survived — 88%
-of events got a new ID for no reason.** The 269 survivors are only the preserved
-sources that are copied verbatim rather than re-finalized.
+**Stable identity.** `event_identity()` hashes `source_name | source_url |
+start_datetime | normalized title`; `Event.from_create()` is the only supported
+way to mint one. Zero collisions across all 2,974 events.
 
-The damage radiates:
+The basis deliberately excludes venue, description, image, and category. Those
+are all fields we expect to get *better* at extracting, and folding them in would
+rotate every id the next time a scraper improved. A rescheduled event does get a
+new id, which is correct — it is a different occurrence, and the diff reads as
+one removal plus one addition.
+
+Before this, every scrape assigned a fresh `uuid4()`. Measured across two
+consecutive daily runs: **269 of ~2,260 ids survived — 88% churn for no reason.**
+The 269 survivors were only the preserved sources, copied verbatim rather than
+re-finalized. The damage radiated:
 
 - `/analytics/interactions` and `score_events()` join 30 days of clicks on
   `event_id`. Almost none of that history joins. The popularity signal that
@@ -212,15 +261,14 @@ The damage radiates:
 - `.git` is **136 MB** against an 18 MB working tree, because a 4 MB JSON blob is
   rewritten daily.
 
-The fix is content-derived identity: hash `source_name | source_url |
-start_datetime | normalized title`. Same event next run, same ID. A rescheduled
-event gets a new ID, which is correct — it is a different occurrence, and the
-diff shows one removal and one addition, which reads clearly.
+**Deterministic order.** `sort_events()` orders by `(start_datetime, id)` on
+every write. Combined with stable ids, the daily diff is a real changelog: a
+simulated nightly run produces **+1 −2 ~1 with 2,971 unchanged**, against ~9,000
+lines of churn before. `git log -S<id>` now answers "when did this event's time
+change?", which was previously unanswerable.
 
-**Deterministic order.** Sort by `(start_datetime, id)` on write. Combined with
-stable IDs, the daily diff becomes a real changelog: added events, removed
-events, changed fields, and nothing else. `git log -S<id>` then answers "when
-did this event's time change?" — a question that is currently unanswerable.
+The migration rotated every id once, orphaning about 30 days of interaction
+history. That was expected and accepted.
 
 ### Layer 6 — Surface
 
@@ -236,19 +284,22 @@ which is what typed numbers do.
 
 Every way this system has broken or can break, and whether anything would notice.
 
-| # | Failure | Volume signal | Detected today | Caught by |
+| # | Failure | Volume signal | Detected | By what |
 |---|---|---|---|---|
-| 1 | Silent partial collapse — a source loses a subset | drops, not to zero | weakly (5-run window absorbs it) | drift: date span, event count |
-| 2 | Date fabrication — clock substituted for missing date | flat or **up** | **yes, as of 2026-08-31** | invariant: sub-minute precision, timestamp pileup |
-| 3 | Field collapse — descriptions become boilerplate, titles become nav text | flat | no | drift: distinct-value ratios |
-| 4 | Timezone drift — mixed aware/naive | flat | **yes, as of 2026-08-31** | invariant: naive Eastern, enforced in the model |
-| 5 | Duplicate explosion — each event emitted N times | up | no | drift: dedup-removal ratio |
-| 6 | Total source death — zero events | zero | yes | health monitor |
-| 7 | Staleness — source stops publishing, old events persist via preservation | flat | partly | drift: max start date not advancing |
-| 8 | Semantic drift — selectors still match but mean something else | flat | no | golden fixtures + periodic re-fetch |
+| 1 | Silent partial collapse — a source loses a subset | drops, not to zero | ✅ | drift: `events`, `date_span_days` vs. 30-run baseline |
+| 2 | Date fabrication — clock substituted for missing date | flat or **up** | ✅ | invariant: sub-minute precision, timestamp pileup |
+| 3 | Field collapse — descriptions become boilerplate, titles become nav chrome | flat | ✅ | invariant: `nav_title`; drift: distinct-value ratios |
+| 4 | Timezone drift — mixed aware/naive | flat | ✅ | invariant, plus the model validator that makes it unrepresentable |
+| 5 | Duplicate explosion — each event emitted N times | up | ✅ | drift: `events` up, `distinct_titles_ratio` down |
+| 6 | Total source death — zero events | zero | ✅ | drift: source returned nothing / disappeared |
+| 7 | Staleness — source stops publishing, old events persist | flat | ✅ | drift: `latest_start` moving backwards |
+| 8 | Semantic drift — selectors match but mean something else | flat | ◐ | fixtures catch structural change; a scheduled live check catches the rest |
 
-**Six of eight are invisible to volume monitoring.** Two were closed on
-2026-08-31. The rest are ROADMAP items 2 and 3.
+**Six of eight are invisible to volume monitoring** — which is why the health
+monitor scored the Sept 14 run as healthy, and why the contract layer measures
+shape instead. Seven are now detected outright; semantic drift (8) is partly
+covered, because "the selector still matches but means something else" is only
+fully answerable by comparing against a known-good snapshot.
 
 ## 5. Data lifecycle
 
@@ -285,7 +336,8 @@ Every way this system has broken or can break, and whether anything would notice
   Railway → API → Vercel → readers ────────────────────────► layer 6
 ```
 
-The gate is the only new box, and it is the one that would have stopped Sept 14.
+Every box exists. The gate is the one that would have stopped Sept 14 — verified
+against the real failure, which it blocks on invariants alone.
 
 ## 6. Design principles
 
@@ -332,19 +384,30 @@ happened to the docs this system already had.
 
 ## 7. Known deviations
 
-This document describes the target. Here is where the code differs today, so
-that reading it does not mislead. Each links to its ROADMAP item.
+This section exists so that reading the document does not mislead: it records
+where the code differs from the design above. It is short now, and each row is a
+deliberate choice rather than an oversight.
 
-| Layer | Deviation | Item |
+| Layer | Deviation | Why |
 |---|---|---|
-| 0 | Source registry duplicated in `scrape.py` and `ci_monitor.py`; 4 scrapers unmonitored | 1 |
-| 2 | Invariants exist; fingerprints and drift checks do not | 2 |
-| 3 | Run records are 5 runs of bare counts | 5 |
-| 4 | No gate — CI commits and pushes unconditionally | 3 |
-| 5 | IDs regenerate every run; file order is nondeterministic | 4 |
-| 6 | Some published numbers are hand-typed | 8 |
-| — | No `cal` CLI; diagnosis and repair are ad-hoc scripts | 6 |
-| — | `pytest` is documented but absent from `requirements.txt` | 9 |
+| 4 | Drift errors report but do not block (`GATE_DRIFT=report`) | Invariants block from day one; drift needs a few weeks of observed alert volume before it can be trusted to stop a deploy. Flip in `.github/workflows/scrape-events.yml`. |
+| 1 | 18 of 42 sources contribute zero events | Diagnosed, not fixed — three different causes, see [ROADMAP § What `doctor` found](ROADMAP.md#what-doctor-found). Now visible via `cal doctor` and `cal sources` rather than silent. |
+| 5 | Editor's Picks keys on `title + source_name`, not id | It was a workaround for unstable ids and could now use identity, but it works, and changing it risks dropping live picks for no user-visible gain. |
+| 6 | `src/api/main.py` is excluded from lint | Pre-existing findings unrelated to this work; cleaning it is not worth bundling into a structural change. |
 
-If you change the code so that a row here is no longer true, delete the row.
-A stale deviation list is the same failure as a stale README.
+If you change the code so that a row here is no longer true, delete the row. A
+stale deviation list is the same failure as a stale README.
+
+## 8. Where each layer lives
+
+| Layer | Code | Data | CLI |
+|---|---|---|---|
+| 0 Sources | `src/sources.py` | — | `cal sources` |
+| 1 Scrapers | `src/scrapers/` | `tests/fixtures/` | `cal scrape <source>` |
+| 2 Contract | `src/quality/invariants.py`, `src/quality/fingerprint.py` | `data/fingerprints.json` | `cal check` |
+| 3 Run | `src/quality/run_record.py` | `data/runs/` | `cal runs`, `cal run <id>` |
+| 4 Gate | `src/quality/gate.py` | `data/quarantine/` | — (runs inside `scrape.py`) |
+| 5 State | `src/utils/storage.py`, `src/models/event.py` | `data/events.json` | `cal diff`, `cal repair` |
+| 6 Surface | `src/api/` | — | `cal doctor --live` |
+
+`cal doctor` spans all of them, which is why it is the first thing to run.

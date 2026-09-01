@@ -1,63 +1,19 @@
 """Main scraping orchestrator"""
 import json
+import sys
 import logging
 import os
-import uuid
 from datetime import datetime
 from typing import List
 
-# Sources that don't work in CI (blocked by cloud IP detection)
-# These should be run locally and their events will be preserved in CI runs
-CI_SKIP_SOURCES = [
-    "Harvard Book Store",
-    "Boston Swing Central",
-    "Aeronaut Brewing",
-    "Somerville Theatre",  # SSL handshake failure in CI
-]
-
-from src.scrapers.cambridge_gov import CambridgeGovScraper
-from src.scrapers.lilypad import LilyPadScraper
-from src.scrapers.mideast import MideastClubScraper
-from src.scrapers.lamplighter import LamplighterScraper
-from src.scrapers.portico import PorticoScraper
-from src.scrapers.harvard import HarvardBookStoreScraper
-from src.scrapers.porter import PorterSquareBooksScraper
-from src.scrapers.armory import ArtsAtTheArmoryScraper
-from src.scrapers.hrdc import HRDCScraper
-from src.scrapers.boston_swing import BostonSwingCentralScraper
-from src.scrapers.comedy_studio import ComedyStudioScraper
-from src.scrapers.dance_complex import DanceComplexScraper
-from src.scrapers.bostonshows import BostonShowsScraper
-from src.scrapers.central_square import CentralSquareTheaterScraper
-from src.scrapers.theatre_at_first import TheatreAtFirstScraper
-from src.scrapers.aeronaut import AeronautScraper
-from src.scrapers.first_parish import FirstParishScraper
-from src.scrapers.harvard_art_museums import HarvardArtMuseumsScraper
-from src.scrapers.brattle import BrattleTheaterScraper
-from src.scrapers.sanders_theatre import SandersTheatreScraper
-from src.scrapers.art import AmericanRepertoryTheaterScraper
-from src.scrapers.somerville_theatre import SomervilleTheatreScraper
-from src.scrapers.grolier import GrolierPoetryBookshopScraper
-from src.scrapers.multicultural_arts import MulticulturalArtsCenterScraper
-from src.scrapers.harvard_square import HarvardSquareScraper
-from src.scrapers.rockwell import RockwellScraper
-from src.scrapers.mad_monkfish import MadMonkfishScraper
-from src.scrapers.mount_auburn import MountAuburnScraper
-from src.scrapers.longy import LongyScraper
-from src.scrapers.mit_calendar import MITCalendarScraper
-from src.scrapers.mit_music_theater import MITMusicTheaterScraper
-from src.scrapers.memorial_church import MemorialChurchScraper
-from src.scrapers.cambridge_library import CambridgeLibraryScraper
-from src.scrapers.openspace_mit import OpenSpaceMITScraper
-from src.scrapers.skip_small_talk import SkipSmallTalkScraper
-from src.scrapers.harvard_athletics import HarvardAthleticsScraper
-from src.scrapers.museum_of_science import MuseumOfScienceScraper
-from src.scrapers.the_sinclair import TheSinclairScraper
-from src.scrapers.regent_theatre import RegentTheatreScraper
-from src.scrapers.harvard_gsd import HarvardGSDScraper
+from src.sources import SOURCES, in_run_order, skipped_in_ci, preserved_always
 from src.models.event import EventCreate, Event
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
+from src.utils.storage import sort_events, load_events as load_stored_events, diff_events
+from src.quality import gate as gate_module
+from src.quality.fingerprint import record as record_fingerprints
+from src.quality.run_record import RunRecord, ScraperResult
 
 # Configure logging
 logging.basicConfig(
@@ -85,10 +41,14 @@ class ScraperOrchestrator:
         self.scrapers.append(scraper)
         logger.info(f"Registered scraper: {scraper.source_name}")
 
-    def run_all(self, skipped_sources: List[str] = None) -> List[Event]:
-        """Run all registered scrapers and process results"""
+    def run_all(self, skipped_sources: List[str] = None, *,
+                run: "RunRecord" = None, force: bool = False) -> List[Event]:
+        """Run all registered scrapers, then decide whether the result may ship."""
         import gc
+        import time
 
+        run = run or RunRecord.start()
+        self.run = run
         all_events = []
 
         logger.info(f"Starting scrape of {len(self.scrapers)} sources")
@@ -96,26 +56,36 @@ class ScraperOrchestrator:
             logger.info(f"Skipped sources (will preserve existing events): {skipped_sources}")
 
         for scraper in self.scrapers:
+            started = time.monotonic()
             try:
                 events = scraper.run()
                 logger.info(f"Scraped {len(events)} events from {scraper.source_name}")
                 all_events.extend(events)
+                run.add_scraper(ScraperResult(
+                    source=scraper.source_name, status="ok", returned=len(events),
+                    duration_s=round(time.monotonic() - started, 1)))
             except Exception as e:
                 logger.error(f"Scraper {scraper.source_name} failed: {str(e)}")
+                run.add_scraper(ScraperResult(
+                    source=scraper.source_name, status="failed", returned=0,
+                    duration_s=round(time.monotonic() - started, 1), error=str(e)[:300]))
             finally:
                 # Force garbage collection between scrapers to free memory
                 # This is especially important for Selenium scrapers in CI
                 gc.collect()
 
         logger.info(f"Total events scraped: {len(all_events)}")
+        run.counts["scraped"] = len(all_events)
 
         # Validate and clean events
         validated_events = self.validate_events(all_events)
         logger.info(f"Events after validation: {len(validated_events)}")
+        run.counts["validated"] = len(validated_events)
 
         # Deduplicate events
         deduplicated_events = self.deduplicator.deduplicate_events(validated_events)
         logger.info(f"Events after deduplication: {len(deduplicated_events)}")
+        run.counts["deduplicated"] = len(deduplicated_events)
 
         # Run enrichment agent (non-fatal)
         try:
@@ -135,11 +105,39 @@ class ScraperOrchestrator:
         except Exception as e:
             logger.warning(f"Enrichment agent failed (non-fatal): {e}")
 
-        # Convert to full Event objects with IDs
+        # Convert to full Event objects with stable IDs
         final_events = self.finalize_events(deduplicated_events)
 
-        # Save to file (preserving events from skipped sources)
-        self.save_events(final_events, skipped_sources)
+        # The publish set is what the gate judges and what would land on disk:
+        # this run's events plus the ones we always preserve.
+        publish_set = self.build_publish_set(final_events, skipped_sources)
+        run.counts["final"] = len(publish_set)
+
+        before = load_stored_events()
+        run.diff = {k: (len(v) if isinstance(v, list) else v)
+                    for k, v in diff_events(before, publish_set).items()}
+
+        decision = gate_module.evaluate(publish_set, previous=before, force=force)
+        run.gate = decision.to_dict()
+        run.fingerprints = {k: v.to_dict() for k, v in decision.fingerprints.items()}
+        logger.info(decision.report())
+
+        if decision.blocking:
+            path = gate_module.quarantine(publish_set, decision, run.run_id)
+            logger.error(f"GATE BLOCKED this run - data/events.json left unchanged. "
+                         f"Quarantined at {path}")
+            run.finish()
+            run.save()
+            self.decision = decision
+            return final_events
+
+        self.write_publish_set(publish_set)
+        # Only a run that shipped may define "normal". Recording a bad run is
+        # exactly how a slow degradation becomes the baseline.
+        record_fingerprints(decision.fingerprints, run_id=run.run_id)
+        run.finish()
+        run.save()
+        self.decision = decision
 
         return final_events
 
@@ -158,64 +156,48 @@ class ScraperOrchestrator:
                 validated.append(event)
             else:
                 logger.warning(f"Rejected event '{event.title}': {error}")
+                if getattr(self, "run", None) is not None:
+                    self.run.rejected[error] = self.run.rejected.get(error, 0) + 1
 
         return validated
 
     def finalize_events(self, events: List[EventCreate]) -> List[Event]:
-        """Convert EventCreate to Event with IDs"""
-        final_events = []
+        """Convert EventCreate to Event with stable, content-derived IDs."""
+        return [Event.from_create(e) for e in events]
 
-        for event_create in events:
-            # Generate unique ID
-            event_id = str(uuid.uuid4())
+    def build_publish_set(self, events: List[Event],
+                          skipped_sources: List[str] = None) -> List[dict]:
+        """This run's events plus the ones that must survive it.
 
-            # Convert to Event model
-            event = Event(
-                id=event_id,
-                **event_create.model_dump()
-            )
-            final_events.append(event)
+        Built before writing anything, so the gate judges exactly what would
+        land on disk rather than a subset of it.
+        """
+        # Preserve CI-blocked sources plus anything the registry says the
+        # scrape pipeline does not produce (e.g. user submissions).
+        sources_to_preserve = set(skipped_sources or []) | set(preserved_always())
 
-        return final_events
+        preserved_events = [
+            e for e in load_stored_events()
+            if e.get('source_name') in sources_to_preserve
+        ]
+        if preserved_events:
+            user_submitted = len([e for e in preserved_events
+                                  if e.get('source_name') == 'User Submitted'])
+            logger.info(f"Preserving {len(preserved_events)} events "
+                        f"({user_submitted} user-submitted, "
+                        f"{len(preserved_events) - user_submitted} from skipped sources)")
 
-    def save_events(self, events: List[Event], skipped_sources: List[str] = None):
-        """Save events to JSON file, preserving events from skipped sources and user-submitted events"""
-        output_file = "data/events.json"
-
-        # Create data directory if it doesn't exist
-        os.makedirs("data", exist_ok=True)
-
-        # Always preserve user-submitted events and events from skipped sources
-        preserved_events = []
-        user_submitted_events = []
-        sources_to_preserve = set(skipped_sources or [])
-        sources_to_preserve.add("User Submitted")  # Always preserve user-submitted events
-
-        if os.path.exists(output_file):
-            try:
-                with open(output_file, 'r') as f:
-                    existing_events = json.load(f)
-                # Keep events from sources we want to preserve
-                preserved_events = [
-                    e for e in existing_events
-                    if e.get('source_name') in sources_to_preserve
-                ]
-                user_submitted_count = len([e for e in preserved_events if e.get('source_name') == 'User Submitted'])
-                other_preserved_count = len(preserved_events) - user_submitted_count
-                logger.info(f"Preserved {len(preserved_events)} events ({user_submitted_count} user-submitted, {other_preserved_count} from skipped sources)")
-            except Exception as e:
-                logger.warning(f"Could not load existing events: {e}")
-
-        # Convert new events to dict for JSON serialization
         events_dict = [event.model_dump(mode='json') for event in events]
+        # Deterministic order: stable ids plus a stable order make the daily git
+        # diff a readable changelog instead of a full-file rewrite.
+        return sort_events(events_dict + preserved_events)
 
-        # Combine new events with preserved events
-        all_events = events_dict + preserved_events
-
-        with open(output_file, 'w') as f:
-            json.dump(all_events, f, indent=2, default=str)
-
-        logger.info(f"Saved {len(all_events)} events to {output_file} ({len(events)} new, {len(preserved_events)} preserved)")
+    def write_publish_set(self, publish_set: List[dict]):
+        """Write the approved set to data/events.json."""
+        os.makedirs("data", exist_ok=True)
+        with open("data/events.json", 'w') as f:
+            json.dump(publish_set, f, indent=2, default=str)
+        logger.info(f"Saved {len(publish_set)} events to data/events.json")
 
 
 def prune_orphaned_featured(featured_file: str = "data/featured.json",
@@ -272,70 +254,43 @@ def main():
 
     # Check if running in CI environment
     is_ci = os.environ.get('CI', '').lower() == 'true' or os.environ.get('GITHUB_ACTIONS', '').lower() == 'true'
-    skipped_sources = CI_SKIP_SOURCES if is_ci else []
+    skipped_sources = skipped_in_ci() if is_ci else []
 
     if is_ci:
         logger.info(f"Running in CI - will skip and preserve events from: {skipped_sources}")
 
+    force = "--force" in sys.argv
+    run = RunRecord.start(is_ci=is_ci)
+    logger.info(f"Run {run.run_id} (gate mode: {gate_module.resolve_mode(force=force)})")
+
     orchestrator = ScraperOrchestrator()
 
-    # Register scrapers - non-Selenium scrapers first to reduce memory pressure
-    # Non-Selenium scrapers (use requests)
-    orchestrator.register_scraper(LamplighterScraper())
-    if not is_ci:
-        orchestrator.register_scraper(HarvardBookStoreScraper())
-        orchestrator.register_scraper(BostonSwingCentralScraper())
-    orchestrator.register_scraper(ComedyStudioScraper())
-    orchestrator.register_scraper(DanceComplexScraper())
-    orchestrator.register_scraper(BostonShowsScraper())
-    orchestrator.register_scraper(TheatreAtFirstScraper())
-    orchestrator.register_scraper(FirstParishScraper())
-    orchestrator.register_scraper(HarvardArtMuseumsScraper())
-    orchestrator.register_scraper(BrattleTheaterScraper())
-    orchestrator.register_scraper(GrolierPoetryBookshopScraper())
-    orchestrator.register_scraper(MulticulturalArtsCenterScraper())
-    orchestrator.register_scraper(RockwellScraper())
-    orchestrator.register_scraper(MadMonkfishScraper())
-    orchestrator.register_scraper(MountAuburnScraper())
-    orchestrator.register_scraper(HarvardAthleticsScraper())
-    orchestrator.register_scraper(HarvardGSDScraper())
-    orchestrator.register_scraper(TheSinclairScraper())
-    orchestrator.register_scraper(CambridgeGovScraper())
-
-    # Selenium/Playwright scrapers (run after non-Selenium to reduce browser restarts)
-    orchestrator.register_scraper(LilyPadScraper())
-    orchestrator.register_scraper(MideastClubScraper())
-    orchestrator.register_scraper(PorticoScraper())
-    orchestrator.register_scraper(PorterSquareBooksScraper())
-    orchestrator.register_scraper(ArtsAtTheArmoryScraper())
-    orchestrator.register_scraper(HRDCScraper())
-    orchestrator.register_scraper(CentralSquareTheaterScraper())
-    orchestrator.register_scraper(SandersTheatreScraper())
-    orchestrator.register_scraper(AmericanRepertoryTheaterScraper())
-    if not is_ci:
-        orchestrator.register_scraper(AeronautScraper())
-        orchestrator.register_scraper(SomervilleTheatreScraper())
-
-    # Playwright scrapers
-    orchestrator.register_scraper(MuseumOfScienceScraper())
-    orchestrator.register_scraper(RegentTheatreScraper())
-    orchestrator.register_scraper(LongyScraper())
-    orchestrator.register_scraper(MITCalendarScraper())
-    orchestrator.register_scraper(MITMusicTheaterScraper())
-    orchestrator.register_scraper(MemorialChurchScraper())
-    orchestrator.register_scraper(CambridgeLibraryScraper())
-    orchestrator.register_scraper(OpenSpaceMITScraper())
-    orchestrator.register_scraper(SkipSmallTalkScraper())
-
-    # Aggregator scrapers (run last so original sources take priority in deduplication)
-    orchestrator.register_scraper(HarvardSquareScraper())
+    # Register everything the registry lists, cheapest transport first.
+    # src/sources.py is the only place a source is described.
+    for source in in_run_order(is_ci=is_ci):
+        try:
+            orchestrator.register_scraper(source.load())
+        except Exception as e:
+            logger.error(f"Could not load scraper for {source.name}: {e}")
 
     # Run all scrapers
-    events = orchestrator.run_all(skipped_sources=skipped_sources)
+    events = orchestrator.run_all(skipped_sources=skipped_sources, run=run, force=force)
 
     logger.info("=" * 80)
     logger.info(f"SCRAPING COMPLETE - {len(events)} events collected")
     logger.info("=" * 80)
+
+    decision = getattr(orchestrator, "decision", None)
+    if decision is not None and decision.blocking:
+        # data/events.json was left untouched; readers keep yesterday's data,
+        # which is a far smaller harm than shipping something wrong.
+        print("\n" + decision.report())
+        print(f"\n✗ Gate BLOCKED run {run.run_id} - data/events.json unchanged")
+        print(f"  Quarantined:  data/quarantine/{run.run_id}/")
+        print(f"  Run record:   data/runs/{run.run_id}.json")
+        print("  Override with: python scrape.py --force")
+        _open_gate_issue(run, decision)
+        return 1
 
     # Keep Editor's Picks free of orphaned/past entries (non-fatal)
     try:
@@ -364,16 +319,46 @@ def main():
     try:
         from generate_html import generate_events_html
         generate_events_html()
-        logger.info("Generated HTML view at events.html")
+        logger.info("Generated HTML view at data/events.html")
     except Exception as e:
         logger.error(f"Failed to generate HTML: {str(e)}")
 
     # Print summary
     print(f"\n✓ Successfully scraped {len(events)} events")
     print(f"✓ Data saved to data/events.json")
-    print(f"✓ HTML view generated at events.html")
+    print(f"✓ HTML view generated at data/events.html")
     print(f"✓ Logs saved to logs/scraper.log")
+    print(f"✓ Run record at data/runs/{run.run_id}.json")
+    return 0
+
+
+def _open_gate_issue(run, decision):
+    """Tell someone. A gate that blocks silently is just an outage."""
+    try:
+        from src.agents.base_agent import BaseAgent
+
+        class _Notifier(BaseAgent):
+            def execute(self):
+                return {"status": "ok"}
+
+        body = "\n".join([
+            "The nightly scrape was blocked before publishing. "
+            "`data/events.json` is unchanged, so the site is serving the last good data.",
+            "",
+            "```",
+            decision.report(),
+            "```",
+            "",
+            f"- Run record: `data/runs/{run.run_id}.json`",
+            f"- Quarantined output: `data/quarantine/{run.run_id}/`",
+            "- Diagnose: `python -m src.cli doctor` and `python -m src.cli run " + run.run_id + "`",
+            "- Override once the data is confirmed good: re-run with `--force`",
+        ])
+        _Notifier("gate").create_github_issue(
+            f"Gate blocked scrape {run.run_id}", body)
+    except Exception as e:
+        logger.warning(f"Could not open gate issue (non-fatal): {e}")
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)

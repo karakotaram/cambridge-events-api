@@ -1,12 +1,29 @@
 name: Scrape Cambridge Events
 
+# The daily refresh. Unlike the version this replaces, it does not commit
+# unconditionally: scrape.py runs the gate (src/quality/gate.py) and exits
+# non-zero if the result fails the contract, in which case data/events.json is
+# left untouched and the bad run is quarantined for diagnosis.
+#
+# Readers keeping yesterday's data is a much smaller harm than readers getting
+# today's wrong data. See docs/ARCHITECTURE.md "Layer 4 — Gate".
+
 on:
   schedule:
-    # Run daily at 6 AM UTC (2 AM EST / 1 AM EDT)
+    # Daily at 6 AM UTC (2 AM EST / 1 AM EDT)
     - cron: '0 6 * * *'
 
-  # Allow manual triggering from GitHub UI
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Publish even if the gate fails (use when a large change is known-good)'
+        type: boolean
+        default: false
+      drift_mode:
+        description: 'Whether source-relative drift may block publishing'
+        type: choice
+        options: [report, enforce]
+        default: report
 
 jobs:
   scrape:
@@ -36,14 +53,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install Playwright browsers
+        # Nine registered scrapers are Playwright-driven. Without this step they
+        # fail in CI while working locally, which is exactly the kind of silent
+        # partial coverage the run record now makes visible.
+        run: python -m playwright install --with-deps chromium
+
       - name: Run scraper
+        id: scrape
         run: |
-          mkdir -p logs data data/agent_reports
-          python3 scrape.py
-          echo "Scraper completed successfully"
+          mkdir -p logs data data/agent_reports data/runs
+          python3 scrape.py ${{ inputs.force && '--force' || '' }}
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Invariants always block. Drift reports until explicitly enforced —
+          # see the DRIFT_ENV comment in src/quality/gate.py.
+          GATE_DRIFT: ${{ inputs.drift_mode || 'report' }}
+
+      # Everything below runs only when the gate passed, because a failing
+      # scrape.py exits non-zero and stops the job here.
 
       - name: Check for changes
         id: git-check
@@ -55,10 +84,24 @@ jobs:
         run: |
           git config --global user.name 'GitHub Actions Bot'
           git config --global user.email 'actions@github.com'
-          git add data/events.json data/featured.json data/scraper_health.json data/agent_reports/
+          git add data/events.json data/featured.json data/scraper_health.json \
+                  data/fingerprints.json data/runs/ data/agent_reports/
           git commit -m "Auto-update events - $(date +'%Y-%m-%d %H:%M UTC')"
           git push
 
       - name: No changes detected
         if: steps.git-check.outputs.changed != 'true'
         run: echo "No new events found, skipping commit"
+
+      # Runs even when the gate blocked, so the evidence survives the job.
+      - name: Preserve run record and quarantine
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrape-run-${{ github.run_id }}
+          path: |
+            data/runs/
+            data/quarantine/
+            logs/scraper.log
+          retention-days: 30
+          if-no-files-found: ignore
