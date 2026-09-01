@@ -2,6 +2,12 @@
 
 Automated monitoring, quality improvement, and venue discovery agents for the Cambridge Event Scraper.
 
+These agents are layer 3 of the system described in
+[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md). Read
+[§4 Failure taxonomy](../../docs/ARCHITECTURE.md#4-failure-taxonomy) before
+relying on them: **they detect two of the eight ways this system breaks.** The
+known gaps are [ROADMAP items 1-3](../../docs/ROADMAP.md).
+
 ## Agents
 
 | # | Agent | Purpose | LLM Required | CLI |
@@ -29,6 +35,9 @@ Agents run automatically in the scrape pipeline (`scrape.py`):
 2. **After scrape completes**: Health Monitor records event counts; CI Monitor checks source freshness
 
 Both are wrapped in try/except — agent failures never block the scrape pipeline.
+
+Both also run **after** `data/events.json` is written, so neither can stop a bad
+run from shipping. That gate is [ROADMAP item 3](../../docs/ROADMAP.md#3--the-gate).
 
 ## API Endpoint
 
@@ -68,9 +77,35 @@ python -m src.agents.scraper_generator --url "https://example.com/events" --venu
 5. Use `self.save_report(data, filename)` to save output
 6. Use `self.create_github_issue(title, body)` for alerts (auto-dedupes by title prefix)
 
+## Known limitations
+
+Measured, not hypothetical. Each is on the [roadmap](../../docs/ROADMAP.md).
+
+**Health Monitor watches volume, which is the signal that moves least during a
+real failure.** On 2026-08-31 the Cambridge.gov scraper shipped 117 events
+stamped with a clock reading; the monitor saw 359 events against a 250.6 recent
+average — 143% of normal — and reported the run as healthy. Four other metrics on the same data — date
+span, max events per day, max events per *timestamp*, distinct start times —
+were all screaming. See
+[ARCHITECTURE §2](../../docs/ARCHITECTURE.md#the-failure-that-defines-the-design).
+
+**The rolling window is 5 runs (`MAX_HISTORY`).** A source that degrades over
+several days has its broken state absorbed into the baseline before anything
+alerts. Cambridge.gov did exactly that.
+
+**`REGISTERED_SOURCES` in `ci_monitor.py` has drifted from `scrape.py`.** Four
+scrapers run daily with no freshness monitoring at all — Harvard GSD, Museum of
+Science, Regent Theatre, The Sinclair — and two monitored entries are not
+registered. Two hand-maintained lists of one fact; the fix is deleting one of
+them ([ROADMAP item 1](../../docs/ROADMAP.md#1--one-source-registry)).
+
 ## Design Principles
 
 - **Non-fatal**: Agent failures are wrapped in try/except, never block the scrape pipeline
 - **Graceful degradation**: Missing API keys skip LLM steps, return partial results
 - **GitHub issue dedup**: Checks for existing open issues before creating new ones
 - **Consistent reporting**: Every `execute()` returns a dict with `status` key
+
+Graceful degradation has a cost worth naming: degrading *silently* is how a
+broken run passes every check it has. Treat "the step was skipped" as a finding,
+not a non-event.

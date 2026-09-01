@@ -52,3 +52,6 @@ output/
 
 # Test files in /tmp
 /tmp/
+
+# Test cache
+.pytest_cache/

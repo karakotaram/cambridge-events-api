@@ -1,3 +1,12 @@
+> **Archived — superseded.** Folded into [../OPERATIONS.md](../OPERATIONS.md),
+> which covers deploy, verify, roll back, and repair against the system as it
+> runs today.
+>
+> Known-wrong: the endpoint list, the category list, and the CORS allowlist
+> (production now uses `allow_origins=["*"]`).
+
+---
+
 # API Deployment Guide
 
 Your Cambridge Events API is ready to deploy! Here's how to get it online so your Lovable website can access it.

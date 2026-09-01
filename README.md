@@ -1,228 +1,102 @@
-# Cambridge-Somerville Event Scraper
+# Cambridge Calendar
 
-A specialized web scraping system that automatically collects event data from Cambridge and Somerville municipal websites, community organizations, and local venues to populate a centralized events database.
+Event aggregation for Cambridge and Somerville, Massachusetts. Forty scrapers
+collect listings from municipal calendars, libraries, theaters, music venues, and
+community organizations into one dataset, served by a FastAPI backend to a public
+calendar at **[cambridgecalendar.com](https://cambridgecalendar.com)**.
 
-## Features
+This repository is the scrapers, the data, and the API. The frontend lives in
+[`cambridge-event-compass`](https://github.com/karakotaram/cambridge-event-compass).
 
-✓ **Multi-Source Scraping** - Collect events from multiple Cambridge-Somerville sources
-✓ **Custom Scrapers** - High-priority sources get custom scrapers for accuracy
-✓ **Data Validation** - Automatic quality checking and cleaning
-✓ **Duplicate Detection** - Intelligent deduplication across sources
-✓ **REST API** - FastAPI endpoints for easy data access
-✓ **Structured Data** - Standardized event schema with rich metadata
+---
 
-## Quick Start
-
-### Installation
+## Quick start
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+python3.12 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+
+.venv/bin/python -m uvicorn src.api.main:app --port 8000   # API on :8000, docs at /docs
+.venv/bin/python scrape.py                                  # full scrape (~20 min, needs Chrome)
+.venv/bin/python -m pytest tests/ -q                        # tests
 ```
 
-### Run Scraper
+The public API is live at `https://web-production-00281.up.railway.app` and
+documented in **[docs/API.md](docs/API.md)**.
 
-```bash
-# Execute full scrape
-python scrape.py
-```
+## Documentation
 
-This will:
-1. Scrape events from all configured sources
-2. Validate and clean the data
-3. Remove duplicates
-4. Save results to `data/events.json`
-5. Log activity to `logs/scraper.log`
+| | |
+|---|---|
+| **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | How the system is built and why — the layers, the invariants, the failure taxonomy |
+| **[docs/OPERATIONS.md](docs/OPERATIONS.md)** | Runbooks: diagnose a bad date, repair a source, deploy, roll back |
+| **[docs/ROADMAP.md](docs/ROADMAP.md)** | What is being built next, and the evidence for each item |
+| **[docs/API.md](docs/API.md)** | Public API reference |
+| **[CLAUDE.md](CLAUDE.md)** | Entry point for coding agents |
+| **[src/agents/README.md](src/agents/README.md)** | The monitoring and quality agents |
 
-### Start API Server
+`docs/archive/` holds superseded documents, including the original PRD. They are
+kept for history; their numbers are stale.
 
-```bash
-# Run FastAPI server
-python -m src.api.main
-```
-
-The API will be available at `http://localhost:8000`
-
-API Documentation: `http://localhost:8000/docs`
-
-## API Endpoints
-
-### Get Events
-```bash
-GET /events
-```
-
-Query parameters:
-- `category` - Filter by event category
-- `city` - Filter by city
-- `start_date` - Filter events after this date
-- `end_date` - Filter events before this date
-- `limit` - Max results (default: 100)
-- `offset` - Skip N events (for pagination)
-
-Example:
-```bash
-curl "http://localhost:8000/events?category=music&city=Cambridge&limit=10"
-```
-
-### Search Events
-```bash
-GET /events/search?q=concert
-```
-
-### Get Event by ID
-```bash
-GET /events/{event_id}
-```
-
-### Get Statistics
-```bash
-GET /stats
-```
-
-### Get Categories
-```bash
-GET /categories
-```
-
-### Get Sources
-```bash
-GET /sources
-```
-
-## Project Structure
+## How it works
 
 ```
-cambridgescraper/
-├── src/
-│   ├── models/          # Data models (Event, ScraperConfig)
-│   │   └── event.py
-│   ├── scrapers/        # Scraping logic
-│   │   ├── base_scraper.py       # Base classes
-│   │   └── cambridge_gov.py      # Custom scrapers
-│   ├── api/             # REST API
-│   │   └── main.py
-│   └── utils/           # Utilities
-│       ├── validator.py          # Data validation
-│       └── deduplicator.py       # Duplicate detection
-├── data/                # Scraped data
-├── logs/                # Log files
-├── scrape.py           # Main scraper orchestrator
-└── requirements.txt     # Dependencies
+scrapers → validate → deduplicate → enrich → data/events.json
+                                                    ↓
+                                    Railway (API) → Vercel (frontend)
 ```
 
-## Data Schema
+A GitHub Action re-scrapes daily at 06:00 UTC and commits the result. Pushing to
+`main` deploys to production.
 
-Events follow this standardized schema:
+Each venue has a scraper in `src/scrapers/` extending `BaseScraper` and
+implementing `scrape_events() -> List[EventCreate]`. `scrape.py` orchestrates
+them. Events are validated against the invariants in `src/utils/validator.py`,
+deduplicated across sources, and written to `data/events.json`.
 
-```python
-{
-  "id": "uuid",
-  "title": "Event Name",
-  "description": "Event description...",
-  "start_datetime": "2024-03-15T19:00:00",
-  "end_datetime": "2024-03-15T21:00:00",
-  "venue_name": "Cambridge Public Library",
-  "street_address": "449 Broadway",
-  "city": "Cambridge",
-  "state": "MA",
-  "zip_code": "02138",
-  "category": "community",
-  "tags": ["family-friendly"],
-  "cost": "Free",
-  "source_url": "https://...",
-  "source_name": "City of Cambridge"
-}
-```
+## Contributing a scraper
 
-## Event Categories
-
-- `music` - Concerts, performances, live music
-- `arts and culture` - Art exhibits, galleries, cultural events
-- `food and drink` - Food festivals, dining events
-- `theater` - Plays, performances, drama
-- `lectures` - Talks, presentations, seminars
-- `sports` - Sports events, fitness activities
-- `community` - Community meetings, public events
-- `other` - Uncategorized events
-
-## Adding Custom Scrapers
-
-To add a custom scraper for a high-priority source:
-
-1. Create a new file in `src/scrapers/`
-2. Extend `BaseScraper` class
-3. Implement `scrape_events()` method
-4. Register in `scrape.py`
-
-Example:
+See [CLAUDE.md § Adding a new scraper](CLAUDE.md#adding-a-new-scraper) for the
+full checklist. The short version:
 
 ```python
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate
 
-class MyCustomScraper(BaseScraper):
+class MyVenueScraper(BaseScraper):
     def __init__(self):
         super().__init__(
-            source_name="My Source",
+            source_name="My Venue",
             source_url="https://example.com/events",
-            use_selenium=False  # Set to True if JS rendering needed
+            use_selenium=False,   # prefer False; plain requests is faster and more reliable
         )
 
-    def scrape_events(self) -> List[EventCreate]:
-        html = self.fetch_html(self.source_url)
-        soup = self.parse_html(html)
-
-        # Your custom extraction logic here
+    def scrape_events(self) -> list[EventCreate]:
+        soup = self.parse_html(self.fetch_html(self.source_url))
         events = []
-        # ... extract events ...
-
+        for row in soup.select(".event"):
+            start = parse_the_date(row)
+            if start is None:
+                continue          # skip, never guess — a wrong date is worse than a missing event
+            events.append(EventCreate(...))
         return events
 ```
 
-## Configuration
+Then register it in `scrape.py` **and** `src/agents/ci_monitor.py`, and add a
+test backed by a saved HTML fixture rather than a live fetch.
 
-### Logging
+## Event schema
 
-Logs are written to `logs/scraper.log` with configurable levels in `scrape.py`.
+`Event` in `src/models/event.py`. Required: `title`, `description`,
+`start_datetime`, `source_url`, `source_name`.
 
-### Data Storage
+Categories: `music`, `arts and culture`, `food and drink`, `theater`, `lectures`,
+`sports`, `community`, `other`.
 
-Events are saved to `data/events.json` after each scrape run.
-
-## Development
-
-### Run Tests
-
-```bash
-pytest tests/
-```
-
-### Code Quality
-
-```bash
-# Format code
-black src/
-
-# Lint
-flake8 src/
-```
-
-## Requirements
-
-See PRD document (`scraperPRD.md`) for full business and technical requirements.
-
-### Key Requirements
-
-- **Data Coverage**: Successfully scrape 95% of publicly available events
-- **Data Freshness**: Deliver new events within 4 hours of publication
-- **Content Quality**: Maintain 98% accuracy in extracted event details
-- **Source Reliability**: Achieve 99% uptime across critical scrapers
+**All datetimes are naive Eastern wall clock.** Every venue is in Greater Boston,
+so a published time is an Eastern time whether the source said so or not; the
+model enforces this. See [docs/ARCHITECTURE.md § Layer 2](docs/ARCHITECTURE.md#layer-2--contract).
 
 ## License
 
-Proprietary - Cambridge-Somerville Event Aggregation Project
-
-## Support
-
-For issues or questions, please contact the development team.
+Proprietary — Cambridge-Somerville Event Aggregation Project.

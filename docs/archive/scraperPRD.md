@@ -1,3 +1,12 @@
+> **Archived — historical.** The original product requirements document, written
+> before the system was built. Kept for intent and context; its requirements,
+> metrics, and phasing no longer describe the code.
+>
+> Current design: [../ARCHITECTURE.md](../ARCHITECTURE.md) ·
+> Current plan: [../ROADMAP.md](../ROADMAP.md)
+
+---
+
 # Custom Web Scrapers for Cambridge-Somerville Event Aggregation
 
 ### TL;DR

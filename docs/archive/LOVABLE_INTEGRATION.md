@@ -1,3 +1,12 @@
+> **Archived — superseded and stale.** Written when the frontend was a Lovable
+> app. Its API sections are replaced by [../API.md](../API.md); its chat-component
+> and PostHog sections belong to the frontend repo.
+>
+> Known-wrong: it claims "668 total events" (actual: ~2,970) and lists categories
+> that do not exist in the schema.
+
+---
+
 # Lovable Website Integration Guide
 
 ## Your API URL
