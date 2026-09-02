@@ -15,11 +15,40 @@ logger = logging.getLogger(__name__)
 
 API_URL = "https://www.gsd.harvard.edu/wp-json/gsd/v1/events"
 
-# Alumni/off-site events not relevant to Cambridge
-EXCLUDED_SLUGS = {
-    "apa-detroit-gsd-alumni-reception-2026",
+# Events the GSD has told us are not open to the public. These are in Cambridge
+# and would otherwise look like ordinary listings, so they can only be excluded
+# by name — nothing in the feed marks them private.
+#
+# Requested by Daniela Morin (GSD Public Programs), 2026-09-02:
+#   comeback    GSD Comeback: Alumni & Friends Celebration, Sep 25-26
+#   _positions  _Positions, Sep 10 (note: the *named* _positions lectures, e.g.
+#               "_positions: Kengo Kuma", are separate events with their own
+#               slugs and are public — do not exclude by title prefix)
+NOT_PUBLIC_SLUGS = {
     "comeback",
+    "_positions",
 }
+
+# Kept for the earlier off-site exclusion; superseded by _is_local() below,
+# which reads the address instead of maintaining a list.
+EXCLUDED_SLUGS = NOT_PUBLIC_SLUGS | {
+    "apa-detroit-gsd-alumni-reception-2026",
+}
+
+# The GSD runs alumni events all over the world and publishes them on the same
+# page. An off-site listing spells out a full address ("SWA Group, 811 W 7th
+# Street, Floor 8, Los Angeles, CA, 90017"); a Cambridge one names only a room
+# ("Piper Auditorium"). Anything naming a place outside Massachusetts is not
+# ours to list — the scraper previously stamped city="Cambridge" on all of it,
+# putting a Los Angeles reception and a Toronto park tour on a Cambridge
+# calendar.
+NON_LOCAL = re.compile(
+    r",\s*(?:A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[DEINOST]|"
+    r"N[CDEHJMVY]|OH|OK|OR|P[AR]|RI|S[CD]|T[NX]|UT|V[AT]|W[AIVY])\b"
+    r"|\b(?:canada|united kingdom|london|toronto|vancouver|montreal|"
+    r"mexico|china|japan|india|germany|france|italy|spain|netherlands)\b",
+    re.I,
+)
 
 
 class HarvardGSDScraper(BaseScraper):
@@ -88,8 +117,23 @@ class HarvardGSDScraper(BaseScraper):
             return " ".join(paragraphs)[:2000]
         return ""
 
+    @staticmethod
+    def _is_local(location: str) -> bool:
+        """Is this address in the calendar's coverage area?
+
+        Massachusetts addresses and bare room names both count; anything naming
+        another state or country does not.
+        """
+        if not location:
+            return True                     # a bare room name is on campus
+        if re.search(r",\s*MA\b|\bmassachusetts\b", location, re.I):
+            return True
+        return not NON_LOCAL.search(location)
+
     def _parse_event(self, item: dict):
-        if item.get("slug", "") in EXCLUDED_SLUGS:
+        slug = item.get("slug", "")
+        if slug in EXCLUDED_SLUGS:
+            logger.info(f"Skipping '{slug}' - not open to the public")
             return None
 
         # Extract title, stripping HTML tags and decoding entities
@@ -130,6 +174,9 @@ class HarvardGSDScraper(BaseScraper):
 
         # Location
         location = (occ.get("location") or "").strip()
+        if not self._is_local(location):
+            logger.info(f"Skipping '{slug}' - off-site ({location})")
+            return None
         venue = f"Harvard GSD - {location}" if location else "Harvard GSD"
 
         # Build description from "About this Event" section
