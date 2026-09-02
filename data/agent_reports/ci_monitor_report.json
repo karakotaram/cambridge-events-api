@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-01T15:30:13.215445",
-  "total_events": 3976,
+  "timestamp": "2026-09-02T11:25:02.300273",
+  "total_events": 4008,
   "total_sources_registered": 39,
-  "total_sources_with_events": 38,
+  "total_sources_with_events": 39,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 19,
+      "event_count": 17,
       "days_since_scrape": 0
     },
     {
@@ -22,12 +22,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 406,
+      "event_count": 423,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1050,
+      "event_count": 1047,
       "days_since_scrape": 0
     },
     {
@@ -36,13 +36,18 @@
       "days_since_scrape": 0
     },
     {
+      "source": "First Parish in Cambridge",
+      "event_count": 1,
+      "days_since_scrape": 0
+    },
+    {
       "source": "Harvard Art Museums",
-      "event_count": 73,
+      "event_count": 74,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 82,
+      "event_count": 98,
       "days_since_scrape": 0
     },
     {
@@ -52,12 +57,12 @@
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 6,
+      "event_count": 8,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 49,
+      "event_count": 48,
       "days_since_scrape": 0
     },
     {
@@ -92,7 +97,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 1078,
+      "event_count": 1080,
       "days_since_scrape": 0
     },
     {
@@ -122,7 +127,7 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 156,
+      "event_count": 155,
       "days_since_scrape": 0
     },
     {
@@ -132,7 +137,7 @@
     },
     {
       "source": "Porter Square Books",
-      "event_count": 78,
+      "event_count": 79,
       "days_since_scrape": 0
     },
     {
@@ -162,7 +167,7 @@
     },
     {
       "source": "MIT Events",
-      "event_count": 20,
+      "event_count": 22,
       "days_since_scrape": 0
     },
     {
@@ -182,7 +187,7 @@
     },
     {
       "source": "Harvard Square",
-      "event_count": 265,
+      "event_count": 262,
       "days_since_scrape": 0
     },
     {
@@ -196,24 +201,18 @@
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 7,
-      "days_stale": 61,
+      "days_stale": 62,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 61 days ago (threshold: 14)"
+      "issue": "Last scraped 62 days ago (threshold: 14)"
     }
   ],
-  "missing": [
-    {
-      "source": "First Parish in Cambridge",
-      "ci": true,
-      "issue": "No events in data"
-    }
-  ],
+  "missing": [],
   "unregistered": [],
   "summary": {
-    "healthy": 37,
+    "healthy": 38,
     "stale": 1,
-    "missing": 1,
+    "missing": 0,
     "unregistered": 0
   }
 }
