@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-02T11:25:00.632794",
-  "total_events": 4008,
+  "timestamp": "2026-09-03T11:20:41.271772",
+  "total_events": 4067,
   "total_sources": 39,
   "history_runs": 6,
   "alerts": [
@@ -9,18 +9,18 @@
       "source": "Harvard Book Store",
       "severity": "CRITICAL",
       "current": 0,
-      "average": 28.0,
-      "message": "0 events (avg: 28) - scraper may be broken"
+      "average": 35.0,
+      "message": "0 events (avg: 35) - scraper may be broken"
     },
     {
       "source": "Skip the Small Talk",
       "severity": "WARNING",
-      "current": 31,
-      "average": 86.3,
-      "message": "31 events vs avg 86 (36%)"
+      "current": 30,
+      "average": 72.3,
+      "message": "30 events vs avg 72 (41%)"
     }
   ],
-  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM, class names, or element hierarchy was updated, so the selectors (XPath/CSS) used by the scraper no longer match any event nodes.  \n- **Dynamic content loading** \u2013 events are now rendered client\u2011side via JavaScript (e.g., React, AJAX) and the scraper is still fetching the raw HTML without executing the scripts.  \n- **Access restrictions** \u2013 the site added bot\u2011deterrent measures such as Cloudflare challenges, CAPTCHA, required headers, or IP\u2011rate\u2011limiting, causing the request to be blocked or return an empty/redirect page.  \n- **Data source moved or removed** \u2013 the endpoint or JSON feed that previously supplied the events was discontinued or relocated, so the scraper is hitting a page that no longer contains event data.",
+  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM (tags, classes, IDs, or layout) was updated, so the scraper\u2019s selectors no longer match any elements.  \n- **Content now loaded via JavaScript/AJAX** \u2013 the events list is rendered client\u2011side after the initial HTML response; a simple HTTP GET fetches an empty placeholder.  \n- **Anti\u2011scraping measures added** \u2013 new CAPTCHAs, bot\u2011detect headers, IP rate\u2011limits, or required cookies/session tokens cause the request to be blocked or return a \u201cno data\u201d page.  \n- **URL or query parameters changed** \u2013 the endpoint the scraper hits was renamed, moved, or now requires additional parameters (e.g., date range), resulting in an empty response.",
   "summary": {
     "critical": 1,
     "warning": 1,

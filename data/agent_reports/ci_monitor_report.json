@@ -1,19 +1,19 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-02T11:25:02.300273",
-  "total_events": 4008,
+  "timestamp": "2026-09-03T11:20:44.299753",
+  "total_events": 4067,
   "total_sources_registered": 39,
   "total_sources_with_events": 39,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 17,
+      "event_count": 16,
       "days_since_scrape": 0
     },
     {
       "source": "Boston Swing Central",
       "event_count": 5,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "The Comedy Studio",
@@ -22,7 +22,7 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 423,
+      "event_count": 457,
       "days_since_scrape": 0
     },
     {
@@ -42,12 +42,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 74,
+      "event_count": 84,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 98,
+      "event_count": 99,
       "days_since_scrape": 0
     },
     {
@@ -57,12 +57,12 @@
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 8,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 48,
+      "event_count": 51,
       "days_since_scrape": 0
     },
     {
@@ -82,7 +82,7 @@
     },
     {
       "source": "Harvard GSD",
-      "event_count": 17,
+      "event_count": 14,
       "days_since_scrape": 0
     },
     {
@@ -97,7 +97,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 1080,
+      "event_count": 1105,
       "days_since_scrape": 0
     },
     {
@@ -127,17 +127,17 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 155,
+      "event_count": 153,
       "days_since_scrape": 0
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 8,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Porter Square Books",
-      "event_count": 79,
+      "event_count": 80,
       "days_since_scrape": 0
     },
     {
@@ -153,21 +153,21 @@
     {
       "source": "Museum of Science",
       "event_count": 5,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Regent Theatre",
       "event_count": 36,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Longy School of Music",
       "event_count": 10,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "MIT Events",
-      "event_count": 22,
+      "event_count": 21,
       "days_since_scrape": 0
     },
     {
@@ -177,23 +177,23 @@
     },
     {
       "source": "MIT Open Space",
-      "event_count": 32,
+      "event_count": 34,
       "days_since_scrape": 0
     },
     {
       "source": "Skip the Small Talk",
-      "event_count": 31,
+      "event_count": 30,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Square",
-      "event_count": 262,
+      "event_count": 255,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
       "event_count": 233,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [
@@ -201,10 +201,10 @@
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 7,
-      "days_stale": 62,
+      "days_stale": 63,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 62 days ago (threshold: 14)"
+      "issue": "Last scraped 63 days ago (threshold: 14)"
     }
   ],
   "missing": [],
