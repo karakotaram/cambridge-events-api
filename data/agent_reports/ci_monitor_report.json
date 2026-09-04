@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-03T11:20:44.299753",
-  "total_events": 4067,
+  "timestamp": "2026-09-04T11:22:34.943025",
+  "total_events": 4323,
   "total_sources_registered": 39,
   "total_sources_with_events": 39,
   "healthy": [
@@ -13,7 +13,7 @@
     {
       "source": "Boston Swing Central",
       "event_count": 5,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "The Comedy Studio",
@@ -22,12 +22,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 457,
+      "event_count": 469,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1047,
+      "event_count": 1293,
       "days_since_scrape": 0
     },
     {
@@ -47,22 +47,22 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 99,
+      "event_count": 96,
       "days_since_scrape": 0
     },
     {
       "source": "Grolier Poetry Book Shop",
-      "event_count": 13,
+      "event_count": 12,
       "days_since_scrape": 0
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 6,
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
       "source": "The Rockwell",
-      "event_count": 51,
+      "event_count": 50,
       "days_since_scrape": 0
     },
     {
@@ -77,12 +77,12 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 5,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard GSD",
-      "event_count": 14,
+      "event_count": 17,
       "days_since_scrape": 0
     },
     {
@@ -97,7 +97,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 1105,
+      "event_count": 1104,
       "days_since_scrape": 0
     },
     {
@@ -112,12 +112,12 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 15,
+      "event_count": 21,
       "days_since_scrape": 0
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 9,
+      "event_count": 8,
       "days_since_scrape": 0
     },
     {
@@ -127,18 +127,18 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 153,
+      "event_count": 152,
       "days_since_scrape": 0
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 8,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Porter Square Books",
-      "event_count": 80,
-      "days_since_scrape": 0
+      "event_count": 78,
+      "days_since_scrape": 1
     },
     {
       "source": "Sanders Theatre",
@@ -153,31 +153,31 @@
     {
       "source": "Museum of Science",
       "event_count": 5,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Regent Theatre",
-      "event_count": 36,
-      "days_since_scrape": 1
+      "event_count": 35,
+      "days_since_scrape": 2
     },
     {
       "source": "Longy School of Music",
       "event_count": 10,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "MIT Events",
-      "event_count": 21,
+      "event_count": 19,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Music & Theater",
-      "event_count": 3,
+      "event_count": 4,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Open Space",
-      "event_count": 34,
+      "event_count": 35,
       "days_since_scrape": 0
     },
     {
@@ -187,13 +187,13 @@
     },
     {
       "source": "Harvard Square",
-      "event_count": 255,
+      "event_count": 251,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
-      "event_count": 233,
-      "days_since_scrape": 1
+      "event_count": 235,
+      "days_since_scrape": 0
     }
   ],
   "stale": [
@@ -201,10 +201,10 @@
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 7,
-      "days_stale": 63,
+      "days_stale": 64,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 63 days ago (threshold: 14)"
+      "issue": "Last scraped 64 days ago (threshold: 14)"
     }
   ],
   "missing": [],

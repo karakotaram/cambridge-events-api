@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-03T11:20:41.271772",
-  "total_events": 4067,
+  "timestamp": "2026-09-04T11:22:32.984831",
+  "total_events": 4323,
   "total_sources": 39,
   "history_runs": 6,
   "alerts": [
@@ -11,19 +11,12 @@
       "current": 0,
       "average": 35.0,
       "message": "0 events (avg: 35) - scraper may be broken"
-    },
-    {
-      "source": "Skip the Small Talk",
-      "severity": "WARNING",
-      "current": 30,
-      "average": 72.3,
-      "message": "30 events vs avg 72 (41%)"
     }
   ],
-  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM (tags, classes, IDs, or layout) was updated, so the scraper\u2019s selectors no longer match any elements.  \n- **Content now loaded via JavaScript/AJAX** \u2013 the events list is rendered client\u2011side after the initial HTML response; a simple HTTP GET fetches an empty placeholder.  \n- **Anti\u2011scraping measures added** \u2013 new CAPTCHAs, bot\u2011detect headers, IP rate\u2011limits, or required cookies/session tokens cause the request to be blocked or return a \u201cno data\u201d page.  \n- **URL or query parameters changed** \u2013 the endpoint the scraper hits was renamed, moved, or now requires additional parameters (e.g., date range), resulting in an empty response.",
+  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM, class names, or element hierarchy was updated, so the scraper\u2019s selectors no longer match any event nodes.  \n- **Pagination / lazy\u2011load introduced** \u2013 events are now loaded via JavaScript, infinite scroll, or hidden behind a \u201cLoad more\u201d button, which a static HTTP request won\u2019t retrieve.  \n- **Access blocked or redirected** \u2013 the site now requires a referrer, user\u2011agent, cookies, or presents a CAPTCHA/403 page, causing the scraper to receive an empty or error page.  \n- **Date filter or API endpoint altered** \u2013 the query parameters (e.g., start/end dates) or the JSON endpoint used to fetch events were changed or deprecated, returning an empty result set.",
   "summary": {
     "critical": 1,
-    "warning": 1,
+    "warning": 0,
     "missing": 0
   }
 }
