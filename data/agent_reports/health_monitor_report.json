@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-04T11:22:32.984831",
-  "total_events": 4323,
+  "timestamp": "2026-09-05T10:43:49.143680",
+  "total_events": 4339,
   "total_sources": 39,
   "history_runs": 6,
   "alerts": [
@@ -13,7 +13,7 @@
       "message": "0 events (avg: 35) - scraper may be broken"
     }
   ],
-  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM, class names, or element hierarchy was updated, so the scraper\u2019s selectors no longer match any event nodes.  \n- **Pagination / lazy\u2011load introduced** \u2013 events are now loaded via JavaScript, infinite scroll, or hidden behind a \u201cLoad more\u201d button, which a static HTTP request won\u2019t retrieve.  \n- **Access blocked or redirected** \u2013 the site now requires a referrer, user\u2011agent, cookies, or presents a CAPTCHA/403 page, causing the scraper to receive an empty or error page.  \n- **Date filter or API endpoint altered** \u2013 the query parameters (e.g., start/end dates) or the JSON endpoint used to fetch events were changed or deprecated, returning an empty result set.",
+  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM (tags, classes, IDs, or layout) was updated, so the selectors the scraper uses no longer match any elements.  \n- **Dynamic content loading** \u2013 event listings are now rendered client\u2011side via JavaScript (e.g., React, AJAX) and the scraper, which only fetches static HTML, sees an empty container.  \n- **Access blocked or redirected** \u2013 the site started returning a CAPTCHA, 403/404 page, or redirect to a login/maintenance page, causing the scraper to parse the wrong content.  \n- **Rate\u2011limit / IP blocking** \u2013 repeated requests triggered a throttling rule, resulting in empty responses or a generic \u201cno events\u201d placeholder page.",
   "summary": {
     "critical": 1,
     "warning": 0,
