@@ -1,21 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-05T10:43:49.143680",
-  "total_events": 4339,
+  "timestamp": "2026-09-06T11:02:11.520405",
+  "total_events": 4282,
   "total_sources": 39,
   "history_runs": 6,
-  "alerts": [
-    {
-      "source": "Harvard Book Store",
-      "severity": "CRITICAL",
-      "current": 0,
-      "average": 35.0,
-      "message": "0 events (avg: 35) - scraper may be broken"
-    }
-  ],
-  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM (tags, classes, IDs, or layout) was updated, so the selectors the scraper uses no longer match any elements.  \n- **Dynamic content loading** \u2013 event listings are now rendered client\u2011side via JavaScript (e.g., React, AJAX) and the scraper, which only fetches static HTML, sees an empty container.  \n- **Access blocked or redirected** \u2013 the site started returning a CAPTCHA, 403/404 page, or redirect to a login/maintenance page, causing the scraper to parse the wrong content.  \n- **Rate\u2011limit / IP blocking** \u2013 repeated requests triggered a throttling rule, resulting in empty responses or a generic \u201cno events\u201d placeholder page.",
+  "alerts": [],
+  "diagnosis": null,
   "summary": {
-    "critical": 1,
+    "critical": 0,
     "warning": 0,
     "missing": 0
   }
