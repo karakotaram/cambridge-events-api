@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-06T11:02:11.686739",
-  "total_events": 4282,
+  "timestamp": "2026-09-07T12:34:32.378495",
+  "total_events": 4326,
   "total_sources_registered": 39,
   "total_sources_with_events": 39,
   "healthy": [
@@ -13,7 +13,7 @@
     {
       "source": "Boston Swing Central",
       "event_count": 5,
-      "days_since_scrape": 4
+      "days_since_scrape": 5
     },
     {
       "source": "The Comedy Studio",
@@ -22,12 +22,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 487,
+      "event_count": 552,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1281,
+      "event_count": 1260,
       "days_since_scrape": 0
     },
     {
@@ -37,17 +37,17 @@
     },
     {
       "source": "First Parish in Cambridge",
-      "event_count": 1,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 82,
+      "event_count": 80,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 91,
+      "event_count": 86,
       "days_since_scrape": 0
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "source": "Multicultural Arts Center",
-      "event_count": 6,
+      "event_count": 5,
       "days_since_scrape": 0
     },
     {
@@ -133,16 +133,11 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 8,
-      "days_since_scrape": 4
-    },
-    {
-      "source": "Porter Square Books",
-      "event_count": 77,
-      "days_since_scrape": 2
+      "days_since_scrape": 5
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 5,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
@@ -152,7 +147,7 @@
     },
     {
       "source": "MIT Events",
-      "event_count": 22,
+      "event_count": 23,
       "days_since_scrape": 0
     },
     {
@@ -162,7 +157,7 @@
     },
     {
       "source": "MIT Open Space",
-      "event_count": 33,
+      "event_count": 32,
       "days_since_scrape": 0
     },
     {
@@ -172,13 +167,13 @@
     },
     {
       "source": "Harvard Square",
-      "event_count": 250,
+      "event_count": 254,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
       "event_count": 238,
-      "days_since_scrape": 0
+      "days_since_scrape": 2
     }
   ],
   "stale": [
@@ -186,44 +181,53 @@
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 7,
-      "days_stale": 66,
+      "days_stale": 67,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 66 days ago (threshold: 14)"
+      "issue": "Last scraped 67 days ago (threshold: 14)"
+    },
+    {
+      "source": "Porter Square Books",
+      "ci": true,
+      "event_count": 76,
+      "days_stale": 4,
+      "latest_scraped": "2026-09-03T11:20:40.529977",
+      "threshold_days": 3,
+      "issue": "Last scraped 4 days ago (threshold: 3)"
     },
     {
       "source": "Museum of Science",
       "ci": true,
       "event_count": 5,
-      "days_stale": 4,
+      "days_stale": 5,
       "latest_scraped": "2026-09-01T13:58:21.925248",
       "threshold_days": 3,
-      "issue": "Last scraped 4 days ago (threshold: 3)"
+      "issue": "Last scraped 5 days ago (threshold: 3)"
     },
     {
       "source": "Regent Theatre",
       "ci": true,
-      "event_count": 35,
-      "days_stale": 4,
+      "event_count": 34,
+      "days_stale": 5,
       "latest_scraped": "2026-09-01T13:58:21.925737",
       "threshold_days": 3,
-      "issue": "Last scraped 4 days ago (threshold: 3)"
+      "issue": "Last scraped 5 days ago (threshold: 3)"
     },
     {
       "source": "Longy School of Music",
       "ci": true,
       "event_count": 10,
-      "days_stale": 4,
+      "days_stale": 5,
       "latest_scraped": "2026-09-01T13:58:21.925834",
       "threshold_days": 3,
-      "issue": "Last scraped 4 days ago (threshold: 3)"
+      "issue": "Last scraped 5 days ago (threshold: 3)"
     }
   ],
   "missing": [],
   "unregistered": [],
   "summary": {
-    "healthy": 35,
-    "stale": 4,
+    "healthy": 34,
+    "stale": 5,
     "missing": 0,
     "unregistered": 0
   }
