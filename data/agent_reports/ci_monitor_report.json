@@ -1,19 +1,19 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-07T12:34:32.378495",
-  "total_events": 4326,
+  "timestamp": "2026-09-08T11:24:19.199366",
+  "total_events": 4318,
   "total_sources_registered": 39,
   "total_sources_with_events": 39,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 14,
+      "event_count": 12,
       "days_since_scrape": 0
     },
     {
       "source": "Boston Swing Central",
       "event_count": 5,
-      "days_since_scrape": 5
+      "days_since_scrape": 6
     },
     {
       "source": "The Comedy Studio",
@@ -22,12 +22,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 552,
+      "event_count": 561,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1260,
+      "event_count": 1244,
       "days_since_scrape": 0
     },
     {
@@ -47,7 +47,7 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 86,
+      "event_count": 83,
       "days_since_scrape": 0
     },
     {
@@ -97,12 +97,12 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 1076,
+      "event_count": 1077,
       "days_since_scrape": 0
     },
     {
       "source": "The Lily Pad",
-      "event_count": 30,
+      "event_count": 29,
       "days_since_scrape": 0
     },
     {
@@ -117,7 +117,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 8,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -133,7 +133,7 @@
     {
       "source": "Aeronaut Brewing",
       "event_count": 8,
-      "days_since_scrape": 5
+      "days_since_scrape": 6
     },
     {
       "source": "Sanders Theatre",
@@ -157,23 +157,23 @@
     },
     {
       "source": "MIT Open Space",
-      "event_count": 32,
+      "event_count": 31,
       "days_since_scrape": 0
     },
     {
       "source": "Skip the Small Talk",
-      "event_count": 29,
+      "event_count": 28,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Square",
-      "event_count": 254,
+      "event_count": 256,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
-      "event_count": 238,
-      "days_since_scrape": 2
+      "event_count": 241,
+      "days_since_scrape": 0
     }
   ],
   "stale": [
@@ -181,46 +181,46 @@
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 7,
-      "days_stale": 67,
+      "days_stale": 68,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 67 days ago (threshold: 14)"
+      "issue": "Last scraped 68 days ago (threshold: 14)"
     },
     {
       "source": "Porter Square Books",
       "ci": true,
       "event_count": 76,
-      "days_stale": 4,
+      "days_stale": 5,
       "latest_scraped": "2026-09-03T11:20:40.529977",
       "threshold_days": 3,
-      "issue": "Last scraped 4 days ago (threshold: 3)"
+      "issue": "Last scraped 5 days ago (threshold: 3)"
     },
     {
       "source": "Museum of Science",
       "ci": true,
       "event_count": 5,
-      "days_stale": 5,
+      "days_stale": 6,
       "latest_scraped": "2026-09-01T13:58:21.925248",
       "threshold_days": 3,
-      "issue": "Last scraped 5 days ago (threshold: 3)"
+      "issue": "Last scraped 6 days ago (threshold: 3)"
     },
     {
       "source": "Regent Theatre",
       "ci": true,
       "event_count": 34,
-      "days_stale": 5,
+      "days_stale": 6,
       "latest_scraped": "2026-09-01T13:58:21.925737",
       "threshold_days": 3,
-      "issue": "Last scraped 5 days ago (threshold: 3)"
+      "issue": "Last scraped 6 days ago (threshold: 3)"
     },
     {
       "source": "Longy School of Music",
       "ci": true,
       "event_count": 10,
-      "days_stale": 5,
+      "days_stale": 6,
       "latest_scraped": "2026-09-01T13:58:21.925834",
       "threshold_days": 3,
-      "issue": "Last scraped 5 days ago (threshold: 3)"
+      "issue": "Last scraped 6 days ago (threshold: 3)"
     }
   ],
   "missing": [],
