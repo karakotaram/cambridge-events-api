@@ -1,14 +1,22 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-12T10:52:10.577057",
-  "total_events": 4422,
+  "timestamp": "2026-09-13T11:54:08.921328",
+  "total_events": 4295,
   "total_sources": 39,
   "history_runs": 6,
-  "alerts": [],
+  "alerts": [
+    {
+      "source": "MIT Music & Theater",
+      "severity": "WARNING",
+      "current": 1,
+      "average": 2.7,
+      "message": "1 events vs avg 3 (38%)"
+    }
+  ],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 0,
+    "warning": 1,
     "missing": 0
   }
 }
