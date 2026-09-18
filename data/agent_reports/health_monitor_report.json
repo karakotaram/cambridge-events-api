@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-17T11:46:09.892544",
-  "total_events": 4467,
+  "timestamp": "2026-09-18T11:20:48.045273",
+  "total_events": 4529,
   "total_sources": 38,
   "history_runs": 6,
   "alerts": [
@@ -9,8 +9,8 @@
       "source": "MIT Music & Theater",
       "severity": "MISSING",
       "current": 0,
-      "average": 1.5,
-      "message": "Source disappeared from data (avg: 2)"
+      "average": 1.0,
+      "message": "Source disappeared from data (avg: 1)"
     }
   ],
   "diagnosis": null,
