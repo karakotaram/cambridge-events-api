@@ -1,14 +1,22 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-20T11:25:08.337213",
-  "total_events": 4529,
+  "timestamp": "2026-09-21T12:55:54.561470",
+  "total_events": 4504,
   "total_sources": 38,
   "history_runs": 6,
-  "alerts": [],
+  "alerts": [
+    {
+      "source": "Harvard Athletics",
+      "severity": "WARNING",
+      "current": 2,
+      "average": 6.0,
+      "message": "2 events vs avg 6 (33%)"
+    }
+  ],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 0,
+    "warning": 1,
     "missing": 0
   }
 }
