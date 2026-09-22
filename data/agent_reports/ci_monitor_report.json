@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-21T12:55:54.729061",
-  "total_events": 4504,
+  "timestamp": "2026-09-22T11:41:46.932138",
+  "total_events": 4514,
   "total_sources_registered": 39,
   "total_sources_with_events": 38,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 25,
+      "event_count": 22,
       "days_since_scrape": 0
     },
     {
@@ -17,7 +17,7 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 743,
+      "event_count": 753,
       "days_since_scrape": 0
     },
     {
@@ -42,7 +42,7 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 61,
+      "event_count": 58,
       "days_since_scrape": 0
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "source": "The Rockwell",
-      "event_count": 106,
+      "event_count": 107,
       "days_since_scrape": 0
     },
     {
@@ -92,12 +92,12 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 1078,
+      "event_count": 1080,
       "days_since_scrape": 0
     },
     {
       "source": "The Lily Pad",
-      "event_count": 27,
+      "event_count": 29,
       "days_since_scrape": 0
     },
     {
@@ -127,7 +127,7 @@
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 8,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -137,7 +137,7 @@
     },
     {
       "source": "MIT Events",
-      "event_count": 25,
+      "event_count": 27,
       "days_since_scrape": 0
     },
     {
@@ -147,12 +147,12 @@
     },
     {
       "source": "Harvard Square",
-      "event_count": 221,
+      "event_count": 219,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
-      "event_count": 264,
+      "event_count": 267,
       "days_since_scrape": 0
     }
   ],
@@ -161,55 +161,55 @@
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 5,
-      "days_stale": 19,
+      "days_stale": 20,
       "latest_scraped": "2026-09-01T13:58:21.891843",
       "threshold_days": 14,
-      "issue": "Last scraped 19 days ago (threshold: 14)"
+      "issue": "Last scraped 20 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 7,
-      "days_stale": 81,
+      "days_stale": 82,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 81 days ago (threshold: 14)"
+      "issue": "Last scraped 82 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 8,
-      "days_stale": 19,
+      "days_stale": 20,
       "latest_scraped": "2026-09-01T13:58:21.923395",
       "threshold_days": 14,
-      "issue": "Last scraped 19 days ago (threshold: 14)"
+      "issue": "Last scraped 20 days ago (threshold: 14)"
     },
     {
       "source": "Porter Square Books",
       "ci": true,
-      "event_count": 60,
-      "days_stale": 18,
+      "event_count": 58,
+      "days_stale": 19,
       "latest_scraped": "2026-09-03T11:20:40.529977",
       "threshold_days": 3,
-      "issue": "Last scraped 18 days ago (threshold: 3)"
+      "issue": "Last scraped 19 days ago (threshold: 3)"
     },
     {
       "source": "Museum of Science",
       "ci": true,
       "event_count": 5,
-      "days_stale": 19,
+      "days_stale": 20,
       "latest_scraped": "2026-09-01T13:58:21.925248",
       "threshold_days": 3,
-      "issue": "Last scraped 19 days ago (threshold: 3)"
+      "issue": "Last scraped 20 days ago (threshold: 3)"
     },
     {
       "source": "Regent Theatre",
       "ci": true,
       "event_count": 28,
-      "days_stale": 19,
+      "days_stale": 20,
       "latest_scraped": "2026-09-01T13:58:21.925737",
       "threshold_days": 3,
-      "issue": "Last scraped 19 days ago (threshold: 3)"
+      "issue": "Last scraped 20 days ago (threshold: 3)"
     },
     {
       "source": "Longy School of Music",
@@ -223,7 +223,7 @@
     {
       "source": "Skip the Small Talk",
       "ci": true,
-      "event_count": 20,
+      "event_count": 19,
       "days_stale": 6,
       "latest_scraped": "2026-09-15T11:52:49.294746",
       "threshold_days": 3,
