@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-09-27T12:09:54.866241",
-  "total_events": 4423,
+  "timestamp": "2026-09-28T13:54:10.538268",
+  "total_events": 4411,
   "total_sources_registered": 39,
   "total_sources_with_events": 38,
   "healthy": [
@@ -17,32 +17,32 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 729,
+      "event_count": 781,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1306,
+      "event_count": 1251,
       "days_since_scrape": 0
     },
     {
       "source": "Theatre at First",
-      "event_count": 6,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "First Parish in Cambridge",
       "event_count": 5,
       "days_since_scrape": 0
     },
     {
+      "source": "First Parish in Cambridge",
+      "event_count": 4,
+      "days_since_scrape": 0
+    },
+    {
       "source": "Harvard Art Museums",
-      "event_count": 69,
+      "event_count": 68,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 47,
+      "event_count": 43,
       "days_since_scrape": 0
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "source": "The Rockwell",
-      "event_count": 105,
+      "event_count": 103,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 4,
+      "event_count": 5,
       "days_since_scrape": 0
     },
     {
@@ -87,7 +87,7 @@
     },
     {
       "source": "Harvard-Radcliffe Dramatic Club",
-      "event_count": 6,
+      "event_count": 11,
       "days_since_scrape": 0
     },
     {
@@ -107,12 +107,12 @@
     },
     {
       "source": "Portico Brewing",
-      "event_count": 26,
+      "event_count": 25,
       "days_since_scrape": 0
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 8,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -136,13 +136,8 @@
       "days_since_scrape": 0
     },
     {
-      "source": "Museum of Science",
-      "event_count": 11,
-      "days_since_scrape": 3
-    },
-    {
       "source": "MIT Events",
-      "event_count": 25,
+      "event_count": 23,
       "days_since_scrape": 0
     },
     {
@@ -152,13 +147,13 @@
     },
     {
       "source": "Harvard Square",
-      "event_count": 206,
+      "event_count": 205,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
-      "event_count": 283,
-      "days_since_scrape": 0
+      "event_count": 284,
+      "days_since_scrape": 1
     }
   ],
   "stale": [
@@ -166,64 +161,73 @@
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 5,
-      "days_stale": 25,
+      "days_stale": 26,
       "latest_scraped": "2026-09-01T13:58:21.891843",
       "threshold_days": 14,
-      "issue": "Last scraped 25 days ago (threshold: 14)"
+      "issue": "Last scraped 26 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 7,
-      "days_stale": 87,
+      "days_stale": 88,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 87 days ago (threshold: 14)"
+      "issue": "Last scraped 88 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 8,
-      "days_stale": 25,
+      "days_stale": 26,
       "latest_scraped": "2026-09-01T13:58:21.923395",
       "threshold_days": 14,
-      "issue": "Last scraped 25 days ago (threshold: 14)"
+      "issue": "Last scraped 26 days ago (threshold: 14)"
     },
     {
       "source": "Porter Square Books",
       "ci": true,
-      "event_count": 52,
-      "days_stale": 24,
+      "event_count": 50,
+      "days_stale": 25,
       "latest_scraped": "2026-09-03T11:20:40.529977",
       "threshold_days": 3,
-      "issue": "Last scraped 24 days ago (threshold: 3)"
+      "issue": "Last scraped 25 days ago (threshold: 3)"
+    },
+    {
+      "source": "Museum of Science",
+      "ci": true,
+      "event_count": 10,
+      "days_stale": 4,
+      "latest_scraped": "2026-09-24T11:51:09.365835",
+      "threshold_days": 3,
+      "issue": "Last scraped 4 days ago (threshold: 3)"
     },
     {
       "source": "Regent Theatre",
       "ci": true,
-      "event_count": 27,
-      "days_stale": 25,
+      "event_count": 26,
+      "days_stale": 26,
       "latest_scraped": "2026-09-01T13:58:21.925737",
       "threshold_days": 3,
-      "issue": "Last scraped 25 days ago (threshold: 3)"
+      "issue": "Last scraped 26 days ago (threshold: 3)"
     },
     {
       "source": "Longy School of Music",
       "ci": true,
       "event_count": 8,
-      "days_stale": 12,
+      "days_stale": 14,
       "latest_scraped": "2026-09-14T12:48:51.948511",
       "threshold_days": 3,
-      "issue": "Last scraped 12 days ago (threshold: 3)"
+      "issue": "Last scraped 14 days ago (threshold: 3)"
     },
     {
       "source": "Skip the Small Talk",
       "ci": true,
       "event_count": 16,
-      "days_stale": 12,
+      "days_stale": 13,
       "latest_scraped": "2026-09-15T11:52:49.294746",
       "threshold_days": 3,
-      "issue": "Last scraped 12 days ago (threshold: 3)"
+      "issue": "Last scraped 13 days ago (threshold: 3)"
     }
   ],
   "missing": [
@@ -235,8 +239,8 @@
   ],
   "unregistered": [],
   "summary": {
-    "healthy": 31,
-    "stale": 7,
+    "healthy": 30,
+    "stale": 8,
     "missing": 1,
     "unregistered": 0
   }
