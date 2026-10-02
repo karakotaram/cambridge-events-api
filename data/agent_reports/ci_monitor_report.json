@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-10-01T13:15:54.545701",
-  "total_events": 4544,
+  "timestamp": "2026-10-02T12:37:29.997185",
+  "total_events": 4585,
   "total_sources_registered": 39,
   "total_sources_with_events": 38,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 28,
+      "event_count": 27,
       "days_since_scrape": 0
     },
     {
@@ -17,12 +17,12 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 821,
+      "event_count": 829,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1260,
+      "event_count": 1259,
       "days_since_scrape": 0
     },
     {
@@ -37,12 +37,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 72,
+      "event_count": 71,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 51,
+      "event_count": 80,
       "days_since_scrape": 0
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "source": "The Rockwell",
-      "event_count": 100,
+      "event_count": 101,
       "days_since_scrape": 0
     },
     {
@@ -72,12 +72,12 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 7,
+      "event_count": 8,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard GSD",
-      "event_count": 11,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
@@ -92,7 +92,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 1060,
+      "event_count": 1073,
       "days_since_scrape": 0
     },
     {
@@ -127,7 +127,7 @@
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 9,
+      "event_count": 8,
       "days_since_scrape": 0
     },
     {
@@ -152,12 +152,12 @@
     },
     {
       "source": "Harvard Square",
-      "event_count": 204,
+      "event_count": 202,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
-      "event_count": 289,
+      "event_count": 291,
       "days_since_scrape": 0
     }
   ],
@@ -166,64 +166,64 @@
       "source": "Boston Swing Central",
       "ci": false,
       "event_count": 5,
-      "days_stale": 29,
+      "days_stale": 30,
       "latest_scraped": "2026-09-01T13:58:21.891843",
       "threshold_days": 14,
-      "issue": "Last scraped 29 days ago (threshold: 14)"
+      "issue": "Last scraped 30 days ago (threshold: 14)"
     },
     {
       "source": "Somerville Theatre",
       "ci": false,
       "event_count": 7,
-      "days_stale": 91,
+      "days_stale": 92,
       "latest_scraped": "2026-07-01T18:51:01.974159",
       "threshold_days": 14,
-      "issue": "Last scraped 91 days ago (threshold: 14)"
+      "issue": "Last scraped 92 days ago (threshold: 14)"
     },
     {
       "source": "Aeronaut Brewing",
       "ci": false,
       "event_count": 8,
-      "days_stale": 29,
+      "days_stale": 30,
       "latest_scraped": "2026-09-01T13:58:21.923395",
       "threshold_days": 14,
-      "issue": "Last scraped 29 days ago (threshold: 14)"
+      "issue": "Last scraped 30 days ago (threshold: 14)"
     },
     {
       "source": "Porter Square Books",
       "ci": true,
-      "event_count": 47,
-      "days_stale": 28,
+      "event_count": 43,
+      "days_stale": 29,
       "latest_scraped": "2026-09-03T11:20:40.529977",
       "threshold_days": 3,
-      "issue": "Last scraped 28 days ago (threshold: 3)"
+      "issue": "Last scraped 29 days ago (threshold: 3)"
     },
     {
       "source": "Museum of Science",
       "ci": true,
       "event_count": 9,
-      "days_stale": 7,
+      "days_stale": 8,
       "latest_scraped": "2026-09-24T11:51:09.365835",
       "threshold_days": 3,
-      "issue": "Last scraped 7 days ago (threshold: 3)"
+      "issue": "Last scraped 8 days ago (threshold: 3)"
     },
     {
       "source": "Regent Theatre",
       "ci": true,
-      "event_count": 26,
-      "days_stale": 29,
+      "event_count": 25,
+      "days_stale": 30,
       "latest_scraped": "2026-09-01T13:58:21.925737",
       "threshold_days": 3,
-      "issue": "Last scraped 29 days ago (threshold: 3)"
+      "issue": "Last scraped 30 days ago (threshold: 3)"
     },
     {
       "source": "Skip the Small Talk",
       "ci": true,
-      "event_count": 16,
-      "days_stale": 16,
+      "event_count": 15,
+      "days_stale": 17,
       "latest_scraped": "2026-09-15T11:52:49.294746",
       "threshold_days": 3,
-      "issue": "Last scraped 16 days ago (threshold: 3)"
+      "issue": "Last scraped 17 days ago (threshold: 3)"
     }
   ],
   "missing": [
