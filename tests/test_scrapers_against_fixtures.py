@@ -115,6 +115,8 @@ def test_the_week_spans_seven_days(cambridge_week, offline):
 FIXTURE_SOURCES = [
     ("Brattle Theatre", "brattle", "listing.html.gz"),
     ("Harvard Art Museums", "harvard_art_museums", "listing.html.gz"),
+    ("City of Somerville", "somerville_gov", "calendar-2026-10-05-page10.html.gz"),
+    ("Somerville Public Library", "somerville_library", "listing-2026-11.html.gz"),
 ]
 
 
@@ -280,3 +282,91 @@ def test_tribe_venue_field_shapes(source_name):
     assert scraper._as_dict([{"venue": "Y"}, {"venue": "Z"}]) == {"venue": "Y"}
     assert scraper._as_dict(None) == {}
     assert scraper._as_dict("not a mapping") == {}
+
+
+# --------------------------------------------------------------------------- #
+# Somerville — the city calendar and the public library, added 2026-10-05
+# --------------------------------------------------------------------------- #
+
+def _time_element(attr: str, text: str):
+    return BeautifulSoup(f'<time datetime="{attr}">{text}</time>', "html.parser").time
+
+
+def test_somerville_believes_a_time_only_when_both_renderings_agree():
+    """Each `<time>` on somervillema.gov states its moment twice: a UTC instant
+    in the attribute and Eastern wall clock in the text. Agreement is the normal
+    case. A disagreement means one of them changed meaning, and the event is
+    dropped rather than resolved by guessing which to trust."""
+    read = BY_NAME["City of Somerville"].load().read_time
+
+    assert read(_time_element("2026-10-05T14:00:00Z", "Mon, October 5, 2026 - 10:00am")) == datetime(2026, 10, 5, 10, 0)
+    # Standard time: the offset changes, the wall clock does not
+    assert read(_time_element("2026-12-07T15:00:00Z", "Mon, December 7, 2026 - 10:00am")) == datetime(2026, 12, 7, 10, 0)
+    # An evening start is on the Eastern date, not the UTC one
+    assert read(_time_element("2026-10-11T01:00:00Z", "Sat, October 10, 2026 - 9:00pm")) == datetime(2026, 10, 10, 21, 0)
+
+    assert read(_time_element("2026-10-05T14:00:00Z", "Mon, October 5, 2026 - 2:00pm")) is None
+    assert read(_time_element("2026-10-05T14:00:00Z", "Mon, October 5, 2026")) is None
+
+
+def test_somerville_publishes_only_attendable_events(fixture_html, offline):
+    """The city calendar carries office-closure notices ("Holiday: Thanksgiving"
+    at 12:00am) and School Committee executive sessions, which are closed to the
+    public. Neither is an event a reader can go to."""
+    scraper = BY_NAME["City of Somerville"].load()
+    soups = [BeautifulSoup(fixture_html("somerville_gov", name), "html.parser")
+             for name in ("calendar-2026-10-05-page9.html.gz", "calendar-2026-10-05-page10.html.gz")]
+
+    listed = [scraper.clean_text(t.get_text()) for s in soups for t in s.select(".views-field-title")]
+    assert any(t.startswith("Holiday:") for t in listed), "fixture should contain a closure notice"
+    assert any("Executive Session" in t for t in listed), "fixture should contain an executive session"
+
+    events = [e for s in soups for e in scraper.parse_listing(s)]
+    assert len(events) >= 30
+    assert not [e.title for e in events if e.title.startswith("Holiday:") or "Executive Session" in e.title]
+    assert not [e for e in events if (e.start_datetime.hour, e.start_datetime.minute) == (0, 0)]
+
+    # A row with no detail page links to that day's listing, not to nothing
+    unlinked = [e for e in events if "?event_date=" in e.source_url]
+    assert unlinked, "fixture should contain a row with no detail link"
+    assert all(e.source_url.endswith(f"{e.start_datetime:%Y-%m-%d}") for e in unlinked)
+
+
+def test_somerville_library_start_shares_the_end_meridiem():
+    """Assabet writes "6:00—7:00 PM": the start borrows the end's meridiem.
+    Reading the bare "6:00" as morning would fail the cross-check and drop
+    every evening program."""
+    scraper = BY_NAME["Somerville Public Library"].load()
+    card = BeautifulSoup('<div><span class="event-day">Tuesday, November 3</span>'
+                         '<span class="event-time">6:00—7:00 PM</span></div>', "html.parser").div
+
+    assert scraper._start(card, {"startDate": "2026-11-03", "doorTime": "18:00:00"}) == datetime(2026, 11, 3, 18, 0)
+    # If doorTime ever means doors-open, it stops matching the card
+    assert scraper._start(card, {"startDate": "2026-11-03", "doorTime": "17:30:00"}) is None
+    assert scraper._start(card, {"startDate": "2026-11-04", "doorTime": "18:00:00"}) is None
+
+
+def test_somerville_library_reads_every_scheduled_event(fixture_html, offline):
+    """November's listing has every quirk at once: JSON-LD with raw newlines
+    (invalid under strict JSON), excerpts entity-encoded twice, cancelled
+    events, and "All Closed" holiday cards with no link. Every scheduled event
+    must come through, dated in November, with readable text."""
+    scraper = BY_NAME["Somerville Public Library"].load()
+    soup = BeautifulSoup(fixture_html("somerville_library", "listing-2026-11.html.gz"), "html.parser")
+
+    structured = scraper._json_ld_by_url(soup)
+    cards = [c for c in soup.select("div.listing-event") if c.select_one("h3 a[href]")]
+    cancelled = [u for u, d in structured.items() if d["eventStatus"].endswith("EventCancelled")]
+    assert soup.select("div.listing-event.branch-closed"), "fixture should contain closure cards"
+    assert cancelled, "fixture should contain cancelled events"
+
+    events = scraper.parse_month(soup)
+    assert len(structured) == len(cards), "a JSON-LD block failed to parse"
+    assert len(events) == len(cards) - len(cancelled), "the date cross-check rejected a real event"
+    assert all((e.start_datetime.year, e.start_datetime.month) == (2026, 11) for e in events)
+    assert not [e.description for e in events
+                if any(junk in e.description for junk in ("&amp;", "&nbsp;", "&#", "Learn More"))]
+
+    branches = [e for e in events if e.venue_name.startswith("Somerville Public Library – ")]
+    assert branches and all(e.street_address and e.zip_code for e in branches)
+    assert all(e.street_address is None for e in events if e.venue_name == "Online")

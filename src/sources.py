@@ -92,6 +92,12 @@ SOURCES: tuple[Source, ...] = (
                  "carries the dates, so no browser is needed."),
     Source("Somerville Theatre", "src.scrapers.somerville_theatre", "SomervilleTheatreScraper", "requests",
            runs_in_ci=False, notes="cloudscraper; SSL handshake fails in CI"),
+    Source("City of Somerville", "src.scrapers.somerville_gov", "SomervilleGovScraper", "requests",
+           notes="Drupal listing; each start is kept only if its UTC attribute and "
+                 "Eastern text agree. Detail pages add the venue."),
+    Source("Somerville Public Library", "src.scrapers.somerville_library", "SomervillePublicLibraryScraper", "requests",
+           notes="reads the Assabet Interactive calendar the library's site embeds; "
+                 "JSON-LD dates, cross-checked against the visible card"),
 
     # ---- Selenium ------------------------------------------------------------
     Source("The Lily Pad", "src.scrapers.lilypad", "LilyPadScraper", "selenium"),
