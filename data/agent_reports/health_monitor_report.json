@@ -1,14 +1,36 @@
 {
   "status": "ok",
-  "timestamp": "2026-10-06T13:36:16.501060",
-  "total_events": 5253,
-  "total_sources": 40,
+  "timestamp": "2026-10-06T14:24:44.391512",
+  "total_events": 6274,
+  "total_sources": 39,
   "history_runs": 6,
-  "alerts": [],
+  "alerts": [
+    {
+      "source": "Porter Square Books",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 41.4,
+      "message": "0 events (avg: 41) - scraper may be broken"
+    },
+    {
+      "source": "Aeronaut Brewing",
+      "severity": "CRITICAL",
+      "current": 0,
+      "average": 8.0,
+      "message": "0 events (avg: 8) - scraper may be broken"
+    },
+    {
+      "source": "MIT Open Space",
+      "severity": "WARNING",
+      "current": 8,
+      "average": 20.7,
+      "message": "8 events vs avg 21 (39%)"
+    }
+  ],
   "diagnosis": null,
   "summary": {
-    "critical": 0,
-    "warning": 0,
+    "critical": 2,
+    "warning": 1,
     "missing": 0
   }
 }
