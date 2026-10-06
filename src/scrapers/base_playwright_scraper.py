@@ -15,6 +15,11 @@ class ScrapeRefusedError(RuntimeError):
     """The venue answered with an error status and the scrape found nothing."""
 
 
+# Titles of bot-check interstitials (Cloudflare and similar)
+CHALLENGE_TITLES = ("just a moment", "performing security verification",
+                    "attention required", "access denied")
+
+
 class BasePlaywrightScraper(ABC):
     """
     Abstract base class for Playwright-based event scrapers.
@@ -26,17 +31,24 @@ class BasePlaywrightScraper(ABC):
     - Better CI/CD compatibility
     """
 
-    def __init__(self, source_name: str, source_url: str, user_agent: Optional[str] = None):
+    def __init__(self, source_name: str, source_url: str, user_agent: Optional[str] = None,
+                 headless: bool = True):
         """user_agent defaults to the browser's own.
 
         Do not spoof it without a reason. A UA claiming macOS on a browser whose
         client hints say Linux is a *contradiction*, and bot protection reads it
         as one — Porter Square Books returns 403 for the spoofed UA and 200 for
         the browser's own, from the same headless Chromium.
+
+        headless=False opens a visible window. Some venues' Cloudflare settings
+        refuse a browser that announces itself as HeadlessChrome but serve an
+        ordinary one. A visible source needs a display, so it must be registered
+        runs_in_ci=False and runs through scrape_local.py.
         """
         self.source_name = source_name
         self.source_url = source_url
         self.user_agent = user_agent
+        self.headless = headless
         self._browser = None
         self._context = None
         self._page = None
@@ -45,13 +57,13 @@ class BasePlaywrightScraper(ABC):
         self.navigations: List[Tuple[str, str, Optional[int]]] = []
 
     def setup_browser(self):
-        """Initialize Playwright browser with stealth settings"""
+        """Initialize the Playwright browser (headless unless the source needs a window)"""
         if self._browser is None:
             from playwright.sync_api import sync_playwright
 
             self._playwright = sync_playwright().start()
             self._browser = self._playwright.chromium.launch(
-                headless=True,
+                headless=self.headless,
                 args=[
                     '--no-sandbox',
                     '--disable-dev-shm-usage',
@@ -74,8 +86,11 @@ class BasePlaywrightScraper(ABC):
                     'DNT': '1',
                 }
             )
-            # Block unnecessary resources for faster loading
-            self._context.route("**/*.{png,jpg,jpeg,gif,svg,ico,woff,woff2}", lambda route: route.abort())
+            # Block unnecessary resources for faster loading - but not in a
+            # visible browser, which is meant to behave like an ordinary one.
+            # Bot checks load their own assets and may not complete without them.
+            if self.headless:
+                self._context.route("**/*.{png,jpg,jpeg,gif,svg,ico,woff,woff2}", lambda route: route.abort())
             self._page = self._context.new_page()
             logger.info(f"Playwright browser initialized for {self.source_name}")
 
@@ -129,6 +144,23 @@ class BasePlaywrightScraper(ABC):
         if status is not None and status >= 400:
             logger.warning(f"{self.source_name}: HTTP {status} for {final_url}")
         return response
+
+    def wait_past_challenge(self, timeout_s: int = 30) -> None:
+        """Wait for a bot-check interstitial to clear on its own, or fail.
+
+        Nothing here interacts with a challenge: no clicks, no solving. If the
+        page is still "Just a moment..." after the wait, the source is refused,
+        and saying so beats parsing the interstitial as an empty listing.
+        """
+        deadline = timeout_s * 1000
+        waited = 0
+        while any(marker in (self.page.title() or "").lower() for marker in CHALLENGE_TITLES):
+            if waited >= deadline:
+                raise ScrapeRefusedError(
+                    f"{self.source_name}: still on a bot-check page after {timeout_s}s "
+                    f"({self.page.title()!r} at {self.page.url})")
+            self.page.wait_for_timeout(1000)
+            waited += 1000
 
     def refused_navigations(self) -> List[Tuple[str, str, int]]:
         """Navigations in this run that the server answered with an error status."""

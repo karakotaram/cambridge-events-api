@@ -139,35 +139,20 @@ SOURCES: tuple[Source, ...] = (
                  "races a progressive render, and calling the API directly takes ~150s"),
     Source("Regent Theatre", "src.scrapers.regent_theatre", "RegentTheatreScraper", "playwright"),
 
-    # Retired 2026-09-01: "Harvard Book Store". harvard.com moved behind
-    # Cloudflare's interstitial — "Just a moment... Enable JavaScript and
-    # cookies" — for plain HTTP, for headless Chromium, from CI and from a
-    # residential IP alike. It had been marked CI-blocked; it is now blocked
-    # everywhere, and getting past it means defeating protection the venue chose.
-    #
-    # Coverage continues: the Harvard Square aggregator lists 36 of their events
-    # with correct dates and reaches a month further out than the direct
-    # scraper's last good run did. A handful of their off-site events (the
-    # virtual warehouse sale, readings hosted at First Parish) are not carried
-    # there, which is the cost of this.
-
-    # Retired 2026-10-06: "Aeronaut Brewing". Cloudflare challenges plain HTTP
-    # (403) and headless Chrome; it had been passing only because the browser
-    # claimed to be Windows Chrome 120, which CLAUDE.md forbids. An honest
-    # headless browser never clears the challenge, and the remaining way through
-    # was driving a visible browser window so the check reads it as a person -
-    # defeating protection the venue chose, as with Porter Square Books below.
-    # BostonShows.org carries ~24 of their music shows; the rest of their
-    # programme (trivia, featured events) is the cost.
-
-    # Retired 2026-10-06: "Porter Square Books". portersquarebooks.com now
-    # serves Cloudflare's "Performing security verification" challenge (HTTP
-    # 403) to headless Chromium and to plain HTTP, from CI and from a
-    # residential IP alike. It had returned 0 events in CI every day since
-    # 2026-09-04 while its last good listings were preserved and went stale.
-    # Same situation as Harvard Book Store above: getting past it means
-    # defeating protection the venue chose. If they offer a feed, git history
-    # has the scraper.
+    # ---- Playwright, visible browser, local only -----------------------------
+    # These venues' Cloudflare settings refuse plain HTTP and a browser that
+    # announces itself as HeadlessChrome, but serve an ordinary visible one with
+    # its own user-agent. Retired for that on 2026-09-01 / 2026-10-06 and
+    # revived 2026-10-06 at the owner's decision: public listings, one page load
+    # per month shown, no spoofing, nothing that interacts with a challenge. A
+    # window needs a display, so they run through scrape_local.py, and a
+    # challenge that does not clear on its own fails the source.
+    Source("Porter Square Books", "src.scrapers.porter", "PorterSquareBooksScraper", "playwright",
+           runs_in_ci=False, notes="visible browser; IndieCommerce calendar JSON. Run scrape_local.py"),
+    Source("Harvard Book Store", "src.scrapers.harvard_book_store", "HarvardBookStoreScraper", "playwright",
+           runs_in_ci=False, notes="visible browser; IndieCommerce calendar JSON. Run scrape_local.py"),
+    Source("Aeronaut Brewing", "src.scrapers.aeronaut", "AeronautScraper", "playwright",
+           runs_in_ci=False, notes="visible browser; events page HTML. Run scrape_local.py"),
 
     # Retired 2026-09-01: "Harvard Memorial Church" returns 403 for every path on
     # memorialchurch.harvard.edu — homepage, calendar, RSS, REST — to plain HTTP

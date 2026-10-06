@@ -213,7 +213,8 @@ def test_drift_ignores_retired_sources(tmp_path):
     Harvard Book Store went behind Cloudflare and was retired; its 14 runs of
     history then reported "source disappeared from the data entirely" on every
     check. A monitor that permanently reports an intended state trains its
-    reader to skip the output.
+    reader to skip the output. (Harvard Book Store has since been revived;
+    Harvard Memorial Church, still retired, stands in.)
     """
     from src.quality.fingerprint import check_drift, fingerprint_all, record
     from src.sources import BY_NAME
@@ -226,7 +227,7 @@ def test_drift_ignores_retired_sources(tmp_path):
 
     # Give a live source and a retired one identical histories, then publish
     # neither of them.
-    for name in (live, "Harvard Book Store"):
+    for name in (live, "Harvard Memorial Church"):
         events = [e for e in published if e["source_name"] == name] or [
             {"source_name": name, "title": f"t{i}", "description": "d" * 25,
              "start_datetime": f"2026-10-{i % 28 + 1:02d}T19:00:00",
@@ -236,6 +237,6 @@ def test_drift_ignores_retired_sources(tmp_path):
 
     _, drifts = check_drift([], path=path)
     reported = {d.source for d in drifts}
-    assert "Harvard Book Store" not in reported, "retired source should be silent"
+    assert "Harvard Memorial Church" not in reported, "retired source should be silent"
     assert live in reported, "a registered source that vanished must still be reported"
-    assert "Harvard Book Store" not in BY_NAME
+    assert "Harvard Memorial Church" not in BY_NAME
