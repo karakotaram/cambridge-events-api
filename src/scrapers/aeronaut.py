@@ -1,216 +1,202 @@
-"""Custom scraper for Aeronaut Brewing events"""
+"""Scraper for Aeronaut Brewing, Somerville.
+
+The events page sits behind a Cloudflare managed challenge. Plain requests get
+403, and so does headless Chrome: its user-agent says "HeadlessChrome", and the
+challenge never clears. This scraper used to get through by claiming to be
+Chrome 120 on macOS from a newer Chrome, which is the user-agent contradiction
+CLAUDE.md forbids. It now drives an ordinary, visible Chrome that says what it
+is, and the challenge clears in seconds. That needs a display, so this source
+runs locally only (runs_in_ci=False), which it already did: Cloudflare also
+blocks GitHub's IP ranges.
+
+Each event prints "Wed, October 7 at 7PM" and no year. The year is the one
+whose calendar puts that date on the printed weekday.
+"""
 import logging
 import re
-import hashlib
-from datetime import datetime
+import time
+from datetime import date, datetime
 from typing import List, Optional
-from dateutil import parser as date_parser
 
+from bs4 import BeautifulSoup
+
+from src.models.event import EventCategory, EventCreate
 from src.scrapers.base_scraper import BaseScraper
-from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
 
+WEEKDAYS = {name: i for i, name in enumerate(("mon", "tue", "wed", "thu", "fri", "sat", "sun"))}
+MONTHS = {name: i for i, name in enumerate(
+    ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"), start=1)}
+
+# The page names each event's location in `span.event-spot`.
+SPOTS = {
+    "somerville brewery": {"name": "Aeronaut Brewing Co.", "address": "14 Tyler St",
+                           "city": "Somerville", "zip": "02143"},
+}
+
+
+def year_for_weekday(month: int, day: int, weekday: int, reference: date) -> Optional[int]:
+    """The year near `reference` in which month/day falls on `weekday`, or None."""
+    for year in (reference.year, reference.year + 1, reference.year - 1):
+        try:
+            if date(year, month, day).weekday() == weekday:
+                return year
+        except ValueError:          # Feb 29 in a common year
+            continue
+    return None
+
 
 class AeronautScraper(BaseScraper):
-    """Custom scraper for Aeronaut Brewing events"""
+    """Aeronaut Brewing's events page, through a real (visible) browser."""
 
-    def __init__(self):
+    def __init__(self, today: Optional[date] = None):
         super().__init__(
             source_name="Aeronaut Brewing",
             source_url="https://www.aeronautbrewing.com/events/",
-            use_selenium=True  # Site requires JavaScript and has Cloudflare
+            use_selenium=True,
         )
+        # Only the year is inferred from it, and only through the weekday match.
+        self.today = today
 
     def setup_selenium(self):
-        """Override to add anti-detection options for Cloudflare"""
+        """A visible Chrome with its own user-agent: the one thing the challenge accepts."""
         if self.driver is None:
-            from selenium.webdriver.chrome.options import Options
             from selenium import webdriver
+            from selenium.webdriver.chrome.options import Options
 
             options = Options()
-            options.add_argument('--headless=new')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            options.add_argument('--disable-gpu')
+            options.add_argument('--window-size=1200,900')
+            options.add_argument('--no-first-run')
+            options.add_argument('--no-default-browser-check')
             options.add_argument('--disable-blink-features=AutomationControlled')
-            options.add_argument('--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
             options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
 
             self.driver = webdriver.Chrome(options=options)
-            # Set reasonable timeouts to avoid hanging in CI
             self.driver.set_page_load_timeout(60)
             self.driver.set_script_timeout(30)
-
-            # Hide webdriver property
-            self.driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
-                'source': "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
-            })
-
             logger.info(f"Selenium WebDriver initialized for {self.source_name}")
 
-    def generate_event_id(self, title: str, date_str: str) -> str:
-        """Generate a consistent event ID based on title and date"""
-        unique_string = f"aeronaut-{title}-{date_str}".lower()
-        return hashlib.md5(unique_string.encode()).hexdigest()[:16]
+    def fetch_listing(self) -> str:
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.webdriver.support.ui import WebDriverWait
+
+        self.setup_selenium()
+        self.driver.get(self.source_url)
+        try:
+            WebDriverWait(self.driver, 30).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "single-event-details")))
+        except Exception:
+            # Still on "Just a moment..." means the challenge did not clear. Fail
+            # the source loudly rather than report an empty listing as success.
+            raise RuntimeError(f"{self.source_name}: events never rendered "
+                               f"(page title {self.driver.title!r})")
+        time.sleep(2)                       # let the rest of the list render
+        return self.driver.page_source
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from Aeronaut Brewing"""
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        import time
+        return self.parse_listing(self.parse_html(self.fetch_listing()), self.today or date.today())
 
-        html = self.fetch_html(self.source_url)
-
-        # Wait for event elements to load
-        if self.driver:
-            try:
-                WebDriverWait(self.driver, 15).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "single-event-details"))
-                )
-                time.sleep(3)  # Additional wait for all content
-            except Exception as e:
-                logger.warning(f"Timeout waiting for events to load: {e}")
-            html = self.driver.page_source
-
-        soup = self.parse_html(html)
+    def parse_listing(self, soup: BeautifulSoup, reference: date) -> List[EventCreate]:
         events = []
-        seen_ids = set()
-
-        # Find all event containers
-        event_containers = soup.find_all('div', class_=lambda c: c and 'single-event-details' in c if c else False)
-        logger.info(f"Found {len(event_containers)} event containers")
-
-        for container in event_containers:
+        seen = set()
+        for container in soup.find_all("div", class_=lambda c: c and "single-event-details" in c):
             try:
-                # Skip closed/closure events
-                container_classes = container.get('class', [])
-                if 'closed' in container_classes:
-                    continue
-
-                # Extract title
-                title_elem = container.find('h3', class_='event-title')
-                if not title_elem:
-                    continue
-                title = self.clean_text(title_elem.get_text())
-                if len(title) < 3:
-                    continue
-
-                # Extract date/time
-                datetime_elem = container.find('div', class_='event-datetime')
-                if not datetime_elem:
-                    continue
-                datetime_text = self.clean_text(datetime_elem.get_text())
-
-                # Parse date - format: "Wed, December 3 at 7PM" or "Sun, December 7 at 1PM"
-                # Remove location suffix like "SomervilleBrewery"
-                datetime_text = re.sub(r'(Somerville|Allston|Brewery|Cannery)+$', '', datetime_text).strip()
-
-                try:
-                    # Add current year if not present
-                    if not re.search(r'\d{4}', datetime_text):
-                        current_year = datetime.now().year
-                        # Check if the date has passed this year
-                        datetime_text_with_year = f"{datetime_text} {current_year}"
-                        parsed_date = date_parser.parse(datetime_text_with_year, fuzzy=True)
-                        # If date is in the past, assume next year
-                        if parsed_date < datetime.now():
-                            datetime_text_with_year = f"{datetime_text} {current_year + 1}"
-                            parsed_date = date_parser.parse(datetime_text_with_year, fuzzy=True)
-                        start_datetime = parsed_date
-                    else:
-                        start_datetime = date_parser.parse(datetime_text, fuzzy=True)
-                except Exception as e:
-                    logger.warning(f"Failed to parse date '{datetime_text}': {e}")
-                    continue
-
-                # Generate event ID
-                event_id = self.generate_event_id(title, start_datetime.strftime('%Y-%m-%d'))
-                if event_id in seen_ids:
-                    continue
-                seen_ids.add(event_id)
-
-                # Extract description
-                desc_elem = container.find('div', class_='event-description')
-                description = self.clean_text(desc_elem.get_text()) if desc_elem else ""
-
-                # Extract image URL from background-image style
-                image_url = None
-                image_wrap = container.find('div', class_='image-wrap')
-                if image_wrap:
-                    style = image_wrap.get('style', '')
-                    match = re.search(r"url\(['\"]?([^'\"]+)['\"]?\)", style)
-                    if match:
-                        image_url = match.group(1)
-
-                # Extract event URL (prefer external links)
-                event_url = self.source_url
-                links_div = container.find('div', class_='links')
-                if links_div:
-                    # Look for "More info" or "Tickets" link
-                    for link in links_div.find_all('a', href=True):
-                        href = link.get('href', '')
-                        if href and href.startswith('http'):
-                            event_url = href
-                            break
-
-                # Determine event type from classes
-                event_type = "community"  # default
-                for cls in ['ticketed', 'meetup', 'community', 'music', 'trivia']:
-                    if cls in container_classes:
-                        event_type = cls
-                        break
-
-                # Check if ticketed
-                ticketed_elem = container.find('span', class_='ticketed-event')
-                is_ticketed = ticketed_elem and ticketed_elem.get_text().strip()
-
-                # Set venue based on location in datetime text
-                venue_name = "Aeronaut Brewing Co."
-                street_address = "14 Tyler St"
-                city = "Somerville"
-                zip_code = "02143"
-
-                # Check for Allston location
-                full_text = datetime_elem.get_text().lower() if datetime_elem else ""
-                if 'allston' in full_text or 'cannery' in full_text:
-                    venue_name = "Aeronaut Cannery"
-                    street_address = "199 Rantoul St"
-                    city = "Beverly"
-                    zip_code = "01915"
-
-                # Categorize event
-                category = self.categorize_event(title, description, event_type)
-
-                # Build description if too short
-                if not description or len(description) < 20:
-                    description = f"{title} at {venue_name}"
-                    if is_ticketed:
-                        description += " (ticketed event)"
-
-                event = EventCreate(
-                    title=title[:200],
-                    description=description[:2000],
-                    start_datetime=start_datetime,
-                    source_url=event_url,
-                    source_name=self.source_name,
-                    venue_name=venue_name,
-                    street_address=street_address,
-                    city=city,
-                    state="MA",
-                    zip_code=zip_code,
-                    category=category,
-                    image_url=image_url
-                )
-                events.append(event)
-
+                event = self.parse_event(container, reference)
             except Exception as e:
-                logger.warning(f"Failed to parse event: {e}")
+                logger.warning(f"{self.source_name}: failed to parse an event: {e}")
                 continue
-
+            if event and (event.title, event.start_datetime) not in seen:
+                seen.add((event.title, event.start_datetime))
+                events.append(event)
         return events
+
+    @staticmethod
+    def parse_when(text: str, reference: date) -> tuple:
+        """"Wed, October 7 at 7PM" -> (datetime, all_day). (None, False) if unreadable.
+
+        A date with no time is an all-day event at midnight, never a guessed hour.
+        """
+        m = re.search(r"\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*\.?,?\s+([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2})\b", text)
+        if not m or m.group(2).lower() not in MONTHS:
+            return None, False
+        month, day = MONTHS[m.group(2).lower()], int(m.group(3))
+        year = year_for_weekday(month, day, WEEKDAYS[m.group(1).lower()], reference)
+        if year is None:
+            return None, False
+
+        tm = re.search(r"\bat\s+(\d{1,2})(?::(\d{2}))?\s*([AP]M)", text[m.end():], re.I)
+        if not tm:
+            return datetime(year, month, day), True
+        hour = int(tm.group(1)) % 12 + (12 if tm.group(3).upper() == "PM" else 0)
+        return datetime(year, month, day, hour, int(tm.group(2) or 0)), False
+
+    def parse_event(self, container, reference: date) -> Optional[EventCreate]:
+        classes = container.get("class", [])
+        if "closed" in classes:
+            return None
+
+        title_elem = container.find("h3", class_="event-title")
+        title = self.clean_text(title_elem.get_text()) if title_elem else ""
+        if len(title) < 3:
+            return None
+
+        when = container.find(class_="event-date")
+        when_text = self.clean_text(when.get_text(" ")) if when else ""
+        start, all_day = self.parse_when(when_text, reference)
+        if start is None:
+            logger.warning(f"Skipping '{title}' - no parseable date {when_text!r} ({self.source_url})")
+            return None
+
+        spot_elem = container.find("span", class_="event-spot")
+        spot = self.clean_text(spot_elem.get_text(" ")) if spot_elem else "Somerville Brewery"
+        venue = SPOTS.get(spot.lower())
+        if venue is None:
+            logger.warning(f"{self.source_name}: unknown location {spot!r} for '{title}'")
+            venue = {"name": f"Aeronaut Brewing ({spot})"}
+
+        desc_elem = container.find("div", class_="event-description")
+        description = self.clean_text(desc_elem.get_text(" ")) if desc_elem else ""
+        if len(description) < 20:
+            description = f"{title} at {venue['name']}"
+            if container.find("span", class_="ticketed-event"):
+                description += " (ticketed event)"
+
+        image_url = None
+        image_wrap = container.find("div", class_="image-wrap")
+        if image_wrap:
+            match = re.search(r"url\(['\"]?([^'\")]+)['\"]?\)", image_wrap.get("style", ""))
+            if match:
+                image_url = match.group(1).strip()
+
+        # Prefer the ticket link, then any outbound "more info" link.
+        event_url = self.source_url
+        links = container.find("div", class_="links")
+        if links:
+            anchors = links.select("span.tickets a[href]") + links.find_all("a", href=True)
+            event_url = next((a["href"].strip() for a in anchors if a["href"].strip().startswith("http")),
+                             self.source_url)
+
+        event_type = next((c for c in ("ticketed", "meetup", "community", "music", "trivia", "party")
+                           if c in classes), "community")
+
+        return EventCreate(
+            title=title[:200],
+            description=description[:2000],
+            start_datetime=start,
+            all_day=all_day,
+            source_url=event_url,
+            source_name=self.source_name,
+            venue_name=venue["name"],
+            street_address=venue.get("address"),
+            city=venue.get("city"),
+            state="MA",
+            zip_code=venue.get("zip"),
+            category=self.categorize_event(title, description, event_type),
+            image_url=image_url,
+        )
 
     def categorize_event(self, title: str, description: str, event_type: str) -> EventCategory:
         """Categorize event based on keywords and type"""
