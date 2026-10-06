@@ -6,6 +6,7 @@ from collections import defaultdict
 from datetime import datetime
 
 from src.agents.base_agent import BaseAgent
+from src.sources import BY_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +91,12 @@ class HealthMonitorAgent(BaseAgent):
 
             if not past_counts:
                 # New source, no history - skip
+                continue
+
+            if source not in BY_NAME:
+                # Retired from the registry on purpose. Its history lingers for
+                # MAX_HISTORY runs and would otherwise read as a broken scraper
+                # - and open a GitHub issue - on every run until it ages out.
                 continue
 
             avg = sum(past_counts) / len(past_counts)
