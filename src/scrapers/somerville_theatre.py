@@ -16,7 +16,7 @@ from datetime import datetime
 from typing import List, Optional
 from bs4 import BeautifulSoup
 
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_scraper import BaseScraper, USER_AGENT
 from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
@@ -33,8 +33,6 @@ EVENT_DESCRIPTIONS = {
     "the church": "Australian rock legends The Church perform their classic hits and new material. Known for their jangly guitars and atmospheric sound, The Church remains one of the most influential bands of the 1980s.",
 }
 
-
-USER_AGENT = "CambridgeCalendar/1.0 (+https://cambridgecalendar.com)"
 
 MONTH_DATE = re.compile(
     r'(January|February|March|April|May|June|July|August|September|October|November|December)'

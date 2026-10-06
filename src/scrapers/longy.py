@@ -22,7 +22,7 @@ from typing import List, Optional
 import requests
 
 from src.models.event import EventCategory, EventCreate, to_eastern_naive
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_scraper import BaseScraper, USER_AGENT
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,6 @@ PER_PAGE = 50
 MAX_PAGES = 4
 
 # An honest client identity. Never a browser's — see CLAUDE.md "Traps".
-USER_AGENT = "cambridgecalendar.com event listings (+https://cambridgecalendar.com)"
 
 # WPBakery layout markup left in the description: "[vc_row type=...]", "[/vc_column]"
 SHORTCODE = re.compile(r"\[/?[a-z][a-z0-9_]*(?:\s[^\]]*)?\]")

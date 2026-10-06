@@ -18,6 +18,9 @@ from src.models.event import EventCreate
 
 logger = logging.getLogger(__name__)
 
+# Honest, and the same everywhere. See CLAUDE.md: never spoof a browser.
+USER_AGENT = "CambridgeCalendar/1.0 (+https://cambridgecalendar.com)"
+
 
 class BaseScraper(ABC):
     """Abstract base class for all event scrapers"""
@@ -73,19 +76,17 @@ class BaseScraper(ABC):
             logger.info(f"Selenium WebDriver closed for {self.source_name}")
 
     def get_browser_headers(self) -> dict:
-        """Return headers that mimic a real browser"""
+        """Request headers for plain-HTTP scrapers.
+
+        The name is historical: these used to impersonate macOS Chrome, which
+        CLAUDE.md forbids. They now say who we are. Every source returned the
+        same status to this as to the spoof on 2026-10-06; Somerville Theatre's
+        nginx 403s only the bare python-requests default.
+        """
         return {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'User-Agent': USER_AGENT,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'Cache-Control': 'max-age=0',
         }
 
     def fetch_html(self, url: str, retries: int = 3) -> str:

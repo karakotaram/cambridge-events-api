@@ -32,12 +32,11 @@ from typing import Iterable, List, Optional
 import requests
 
 from src.models.event import EventCategory, EventCreate
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_scraper import BaseScraper, USER_AGENT
 
 logger = logging.getLogger(__name__)
 
 API = "https://calendar.mit.edu/api/2/events"
-USER_AGENT = "CambridgeCalendar/1.0 (+https://cambridgecalendar.com)"
 
 # Server-side window. ~7 pages of 100 as of 2026-10; the cap only stops a
 # pager that never ends.

@@ -27,12 +27,11 @@ import requests
 from bs4 import BeautifulSoup
 
 from src.models.event import EventCategory, EventCreate, to_eastern_naive
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_scraper import BaseScraper, USER_AGENT
 
 logger = logging.getLogger(__name__)
 
 BASE = "https://www.openspace.mit.edu"
-USER_AGENT = "CambridgeCalendar/1.0 (+https://cambridgecalendar.com)"
 
 NOTICE = re.compile(r"^\s*(?:re-?scheduled|cancell?ed|postponed)\b", re.IGNORECASE)
 CITY_ZIP = re.compile(r"^\s*([^,]+),.*?(\d{5})?\s*$")

@@ -90,7 +90,8 @@ SOURCES: tuple[Source, ...] = (
                  "scraper fabricated dates for everything after. Listing markup "
                  "carries the dates, so no browser is needed."),
     Source("Somerville Theatre", "src.scrapers.somerville_theatre", "SomervilleTheatreScraper", "requests",
-           runs_in_ci=False, notes="cloudscraper; SSL handshake fails in CI"),
+           notes="was local-only for cloudscraper's SSL failures in CI; cloudscraper is "
+                 "gone (981c258). nginx 403s the bare python-requests UA, so send ours"),
     Source("City of Somerville", "src.scrapers.somerville_gov", "SomervilleGovScraper", "requests",
            notes="Drupal listing; each start is kept only if its UTC attribute and "
                  "Eastern text agree. Detail pages add the venue."),
@@ -107,6 +108,13 @@ SOURCES: tuple[Source, ...] = (
     Source("Skip the Small Talk", "src.scrapers.skip_small_talk", "SkipSmallTalkScraper", "requests",
            notes="Squarespace store JSON, Boston category; the public-events page "
                  "was replaced by /store in Sept 2026"),
+    Source("MIT Events", "src.scrapers.mit_calendar", "MITCalendarScraper", "requests",
+           notes="Localist API, 60 days, only events whose audience includes Public"),
+    Source("MIT Music & Theater", "src.scrapers.mit_music_theater", "MITMusicTheaterScraper", "requests",
+           notes="mta.mit.edu split into music.mit.edu and theater.mit.edu in Sept 2026; "
+                 "reads both departments' calendar APIs"),
+    Source("MIT Open Space", "src.scrapers.openspace_mit", "OpenSpaceMITScraper", "requests",
+           notes="Squarespace calendar JSON (upcoming only)"),
 
     # ---- Selenium ------------------------------------------------------------
     Source("The Lily Pad", "src.scrapers.lilypad", "LilyPadScraper", "selenium"),
@@ -126,9 +134,6 @@ SOURCES: tuple[Source, ...] = (
            notes="captures the NPS calendar JSON from the browser: parsing the cards "
                  "races a progressive render, and calling the API directly takes ~150s"),
     Source("Regent Theatre", "src.scrapers.regent_theatre", "RegentTheatreScraper", "playwright"),
-    Source("MIT Events", "src.scrapers.mit_calendar", "MITCalendarScraper", "playwright"),
-    Source("MIT Music & Theater", "src.scrapers.mit_music_theater", "MITMusicTheaterScraper", "playwright"),
-    Source("MIT Open Space", "src.scrapers.openspace_mit", "OpenSpaceMITScraper", "playwright"),
 
     # Retired 2026-09-01: "Harvard Book Store". harvard.com moved behind
     # Cloudflare's interstitial — "Just a moment... Enable JavaScript and

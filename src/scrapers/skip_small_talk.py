@@ -33,7 +33,7 @@ from typing import List, Optional, Tuple
 import requests
 
 from src.models.event import EventCategory, EventCreate
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_scraper import BaseScraper, USER_AGENT
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,6 @@ STORE_JSON = f"{BASE}/store"
 LOCAL_CATEGORY = "Boston"
 
 # An honest client identity. Never a browser's — see CLAUDE.md "Traps".
-USER_AGENT = "cambridgecalendar.com event listings (+https://cambridgecalendar.com)"
 
 _MONTHS = ("january", "february", "march", "april", "may", "june", "july",
            "august", "september", "october", "november", "december")

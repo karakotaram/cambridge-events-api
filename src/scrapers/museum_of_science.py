@@ -34,7 +34,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from src.models.event import EventCategory, EventCreate
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_scraper import BaseScraper, USER_AGENT
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,6 @@ PER_PAGE = 18          # the largest page size the endpoint offers
 MAX_PAGES = 5
 
 # An honest client identity. Never a browser's — see CLAUDE.md "Traps".
-USER_AGENT = "cambridgecalendar.com event listings (+https://cambridgecalendar.com)"
 
 VENUE = "Museum of Science"
 ADDRESS = "1 Science Park"

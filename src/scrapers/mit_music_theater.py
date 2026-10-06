@@ -33,11 +33,10 @@ import requests
 from bs4 import BeautifulSoup
 
 from src.models.event import EventCategory, EventCreate
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_scraper import BaseScraper, USER_AGENT
 
 logger = logging.getLogger(__name__)
 
-USER_AGENT = "CambridgeCalendar/1.0 (+https://cambridgecalendar.com)"
 
 # (site, default category for a performance)
 SITES = (
