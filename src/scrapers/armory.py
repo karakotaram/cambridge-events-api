@@ -1,263 +1,212 @@
-"""Custom scraper for Arts at the Armory events"""
+"""Scraper for Arts at the Armory, Somerville.
+
+The site runs WordPress Events Manager, which publishes every upcoming event as
+an iCalendar feed at /events.ics: start and end stamped TZID=America/New_York,
+the full title (the listing truncates long ones), description, categories and
+image, in one request. On 2026-10-06 it held exactly the 81 events the "All"
+tab of /upcoming-events/ lists across seven ?pno= pages, at the same times.
+
+The host blocked plain requests from GitHub's IP ranges in Dec 2025 while
+letting a browser through. So if the plain request fails or returns something
+other than a calendar, the feed is fetched from inside a browser session on the
+listing page instead — same feed, same parser.
+"""
+import html
 import logging
 import re
 from datetime import datetime
-from typing import List
-from dateutil import parser as date_parser
+from typing import List, Optional
 
+import pytz
+import requests
+
+from src.models.event import EventCategory, EventCreate, to_eastern_naive
 from src.scrapers.base_scraper import BaseScraper
-from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
 
+ICS_URL = "https://artsatthearmory.org/events.ics"
+
+# Events Manager categories mix event types with the two rooms (Cafe,
+# Performance Hall). Only the event types say anything about the category.
+CATEGORY_MAP = {
+    "music": EventCategory.MUSIC,
+    "comedy": EventCategory.THEATER,
+    "theater": EventCategory.THEATER,
+    "circus": EventCategory.THEATER,
+    "dance": EventCategory.THEATER,
+    "wrestling": EventCategory.SPORTS,
+    "market": EventCategory.COMMUNITY,
+    "community": EventCategory.COMMUNITY,
+    "gaming": EventCategory.COMMUNITY,
+    "literary art": EventCategory.ARTS_CULTURE,
+    "film": EventCategory.ARTS_CULTURE,
+    "exhibit": EventCategory.ARTS_CULTURE,
+    "podcast": EventCategory.ARTS_CULTURE,
+}
+
+
+def unfold(block: str) -> dict:
+    """One VEVENT as {NAME: (params, value)}, with RFC 5545 folded lines joined."""
+    fields: dict = {}
+    current = None
+    for line in block.splitlines():
+        if line.startswith((" ", "\t")):
+            if current:
+                params, value = fields[current]
+                fields[current] = (params, value + line[1:])
+            continue
+        if ":" not in line:
+            continue
+        name, value = line.split(":", 1)
+        key, _, params = name.partition(";")
+        current = key.strip().upper()
+        fields[current] = (params, value.rstrip("\r"))
+    return fields
+
+
+# Event descriptions embed the ticket button's tracking script as text:
+#   $('#getTixButton').click(function() { fbq('track', 'Purchase', {...}); });
+TRACKING_SCRIPT = re.compile(
+    r"\$\(\s*['\"][^'\"]*['\"]\s*\)\.\w+\(\s*function\s*\(\)\s*\{.*?\n\s*\}\s*\)\s*;", re.S)
+
+
+def ical_text(value: str) -> str:
+    text = value.replace("\\n", "\n").replace("\\N", "\n")
+    text = text.replace("\\,", ",").replace("\\;", ";").replace("\\\\", "\\")
+    text = TRACKING_SCRIPT.sub(" ", text)
+    text = html.unescape(re.sub(r"<[^>]+>", " ", text))
+    text = re.sub(r"\bGet tickets now!", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def ical_datetime(params: str, value: str) -> tuple[Optional[datetime], bool]:
+    """(naive Eastern start, is_all_day) from a DTSTART/DTEND property."""
+    value = (value or "").strip()
+    try:
+        if "VALUE=DATE" in params.upper() and "T" not in value:
+            return datetime.strptime(value[:8], "%Y%m%d"), True
+        if value.endswith("Z"):
+            return to_eastern_naive(pytz.utc.localize(datetime.strptime(value, "%Y%m%dT%H%M%SZ"))), False
+        naive = datetime.strptime(value, "%Y%m%dT%H%M%S")
+    except ValueError:
+        return None, False
+    tzid = re.search(r"TZID=([^;:]+)", params)
+    if tzid and tzid.group(1) != "America/New_York":
+        try:
+            return to_eastern_naive(pytz.timezone(tzid.group(1)).localize(naive)), False
+        except pytz.UnknownTimeZoneError:
+            return None, False
+    return naive, False
+
 
 class ArtsAtTheArmoryScraper(BaseScraper):
-    """Custom scraper for Arts at the Armory events"""
+    """Arts at the Armory's Events Manager iCal feed."""
 
     def __init__(self):
         super().__init__(
             source_name="Arts at the Armory",
             source_url="https://artsatthearmory.org/upcoming-events/",
-            use_selenium=True  # Need Selenium to bypass cloud IP blocking
+            use_selenium=False,
         )
 
-    def fetch_event_details(self, event_url: str) -> tuple:
-        """Fetch the full description and image from an event detail page
-        Returns (description, image_url)
-        """
-        import time
-
+    def fetch_calendar(self) -> str:
         try:
-            if not self.driver:
-                return "", None
+            response = requests.get(ICS_URL, timeout=30)
+            if response.status_code == 200 and "BEGIN:VCALENDAR" in response.text[:200]:
+                return response.text
+            logger.warning(f"{self.source_name}: {ICS_URL} returned {response.status_code} "
+                           f"without a calendar; fetching it through a browser")
+        except requests.RequestException as e:
+            logger.warning(f"{self.source_name}: {ICS_URL} failed ({e}); fetching it through a browser")
+        return self.fetch_calendar_in_browser()
 
-            # Navigate to event page
-            self.driver.get(event_url)
-            time.sleep(2)  # Wait for page load
-
-            # Parse the page
-            soup = self.parse_html(self.driver.page_source)
-
-            # Extract image
-            image_url = None
-
-            # Try og:image first
-            og_image = soup.find('meta', property='og:image')
-            if og_image and og_image.get('content'):
-                image_url = og_image['content']
-
-            # If no og:image, look for featured image in entry-content
-            if not image_url:
-                featured_img = soup.find('img', class_=lambda x: x and 'wp-post-image' in x if x else False)
-                if featured_img:
-                    image_url = featured_img.get('src') or featured_img.get('data-src')
-
-            # If still no image, look for any image in entry content
-            if not image_url:
-                entry_content = soup.find(class_='entry-content')
-                if entry_content:
-                    img = entry_content.find('img', src=True)
-                    if img:
-                        img_src = img.get('src') or img.get('data-src')
-                        if img_src and not any(skip in img_src.lower() for skip in ['logo', 'icon', 'avatar']):
-                            image_url = img_src
-
-            # Normalize image URL
-            if image_url and not image_url.startswith('http'):
-                if image_url.startswith('//'):
-                    image_url = f'https:{image_url}'
-                else:
-                    image_url = f"https://artsatthearmory.org{image_url}"
-
-            # Find description in entry-content
-            description = ""
-            entry_content = soup.find(class_='entry-content')
-            if entry_content:
-                # Get all paragraph tags, skip the first one (usually date/time)
-                paragraphs = entry_content.find_all('p')
-                description_parts = []
-
-                for p in paragraphs[1:]:  # Skip first paragraph (date/time info)
-                    text = self.clean_text(p.get_text())
-                    # Filter out short navigation/footer text
-                    if len(text) > 30 and not any(skip in text.lower() for skip in [
-                        'get tickets', 'buy tickets', 'register here', 'click here',
-                        'for more information', 'visit our website'
-                    ]):
-                        description_parts.append(text)
-
-                if description_parts:
-                    # Take first 3 paragraphs for description
-                    full_description = ' '.join(description_parts[:3])
-                    description = full_description[:2000] if len(full_description) > 2000 else full_description
-
-            return description, image_url
-        except Exception as e:
-            return "", None
+    def fetch_calendar_in_browser(self) -> str:
+        self.use_selenium = True            # so run() shuts the driver down
+        self.setup_selenium()
+        self.driver.get(self.source_url)
+        self.driver.set_script_timeout(60)
+        text = self.driver.execute_async_script(
+            "const done = arguments[arguments.length - 1];"
+            "fetch(arguments[0], {credentials: 'same-origin'})"
+            "  .then(r => r.ok ? r.text() : '').then(done, () => done(''));",
+            ICS_URL)
+        if "BEGIN:VCALENDAR" not in (text or "")[:200]:
+            raise ValueError(f"{self.source_name}: no calendar at {ICS_URL}, by request or by browser")
+        return text
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from Arts at the Armory"""
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        import time
+        return self.parse_calendar(self.fetch_calendar())
 
-        html = self.fetch_html(self.source_url)
-
-        # Wait for filterDiv elements to load with extended timeout and scrolling
-        if self.driver:
-            try:
-                # First wait for basic page load
-                time.sleep(3)
-
-                # Scroll down to trigger lazy loading
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight / 2);")
-                time.sleep(2)
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(2)
-                self.driver.execute_script("window.scrollTo(0, 0);")
-                time.sleep(1)
-
-                # Wait for filterDiv elements with longer timeout
-                WebDriverWait(self.driver, 30).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "filterDiv"))
-                )
-                time.sleep(3)  # Extra wait for all elements to render
-
-                # Log page state for debugging
-                filter_divs = self.driver.find_elements(By.CLASS_NAME, "filterDiv")
-                logger.info(f"Found {len(filter_divs)} filterDiv elements via Selenium")
-
-                html = self.driver.page_source
-            except Exception as e:
-                logger.warning(f"Timeout waiting for events to load: {e}")
-                # Try to get whatever content is available
-                html = self.driver.page_source if self.driver else html
-
-        soup = self.parse_html(html)
-
+    def parse_calendar(self, raw: str) -> List[EventCreate]:
         events = []
-        seen_urls = set()  # Track URLs to avoid duplicates
-
-        # Find all event containers
-        event_divs = soup.find_all('div', class_='filterDiv')
-        logger.info(f"Found {len(event_divs)} filterDiv elements")
-
-        # Limit to reasonable number (20 upcoming events)
-        event_divs = event_divs[:20]
-
-        for div in event_divs:
+        for chunk in raw.split("BEGIN:VEVENT")[1:]:
+            block = chunk.split("END:VEVENT", 1)[0]
             try:
-                # Extract title
-                title_elem = div.find(['h3', 'h4'])
-                if not title_elem:
-                    continue
-
-                title_link = title_elem.find('a')
-                if not title_link:
-                    continue
-
-                title = self.clean_text(title_link.get_text())
-                if len(title) < 3:
-                    continue
-
-                # Extract event URL
-                event_url = title_link.get('href', '')
-                if not event_url or not event_url.startswith('http'):
-                    continue
-
-                # Skip if we've already seen this URL (same event in multiple categories)
-                if event_url in seen_urls:
-                    continue
-                seen_urls.add(event_url)
-
-                # Extract date - look for em-event-date element
-                date_elem = div.find(class_='em-event-date')
-                if not date_elem:
-                    continue
-
-                date_text = self.clean_text(date_elem.get_text())
-                # Date format: "Tue. Nov. 18, 2025 - Tue. Nov. 25, 2025"
-                # We want the first date
-                date_text = date_text.split(' - ')[0].strip()
-
-                # Extract time - look for em-event-time element
-                time_elem = div.find(class_='em-event-time')
-                time_text = ""
-                if time_elem:
-                    time_text = self.clean_text(time_elem.get_text())
-                    # Time format: "6:30 pm - 9:30 pm"
-                    # We want the start time
-                    time_text = time_text.split(' - ')[0].strip()
-
-                # Combine date and time for parsing
-                datetime_str = f"{date_text} {time_text}"
-
-                # Parse the datetime
-                try:
-                    start_datetime = date_parser.parse(datetime_str, fuzzy=True)
-                except:
-                    # If parsing fails, try just the date
-                    try:
-                        start_datetime = date_parser.parse(date_text, fuzzy=True)
-                    except:
-                        continue
-
-                # Default location (Arts at the Armory)
-                venue_name = "Arts at the Armory"
-                street_address = "191 Highland Ave"
-                city = "Somerville"
-                state = "MA"
-                zip_code = "02143"
-
-                # Extract cost if available
-                cost = None
-                body_text = div.get_text().lower()
-                if 'free' in body_text and 'admission' in body_text:
-                    cost = "Free"
-                elif '$' in body_text:
-                    # Try to extract dollar amount
-                    cost_match = re.search(r'\$(\d+(?:\.\d{2})?)', body_text)
-                    if cost_match:
-                        cost = f"${cost_match.group(1)}"
-
-                # Fetch description and image from detail page
-                description = ""
-                image_url = None
-                if event_url:
-                    detail_desc, image_url = self.fetch_event_details(event_url)
-                    if detail_desc and len(detail_desc) > 20:
-                        description = detail_desc
-
-                # Fallback description
-                if not description or len(description) < 20:
-                    description = f"{title} at {venue_name}"
-
-                # Categorize events
-                category = self.categorize_event(title, description)
-
-                event = EventCreate(
-                    title=title[:200],
-                    description=description[:2000],
-                    start_datetime=start_datetime,
-                    source_url=event_url,
-                    source_name=self.source_name,
-                    venue_name=venue_name[:200],
-                    street_address=street_address,
-                    city=city,
-                    state=state,
-                    zip_code=zip_code,
-                    category=category,
-                    cost=cost,
-                    image_url=image_url
-                )
-                events.append(event)
-
+                event = self.parse_vevent(unfold(block))
             except Exception as e:
-                # Log error but continue processing other events
+                logger.warning(f"{self.source_name}: failed to parse a VEVENT: {e}")
                 continue
-
+            if event:
+                events.append(event)
         return events
+
+    def parse_vevent(self, fields: dict) -> Optional[EventCreate]:
+        get = lambda name: fields.get(name, ("", ""))     # noqa: E731
+        title = ical_text(get("SUMMARY")[1])
+        url = get("URL")[1].strip() or self.source_url
+        if len(title) < 3:
+            return None
+        if get("STATUS")[1].strip().upper() == "CANCELLED" or re.search(r"\bcancel+ed\b", title, re.I):
+            logger.info(f"{self.source_name}: skipping cancelled '{title}'")
+            return None
+
+        start, all_day = ical_datetime(*get("DTSTART"))
+        if start is None:
+            logger.warning(f"Skipping '{title}' - no parseable date ({url})")
+            return None
+        end, _ = ical_datetime(*get("DTEND"))
+        if end is not None and (end <= start or all_day):
+            end = None
+
+        description = ical_text(get("DESCRIPTION")[1])
+        if len(description) < 20:
+            description = f"{title} at Arts at the Armory, Somerville."
+
+        labels = [c.strip() for c in ical_text(get("CATEGORIES")[1]).split(",") if c.strip()]
+        category = next((CATEGORY_MAP[c.lower()] for c in labels if c.lower() in CATEGORY_MAP),
+                        None) or self.categorize_event(title, description)
+
+        image = get("ATTACH")[1].strip()
+
+        return EventCreate(
+            title=title[:200],
+            description=description[:2000],
+            start_datetime=start,
+            end_datetime=end,
+            all_day=all_day,
+            source_url=url,
+            source_name=self.source_name,
+            venue_name="Arts at the Armory",
+            street_address="191 Highland Ave",
+            city="Somerville",
+            state="MA",
+            zip_code="02143",
+            category=category,
+            tags=labels,
+            cost=self.cost(description),
+            image_url=image if image.startswith("http") else None,
+        )
+
+    @staticmethod
+    def cost(description: str) -> Optional[str]:
+        text = description.lower()
+        amount = re.search(r"\$\d+(?:\.\d{2})?", description)
+        if amount:
+            return amount.group()
+        if re.search(r"\bfree (admission|event|entry|and open)|admission is free|\bfree!", text):
+            return "Free"
+        return None
 
     def categorize_event(self, title: str, description: str) -> EventCategory:
         """Categorize event based on keywords"""
