@@ -86,6 +86,7 @@ These are load-bearing. Each exists because of a specific failure.
 | **Frontend** | `cambridgecalendar.com` — Vercel, from `main` of `~/Projects/cambridge-event-compass` |
 | **API + data** | `https://web-production-00281.up.railway.app` — Railway, from `main` of this repo |
 | **Daily refresh** | `.github/workflows/scrape-events.yml`, 06:00 UTC, commits and pushes unconditionally |
+| **Weekly local refresh** | `scripts/weekly_local_scrape.sh` via launchd on the owner's Mac, Mondays 10:00, for the `runs_in_ci=False` sources (see [OPERATIONS](docs/OPERATIONS.md#runbook-local-only-sources-weekly)) |
 
 **Pushing to `main` deploys to production.** No staging; redeploy takes ~2 min.
 
@@ -169,7 +170,8 @@ Other things worth knowing:
   does not die mid-run, which is the normal shape of a Selenium failure.
 - `CI_SKIP_SOURCES` is derived from `runs_in_ci=False` in the registry. CI
   preserves those sources' events rather than re-scraping, so they go stale
-  silently; `scrape_local.py` refreshes them.
+  unless `scrape_local.py` runs; the weekly launchd job runs it. Three of them
+  (Porter, Harvard Book Store, Aeronaut) open a visible browser window.
 - `src/agents/` — six non-fatal monitoring and quality agents. They degrade
   silently when a key is missing, so treat "the step was skipped" as a finding.
 

@@ -112,6 +112,58 @@ Reading the signals:
 Fix the scraper so it *skips* rather than guesses, add a fixture-backed test
 (`cal scrape <name> --save-fixture`), then repair the data.
 
+## Runbook: local-only sources (weekly)
+
+Sources registered `runs_in_ci=False` never refresh in CI: Boston Swing Central
+blocks GitHub's IP ranges, and Porter Square Books, Harvard Book Store and
+Aeronaut need a visible browser window. `scripts/weekly_local_scrape.sh` pulls,
+runs `scrape_local.py`, and commits and pushes `data/events.json` if it changed.
+It refuses to run over uncommitted changes in `data/` or `src/`, and posts a
+macOS notification when anything fails.
+
+A launchd agent runs it Mondays at 10:00 on the owner's Mac; if the Mac is
+asleep then, it runs on wake. It needs someone logged in (the windows need a
+session). Log: `logs/weekly_local_scrape.log`.
+
+```bash
+launchctl kickstart gui/$(id -u)/com.cambridgecalendar.scrape-local   # run it now
+launchctl print gui/$(id -u)/com.cambridgecalendar.scrape-local       # status
+launchctl bootout gui/$(id -u)/com.cambridgecalendar.scrape-local     # remove
+```
+
+To reinstall, save this as
+`~/Library/LaunchAgents/com.cambridgecalendar.scrape-local.plist` and run
+`launchctl bootstrap gui/$(id -u) <that path>`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.cambridgecalendar.scrape-local</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/karanarakotaram/Projects/cambridgescraper/scripts/weekly_local_scrape.sh</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>10</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/Users/karanarakotaram/Projects/cambridgescraper/logs/weekly_local_scrape.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/karanarakotaram/Projects/cambridgescraper/logs/weekly_local_scrape.log</string>
+</dict>
+</plist>
+```
+
 ## Runbook: repair one source
 
 Re-scrape a single source and splice it in, leaving every other source untouched.
