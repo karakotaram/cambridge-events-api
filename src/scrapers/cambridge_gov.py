@@ -3,7 +3,7 @@ import logging
 import re
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
+from datetime import date, datetime, time as dt_time, timedelta
 from typing import List, Optional
 from dateutil import parser as date_parser
 
@@ -16,9 +16,18 @@ logger = logging.getLogger(__name__)
 # the authoritative date, so this pass only adds images/descriptions.
 DETAIL_WORKERS = 6
 
+# "Displaying 1-200 of 231 results" above each Week view listing
+DISPLAYING = re.compile(r'(\d+)\s*-\s*(\d+)\s+of\s+(\d+)')
+
+# The busiest week seen is 178 events, so one page of 200 is the norm. The cap
+# only stops a pager that never ends.
+MAX_PAGES_PER_WEEK = 10
+
 
 class CambridgeGovScraper(BaseScraper):
     """Custom scraper for City of Cambridge events"""
+
+    PAGE_SIZE = 200
 
     def __init__(self):
         super().__init__(
@@ -128,10 +137,11 @@ class CambridgeGovScraper(BaseScraper):
         Each row carries a `<time datetime="YYYY-MM-DD HH:MM:SS">` attribute
         plus visible text like "5:00 PM". The attribute's *date* is reliable but
         its *time* is a 12-hour clock with no meridiem - a 5 PM event is written
-        `05:00:00` - so the time always comes from the visible text.
+        `05:00:00` - so the time only ever comes from the visible text. If that
+        text has no AM/PM, the time is unknowable and the row is skipped.
 
-        Returns None when no date can be read. Callers must skip the event
-        rather than invent one.
+        Returns None when no date or time can be read. Callers must skip the
+        event rather than invent one.
         """
         time_elem = item.find('time')
         if time_elem is None:
@@ -139,36 +149,48 @@ class CambridgeGovScraper(BaseScraper):
 
         time_text = self.clean_text(time_elem.get_text())
         time_of_day = self._parse_time_of_day(time_text)
+        if time_of_day is None:
+            # The attribute cannot stand in: "05:00:00" may be 5 AM or 5 PM.
+            logger.warning(f"No AM/PM in visible time {time_text!r} "
+                           f"(attribute {time_elem.get('datetime')!r}) - skipping")
+            return None
 
-        raw = (time_elem.get('datetime') or '').strip()
-        if raw:
+        day = self._day_from_attribute(time_elem.get('datetime'))
+        if day is None:
+            day = self._day_from_heading(day_heading, week_start)
+        if day is None:
+            return None
+        return datetime.combine(day, dt_time(*time_of_day))
+
+    @staticmethod
+    def _day_from_attribute(raw: Optional[str]) -> Optional[date]:
+        """The date part of `datetime="2026-09-16 05:00:00"`."""
+        raw = (raw or '').strip()
+        if not raw:
+            return None
+        try:
+            return date_parser.parse(raw).date()
+        except (ValueError, OverflowError):
+            logger.warning(f"Unparseable time datetime attribute: {raw!r}")
+            return None
+
+    def _day_from_heading(self, day_heading: Optional[str], week_start: datetime) -> Optional[date]:
+        """A day heading ("Monday September 14") within the week being scraped.
+
+        Headings carry no year, so borrow it from the week and correct for a
+        December -> January rollover.
+        """
+        if not day_heading:
+            return None
+        heading = self.clean_text(day_heading)
+        for year in (week_start.year, week_start.year + 1):
             try:
-                parsed = date_parser.parse(raw)
+                parsed = date_parser.parse(f"{heading} {year}", fuzzy=True)
             except (ValueError, OverflowError):
-                logger.warning(f"Unparseable time datetime attribute: {raw!r}")
-            else:
-                if time_of_day is None:
-                    # No meridiem to correct with - keep the attribute as-is
-                    logger.warning(f"No readable time text for {raw!r}, using attribute time")
-                    return parsed
-                return parsed.replace(
-                    hour=time_of_day[0], minute=time_of_day[1], second=0, microsecond=0
-                )
-
-        # Fallback: day heading ("Monday September 14") + visible time.
-        # Headings carry no year, so borrow it from the week being scraped and
-        # correct for a December -> January rollover.
-        if day_heading:
-            heading = self.clean_text(day_heading)
-            for year in (week_start.year, week_start.year + 1):
-                try:
-                    parsed = date_parser.parse(f"{heading} {year} {time_text}".strip(), fuzzy=True)
-                except (ValueError, OverflowError):
-                    continue
-                # Listings only ever span the requested week
-                if -1 <= (parsed.date() - week_start.date()).days <= 8:
-                    return parsed
-
+                continue
+            # Listings only ever span the requested week
+            if -1 <= (parsed.date() - week_start.date()).days <= 8:
+                return parsed.date()
         return None
 
     @staticmethod
@@ -187,103 +209,138 @@ class CambridgeGovScraper(BaseScraper):
 
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from Cambridge.gov city calendar starting from today"""
-        events = []
+        events: List[EventCreate] = []
         seen = set()  # (url, start_datetime) - a recurring event has one entry per date
-        skipped_no_date = 0
 
-        # Start from today to avoid scraping old data
+        # The window is a choice of which pages to request, not a filter on
+        # what they contain: each Week view runs Sunday-Saturday around `start`.
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        # Scrape for next 60 days
         end_date = today + timedelta(days=60)
 
-        # Scrape week by week using Week view (more efficient than day by day)
         current_date = today
         while current_date <= end_date:
-            # Format: YYYYMMDDTHHMMSS
-            date_str = current_date.strftime("%Y%m%dT000000")
-            # Use Week view with 200 results per page
-            week_url = f"{self.source_url}?start={date_str}&view=Week&page=1&resultsperpage=200"
+            for event in self.scrape_week(current_date):
+                key = (event.source_url, event.start_datetime)
+                if key not in seen:
+                    seen.add(key)
+                    events.append(event)
+            current_date += timedelta(days=7)
 
+        self.enrich_from_detail_pages(events)
+        return events
+
+    def scrape_week(self, week_start: datetime) -> List[EventCreate]:
+        """Every event in the Week view around `week_start`, across all pages.
+
+        The view pages its results. A busy week (178 on 2026-10-04) fits in one
+        page of 200, but only page 1 was ever requested, so a week past 200
+        would have lost its tail silently. The "Displaying 1-200 of 231
+        results" note says whether there is more.
+        """
+        events: List[EventCreate] = []
+        start = week_start.strftime("%Y%m%dT000000")
+        for page in range(1, MAX_PAGES_PER_WEEK + 1):
+            url = (f"{self.source_url}?start={start}&view=Week"
+                   f"&page={page}&resultsperpage={self.PAGE_SIZE}")
             try:
-                soup = self.parse_html(self.fetch_html(week_url))
+                soup = self.parse_html(self.fetch_html(url))
             except Exception as e:
-                logger.error(f"Failed to fetch week of {current_date.date()}: {e}")
-                current_date += timedelta(days=7)
+                logger.error(f"Failed to fetch week of {week_start.date()} page {page}: {e}")
+                break
+
+            events.extend(self.parse_week_page(soup, week_start))
+
+            shown = self._displaying(soup)
+            if shown is None:
+                logger.warning(f"No 'Displaying N-M of T results' note on {url}; "
+                               "cannot tell whether the week has more pages")
+                break
+            last, total = shown
+            if last >= total:
+                break
+        else:
+            logger.warning(f"Week of {week_start.date()} still had results after "
+                           f"{MAX_PAGES_PER_WEEK} pages")
+        return events
+
+    @staticmethod
+    def _displaying(soup) -> Optional[tuple]:
+        """(last shown, total) from "Displaying 1-200 of 231 results"."""
+        note = soup.find(class_='displayingNote')
+        text = note.get_text(' ') if note else ''
+        match = DISPLAYING.search(text)
+        if not match:
+            return None
+        return int(match.group(2)), int(match.group(3))
+
+    def parse_week_page(self, soup, week_start: datetime) -> List[EventCreate]:
+        """The dateable events on one page of a Week view."""
+        events: List[EventCreate] = []
+        skipped_no_date = 0
+
+        # The listing alternates <li class="date"> headings with the
+        # <li class="eventItem"> rows that fall under them.
+        day_heading = None
+        for node in soup.find_all('li', class_=['date', 'eventItem']):
+            classes = node.get('class') or []
+            if 'date' in classes:
+                day_heading = self.clean_text(node.get_text())
                 continue
 
-            # The listing alternates <li class="date"> headings with the
-            # <li class="eventItem"> rows that fall under them.
-            day_heading = None
-            for node in soup.find_all('li', class_=['date', 'eventItem']):
-                classes = node.get('class') or []
-                if 'date' in classes:
-                    day_heading = self.clean_text(node.get_text())
+            try:
+                link = node.find('a', href=lambda x: x and '/citycalendar/view.aspx?guid=' in x if x else False)
+                if not link:
                     continue
 
-                try:
-                    link = node.find('a', href=lambda x: x and '/citycalendar/view.aspx?guid=' in x if x else False)
-                    if not link:
-                        continue
-
-                    title = self.clean_text(link.get_text())
-                    if len(title) < 5:
-                        continue
-
-                    # Skip cancelled events
-                    if 'CANCELLED' in title.upper() or 'CANCELED' in title.upper():
-                        continue
-
-                    event_url = link.get('href', '')
-                    if event_url.startswith('/'):
-                        event_url = f"https://www.cambridgema.gov{event_url}"
-                    elif not event_url.startswith('http'):
-                        event_url = self.source_url
-
-                    start_datetime = self.parse_item_datetime(node, day_heading, current_date)
-                    if start_datetime is None:
-                        # Never guess. An event with an unknown date is worse
-                        # than a missing one - it pollutes another day.
-                        skipped_no_date += 1
-                        logger.warning(f"Skipping '{title}' - no parseable date ({event_url})")
-                        continue
-
-                    key = (event_url, start_datetime)
-                    if key in seen:
-                        continue
-                    seen.add(key)
-
-                    location = node.find('em', class_='location')
-                    venue_name, street_address = (
-                        self._split_address(self.clean_text(location.get_text()))
-                        if location else (None, None)
-                    )
-
-                    desc_elem = node.find('p')
-                    description = self.clean_text(desc_elem.get_text()) if desc_elem else ""
-
-                    events.append(EventCreate(
-                        title=title[:200],
-                        description=(description or title)[:2000],
-                        start_datetime=start_datetime,
-                        source_url=event_url,
-                        source_name=self.source_name,
-                        venue_name=venue_name,
-                        street_address=street_address,
-                        city="Cambridge",
-                        state="MA",
-                        category=self.categorize_event(title, description),
-                    ))
-                except Exception as e:
-                    logger.warning(f"Failed to parse listing row: {e}")
+                title = self.clean_text(link.get_text())
+                if len(title) < 5:
                     continue
 
-            # Move to next week
-            current_date += timedelta(days=7)
+                # Skip cancelled events
+                if 'CANCELLED' in title.upper() or 'CANCELED' in title.upper():
+                    continue
+
+                event_url = link.get('href', '')
+                if event_url.startswith('/'):
+                    event_url = f"https://www.cambridgema.gov{event_url}"
+                elif not event_url.startswith('http'):
+                    event_url = self.source_url
+
+                start_datetime = self.parse_item_datetime(node, day_heading, week_start)
+                if start_datetime is None:
+                    # Never guess. An event with an unknown date is worse
+                    # than a missing one - it pollutes another day.
+                    skipped_no_date += 1
+                    logger.warning(f"Skipping '{title}' - no parseable date ({event_url})")
+                    continue
+
+                location = node.find('em', class_='location')
+                venue_name, street_address = (
+                    self._split_address(self.clean_text(location.get_text()))
+                    if location else (None, None)
+                )
+
+                desc_elem = node.find('p')
+                description = self.clean_text(desc_elem.get_text()) if desc_elem else ""
+
+                events.append(EventCreate(
+                    title=title[:200],
+                    description=(description or title)[:2000],
+                    start_datetime=start_datetime,
+                    source_url=event_url,
+                    source_name=self.source_name,
+                    venue_name=venue_name,
+                    street_address=street_address,
+                    city="Cambridge",
+                    state="MA",
+                    category=self.categorize_event(title, description),
+                ))
+            except Exception as e:
+                logger.warning(f"Failed to parse listing row: {e}")
+                continue
 
         if skipped_no_date:
             logger.warning(f"Skipped {skipped_no_date} Cambridge.gov events with no parseable date")
-
-        self.enrich_from_detail_pages(events)
         return events
 
     def enrich_from_detail_pages(self, events: List[EventCreate]) -> None:
