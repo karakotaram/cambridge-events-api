@@ -13,9 +13,7 @@ import logging
 import re
 from calendar import monthrange
 from datetime import datetime
-from typing import List, Optional
-
-from dateutil import parser as date_parser
+from typing import List, Optional, Tuple
 
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
@@ -28,6 +26,15 @@ MONTHS_AHEAD = 3
 VENUE = "Harvard-Radcliffe Dramatic Club"
 # HRDC produces across several Harvard theaters; the Loeb is the primary one.
 ADDRESS = "64 Brattle St"
+
+# The calendar also carries the club's own deadlines ("Agassiz Theater Apps
+# Due", 11:59 PM). A deadline is not something a reader can attend.
+DEADLINE = re.compile(
+    r"\bdeadline\b"
+    r"|\b(?:apps?|applications?|submissions?|proposals?|pitches|forms?|materials?|registrations?)\b.*\bdue\b",
+    re.I)
+
+_CLOCK = re.compile(r"^(\d{1,2})(?::(\d{2}))?\s*([ap])\.?\s*m\.?$", re.I)
 
 
 class HRDCScraper(BaseScraper):
@@ -94,13 +101,16 @@ class HRDCScraper(BaseScraper):
         title = self.clean_text(title_el.get_text())
         if len(title) < 3:
             return None
+        if DEADLINE.search(title):
+            logger.info(f"Skipping '{title}' - a deadline, not an event")
+            return None
 
         time_el = item.find(class_="calendar-show-time")
-        start = self._parse_start(year, month, day,
-                                  self.clean_text(time_el.get_text()) if time_el else "")
+        time_text = self.clean_text(time_el.get_text()) if time_el else ""
+        start, all_day = self._parse_start(year, month, day, time_text)
         if start is None:
             # Never guess — see docs/ARCHITECTURE.md "Layer 1 — Scrapers".
-            logger.warning(f"Skipping '{title}' - no parseable date for {year}-{month:02d}-{day:02d}")
+            logger.warning(f"Skipping '{title}' - unreadable time {time_text!r} on {year}-{month:02d}-{day:02d}")
             return None
 
         link = title_el.find("a", href=True)
@@ -108,9 +118,11 @@ class HRDCScraper(BaseScraper):
         if url.startswith("/"):
             url = f"{BASE}{url}"
 
-        # The info icon's tooltip carries the venue/notes for the show
-        note = item.find("i", attrs={"data-original-title": True})
-        detail = self.clean_text(note["data-original-title"]) if note else ""
+        # The info icon's tooltip carries the venue/notes for the show. The
+        # served markup has it in `title`; Bootstrap moves it to
+        # `data-original-title` only once the page's script has run.
+        note = item.find("i", attrs={"title": True}) or item.find("i", attrs={"data-original-title": True})
+        detail = self.clean_text(note.get("title") or note.get("data-original-title") or "") if note else ""
 
         description = f"{title} — {VENUE}."
         if detail:
@@ -120,6 +132,7 @@ class HRDCScraper(BaseScraper):
             title=title[:200],
             description=description[:2000],
             start_datetime=start,
+            all_day=all_day,
             source_url=url,
             source_name=self.source_name,
             venue_name=VENUE,
@@ -131,16 +144,27 @@ class HRDCScraper(BaseScraper):
         )
 
     @staticmethod
-    def _parse_start(year: int, month: int, day: int, time_text: str) -> Optional[datetime]:
-        """Date from the calendar cell, time from "9 PM" style text."""
+    def _parse_start(year: int, month: int, day: int, time_text: str) -> Tuple[Optional[datetime], bool]:
+        """(start, all_day): the date from the calendar cell, the time from "9 PM".
+
+        No time text means the cell lists the item for the day without a time:
+        an all-day listing. Time text that cannot be read gives (None, False)
+        and the item is skipped. Both used to become midnight.
+        """
         try:
             date = datetime(year, month, day)
         except ValueError:
-            return None
-        if not time_text:
-            return date
-        try:
-            parsed = date_parser.parse(time_text, fuzzy=True)
-        except (ValueError, OverflowError):
-            return date
-        return date.replace(hour=parsed.hour, minute=parsed.minute, second=0, microsecond=0)
+            return None, False
+        text = " ".join((time_text or "").split())
+        if not text:
+            return date, True
+        if text.lower() == "noon":
+            return date.replace(hour=12), False
+        m = _CLOCK.match(text)
+        if not m:
+            return None, False
+        hour, minute = int(m.group(1)), int(m.group(2) or 0)
+        if not (1 <= hour <= 12 and minute < 60):
+            return None, False
+        hour = hour % 12 + (12 if m.group(3).lower() == "p" else 0)
+        return date.replace(hour=hour, minute=minute), False
