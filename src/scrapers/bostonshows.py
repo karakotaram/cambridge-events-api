@@ -1,11 +1,26 @@
-"""Custom scraper for bostonshows.org"""
+"""Custom scraper for bostonshows.org
+
+An aggregator: the homepage lists a year of shows across Greater Boston as one
+`div.date-events[data-date]` per day, each holding `tr.event` rows. A row
+carries its city and venue as attributes (`data-city`, `data-venue`) and its
+start as visible text ("8:00pm").
+
+The venue is read from `data-venue`. It used to be read from the second `<a>`
+in the row, but venues without a page on the site (Davis Square Plaza, the
+library branches) are plain text, and those rows were published as
+"Unknown Venue".
+"""
+import logging
 import re
-from datetime import datetime, timedelta
-from typing import List
-from dateutil import parser as date_parser
+from datetime import datetime
+from typing import List, Optional
 
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
+
+logger = logging.getLogger(__name__)
+
+TIME = re.compile(r'(\d{1,2}):(\d{2})\s*(am|pm)', re.IGNORECASE)
 
 
 class BostonShowsScraper(BaseScraper):
@@ -29,154 +44,125 @@ class BostonShowsScraper(BaseScraper):
     def scrape_events(self) -> List[EventCreate]:
         """Scrape events from bostonshows.org"""
         html = self.fetch_html(self.source_url)
-        soup = self.parse_html(html)
+        return self.parse_listing(self.parse_html(html))
 
+    def parse_listing(self, soup) -> List[EventCreate]:
         events = []
-
-        # Find all date-events containers
-        date_containers = soup.find_all('div', class_='date-events')
-
-        for container in date_containers:
-            # Get the date from data-date attribute
-            date_str = container.get('data-date')
-            if not date_str:
-                continue
-
+        for container in soup.find_all('div', class_='date-events'):
+            # data-date is ISO ("2026-10-06"); anything else is not trusted
             try:
-                event_date = date_parser.parse(date_str)
-            except:
+                event_date = datetime.strptime(container.get('data-date', ''), '%Y-%m-%d')
+            except ValueError:
+                logger.warning(f"Skipping a day with unreadable data-date {container.get('data-date')!r}")
                 continue
 
-            # Find all event rows within this date container
-            event_rows = container.find_all('tr', class_='event')
-
-            for row in event_rows:
+            for row in container.find_all('tr', class_='event'):
                 try:
                     event = self._parse_event_row(row, event_date)
-                    if event:
-                        events.append(event)
                 except Exception as e:
-                    # Log error but continue processing
+                    logger.warning(f"Failed to parse a BostonShows row: {e}")
                     continue
+                if event:
+                    events.append(event)
 
         return events
 
-    def _parse_date_header(self, date_text: str) -> datetime:
-        """Parse date from header like 'Friday, November 29'"""
-        try:
-            # Get current year
-            current_year = datetime.now().year
-            current_month = datetime.now().month
+    def _venue(self, details_cell, row) -> tuple:
+        """(venue, neighborhood). The row attribute is authoritative; the
+        visible "at <venue> (<neighborhood>)" text is the fallback."""
+        venue = self.clean_text(row.get('data-venue', '')) or None
+        neighborhood = None
+        venue_div = details_cell.find('div', class_='event-venue')
+        if venue_div:
+            text = self.clean_text(venue_div.get_text(' '))
+            match = re.search(r'\(([^()]*)\)\s*$', text)
+            if match:
+                neighborhood = match.group(1).strip() or None
+                text = text[:match.start()].strip()
+            if not venue:
+                venue = re.sub(r'^at\s+', '', text).strip() or None
+        return venue, neighborhood
 
-            # Parse the date
-            parsed_date = date_parser.parse(f"{date_text} {current_year}", fuzzy=True)
-
-            # If the parsed month is before current month, assume next year
-            if parsed_date.month < current_month:
-                parsed_date = date_parser.parse(f"{date_text} {current_year + 1}", fuzzy=True)
-
-            return parsed_date
-        except:
-            return datetime.now()
-
-    def _parse_event_row(self, row, event_date: datetime) -> EventCreate:
+    def _parse_event_row(self, row, event_date: datetime) -> Optional[EventCreate]:
         """Parse a single event row"""
-        # Get city from data-city attribute
         city = row.get('data-city', '').strip()
-
-        # Filter: only Cambridge and Somerville
         if city not in ['Cambridge', 'Somerville']:
             return None
 
-        # Get event time
         time_cell = row.find('td', class_='event-start')
-        if not time_cell:
-            return None
-
-        time_text = self.clean_text(time_cell.get_text())
-
-        # Get event details
         details_cell = row.find('td', class_='event-details')
-        if not details_cell:
+        if not time_cell or not details_cell:
             return None
 
-        # Get title and URL
-        title_link = details_cell.find('a')
+        title_div = details_cell.find('div', class_='event-title') or details_cell
+        title_link = title_div.find('a')
         if not title_link:
             return None
 
         title = self.clean_text(title_link.get_text())
         event_url = title_link.get('href', '')
         if event_url and not event_url.startswith('http'):
-            event_url = f"https://bostonshows.org/{event_url}"
+            event_url = f"https://bostonshows.org/{event_url.lstrip('/')}"
 
-        # Get venue information
-        venue_name = None
-        venue_neighborhood = None
-        venue_link = details_cell.find_all('a')
-        if len(venue_link) > 1:
-            venue_name = self.clean_text(venue_link[1].get_text())
-            # Extract neighborhood from parentheses
-            venue_text = self.clean_text(details_cell.get_text())
-            neighborhood_match = re.search(r'\((.*?)\)', venue_text)
-            if neighborhood_match:
-                venue_neighborhood = neighborhood_match.group(1)
+        venue_name, neighborhood = self._venue(details_cell, row)
+        if venue_name and any(x in venue_name.lower() for x in self.EXCLUDED_VENUES):
+            return None
 
-        # Filter: exclude specific venues
-        if venue_name:
-            venue_lower = venue_name.lower()
-            if any(excluded in venue_lower for excluded in self.EXCLUDED_VENUES):
-                return None
-
-        # Parse start datetime
+        time_text = self.clean_text(time_cell.get_text())
         start_datetime = self._combine_date_time(event_date, time_text)
+        if start_datetime is None:
+            # Never guess a start. This used to default to 8 PM.
+            logger.warning(f"Skipping '{title}' - no parseable time {time_text!r} ({event_url or self.source_url})")
+            return None
 
-        # Build description
+        info_div = details_cell.find('div', class_='event-info')
+        info = self.clean_text(info_div.get_text(' ')) if info_div else ''
+        cost = self._cost(info)
+
         description = title
-        if venue_neighborhood:
-            description = f"{title} at {venue_name} in {venue_neighborhood}"
+        if venue_name:
+            description += f" at {venue_name}"
+            if neighborhood:
+                description += f" ({neighborhood})"
+        if info:
+            description += f". {info}"
 
-        # Determine venue address (use generic Cambridge/Somerville address)
-        street_address = ""
-        state = "MA"
-        zip_code = "02139" if city == "Cambridge" else "02144"
-
-        event = EventCreate(
+        return EventCreate(
             title=title[:200],
             description=description[:2000],
             start_datetime=start_datetime,
             source_url=event_url if event_url else self.source_url,
             source_name=self.source_name,
-            venue_name=venue_name if venue_name else "Unknown Venue",
-            street_address=street_address,
+            venue_name=venue_name,
             city=city,
-            state=state,
-            zip_code=zip_code,
+            state="MA",
+            zip_code="02139" if city == "Cambridge" else "02144",
+            cost=cost,
             category=EventCategory.MUSIC
         )
 
-        return event
+    @staticmethod
+    def _cost(info: str) -> Optional[str]:
+        """"$10–$15 / all ages" -> "$10–$15"; "free / 21+" -> "Free"."""
+        for part in (p.strip() for p in info.split('/')):
+            if part.startswith('$'):
+                return part
+            if part.lower() == 'free':
+                return 'Free'
+        return None
 
-    def _combine_date_time(self, date: datetime, time_str: str) -> datetime:
-        """Combine date and time string into datetime"""
-        try:
-            # Parse time like "11:30am" or "8:00pm"
-            time_match = re.search(r'(\d{1,2}):(\d{2})\s*(am|pm)', time_str, re.IGNORECASE)
-            if time_match:
-                hour = int(time_match.group(1))
-                minute = int(time_match.group(2))
-                am_pm = time_match.group(3).lower()
-
-                # Convert to 24-hour format
-                if am_pm == 'pm' and hour != 12:
-                    hour += 12
-                elif am_pm == 'am' and hour == 12:
-                    hour = 0
-
-                # Combine date and time
-                return date.replace(hour=hour, minute=minute, second=0, microsecond=0)
-        except:
-            pass
-
-        # Default to 8pm if time parsing fails
-        return date.replace(hour=20, minute=0, second=0, microsecond=0)
+    @staticmethod
+    def _combine_date_time(date: datetime, time_str: str) -> Optional[datetime]:
+        """"8:00pm" on the row's date, or None if the text holds no clock time."""
+        match = TIME.search(time_str or '')
+        if not match:
+            return None
+        hour, minute = int(match.group(1)), int(match.group(2))
+        if not (1 <= hour <= 12 and 0 <= minute <= 59):
+            return None
+        meridiem = match.group(3).lower()
+        if meridiem == 'pm' and hour != 12:
+            hour += 12
+        elif meridiem == 'am' and hour == 12:
+            hour = 0
+        return date.replace(hour=hour, minute=minute, second=0, microsecond=0)
