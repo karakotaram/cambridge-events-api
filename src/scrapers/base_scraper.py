@@ -42,8 +42,6 @@ class BaseScraper(ABC):
             options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-extensions')
             options.add_argument('--disable-software-rasterizer')
-            # Realistic user-agent to avoid bot detection
-            options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
             # Additional stability options for CI environments
             options.add_argument('--disable-setuid-sandbox')
             options.add_argument('--disable-features=VizDisplayCompositor')
