@@ -1,15 +1,45 @@
-"""Scraper for The Mad Monkfish jazz events"""
+"""Scraper for The Mad Monkfish jazz schedule (Jazz Baroness Room, Central Square).
+
+The site is BentoBox. Two things about it shape this scraper:
+
+- The listing is paged with `?p=N`, ten cards a page. The pager's labels are
+  backwards — the link *forward* in time is labelled "Previous" — and "Load More
+  Events" is a `<button>` that fetches the same `?p=N` pages by script. Past the
+  last page the site wraps round to page 1, so paging stops when a page adds no
+  event it has not already seen.
+- A card carries only a title such as "10/10 Nick Brust Late Night Jam Session".
+  Most titles name no time, and a "12-1am" set is listed under the evening
+  before the date it actually starts on. The event page states both plainly
+  ("October 10, 2026 10:00 PM until …"), so every event is dated from there.
+"""
+import html
+import json
 import logging
 import re
-from datetime import datetime
-from typing import List, Optional
-import requests
+from datetime import datetime, timedelta
+from typing import List, Optional, Tuple
+from urllib.parse import urljoin
+
 from bs4 import BeautifulSoup
 
+from src.models.event import EventCategory, EventCreate
 from src.scrapers.base_scraper import BaseScraper
-from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
+
+# Four pages hold ~5 weeks of shows. The cap only bounds a pager that never
+# wraps or ends; the stop condition is "nothing new".
+MAX_PAGES = 8
+
+_WHEN = re.compile(
+    r"([A-Z][a-z]+ \d{1,2}, \d{4})\s+(\d{1,2}:\d{2}\s*[AP]M)"
+    r"(?:\s+until\s+([A-Z][a-z]+ \d{1,2}, \d{4})\s+(\d{1,2}:\d{2}\s*[AP]M))?")
+
+# "7pm", "12-1am", "(3pm-6pm)" — times written into a card title.
+_TITLE_TIME = re.compile(
+    r"\(?\s*\b\d{1,2}(?::\d{2})?\s*(?:am|pm)?\s*[-–]\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)\b\s*\)?"
+    r"|\(?\s*\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b\s*\)?",
+    re.I)
 
 
 class MadMonkfishScraper(BaseScraper):
@@ -23,138 +53,135 @@ class MadMonkfishScraper(BaseScraper):
         )
         self.base_url = "https://www.themadmonkfish.com"
 
+    def page_url(self, page: int) -> str:
+        return self.source_url if page == 1 else f"{self.source_url}?p={page}"
+
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape jazz events from The Mad Monkfish"""
+        listed = self.read_listing()
         events = []
-        page = 1
-        max_pages = 5  # Limit pagination
-
-        while page <= max_pages:
+        for url, title, image in listed:
             try:
-                url = self.source_url if page == 1 else f"{self.source_url}?p={page}"
-                response = requests.get(url, timeout=30, headers=self.get_browser_headers())
-                response.raise_for_status()
-                soup = BeautifulSoup(response.text, 'html.parser')
-
-                page_events = self._parse_events(soup)
-                if not page_events:
-                    break  # No more events
-
-                events.extend(page_events)
-                logger.info(f"Scraped {len(page_events)} events from page {page}")
-
-                # Check for "Load More" or next page
-                load_more = soup.find('a', string=re.compile(r'Load More|Next', re.I))
-                if not load_more:
-                    break
-
-                page += 1
-
+                detail = self.parse_html(self.fetch_html(url))
             except Exception as e:
-                logger.error(f"Error scraping Mad Monkfish page {page}: {e}")
-                break
-
-        logger.info(f"Scraped {len(events)} total events from The Mad Monkfish")
-        return events
-
-    def _parse_events(self, soup: BeautifulSoup) -> List[EventCreate]:
-        """Parse events from page HTML"""
-        events = []
-
-        # Find all event links - they contain date and performer info
-        # Format: "1/30 Midnight at the Mad Monkfish w/Mikayla Shirley 12-1am"
-        event_links = soup.find_all('a', href=re.compile(r'/event/|/jazz-schedule/'))
-
-        for link in event_links:
-            try:
-                text = self.clean_text(link.get_text())
-                if not text or len(text) < 5:
-                    continue
-
-                # Skip navigation links
-                if text.lower() in ['load more events', 'jazz schedule', 'home', 'menu', 'reservations']:
-                    continue
-
-                url = link.get('href', '')
-                if not url.startswith('http'):
-                    url = f"{self.base_url}{url}"
-
-                # Parse the event text
-                event = self._parse_event_text(text, url)
-                if event:
-                    events.append(event)
-
-            except Exception as e:
-                logger.debug(f"Error parsing event link: {e}")
+                logger.warning(f"Skipping '{title}' - event page failed to load ({url}): {e}")
                 continue
-
+            event = self.parse_detail(detail, url, title, image)
+            if event:
+                events.append(event)
+        logger.info(f"Scraped {len(events)} of {len(listed)} listed events from The Mad Monkfish")
         return events
 
-    def _parse_event_text(self, text: str, url: str) -> Optional[EventCreate]:
-        """Parse event details from link text like '1/30 Artist Name 7pm'"""
+    def read_listing(self) -> List[Tuple[str, str, Optional[str]]]:
+        """Every (url, card title, image) across the pager, in listing order."""
+        seen: dict = {}
+        for page in range(1, MAX_PAGES + 1):
+            soup = self.parse_html(self.fetch_html(self.page_url(page)))
+            new = [card for card in self.parse_cards(soup) if card[0] not in seen]
+            if not new:
+                break  # past the last page the site wraps round to page 1
+            for card in new:
+                seen[card[0]] = card
+            logger.info(f"Mad Monkfish page {page}: {len(new)} events")
+            if not soup.find("a", href=re.compile(rf"[?&]p={page + 1}\b")):
+                break
+        return list(seen.values())
+
+    def parse_cards(self, soup: BeautifulSoup) -> List[Tuple[str, str, Optional[str]]]:
+        cards = []
+        for link in soup.select("ul.card-listing a.card__btn[href*='/event/']"):
+            heading = link.select_one(".card__heading")
+            title = self.clean_text((heading or link).get_text())
+            if not title:
+                continue
+            image = None
+            media = link.select_one(".card__image[style]")
+            if media:
+                m = re.search(r"url\('([^']+)'\)", media["style"])
+                image = m.group(1) if m else None
+            cards.append((urljoin(self.base_url, link["href"]), title, image))
+        return cards
+
+    @staticmethod
+    def clean_title(text: str) -> str:
+        """Drop the leading "10/9" and any time written into the title.
+
+        The old pattern removed only the "1am" of "12-1am", publishing titles
+        ending in "Quintero 12-".
+        """
+        title = re.sub(r"^\s*\d{1,2}/\d{1,2}\s+", "", text)
+        title = _TITLE_TIME.sub(" ", title)
+        title = re.sub(r"\(\s*\)", " ", title)
+        return " ".join(title.split())
+
+    @staticmethod
+    def read_when(soup: BeautifulSoup) -> Tuple[Optional[datetime], Optional[datetime]]:
+        """Start and end from the event page's "October 10, 2026 10:00 PM until …".
+
+        No time on the page means no start: the old fallback put every such
+        listing at 7 PM, including a 10 PM late-night jam.
+        """
+        scope = soup.find("article") or soup
+        m = _WHEN.search(" ".join(scope.get_text(" ").split()))
+        if not m:
+            return None, None
         try:
-            # Try to extract date pattern (M/D or MM/DD)
-            date_match = re.search(r'(\d{1,2})/(\d{1,2})', text)
-            if not date_match:
-                return None
-
-            month = int(date_match.group(1))
-            day = int(date_match.group(2))
-
-            # Determine year (assume current year, or next if date has passed)
-            now = datetime.now()
-            year = now.year
+            start = datetime.strptime(f"{m.group(1)} {m.group(2).replace(' ', '')}", "%B %d, %Y %I:%M%p")
+        except ValueError:
+            return None, None
+        end = None
+        if m.group(3):
             try:
-                event_date = datetime(year, month, day)
-                if event_date < now - timedelta(days=7):  # More than a week ago
-                    event_date = datetime(year + 1, month, day)
+                end = datetime.strptime(f"{m.group(3)} {m.group(4).replace(' ', '')}", "%B %d, %Y %I:%M%p")
             except ValueError:
-                return None
+                end = None
+            # "10:00 PM until October 10, 2026 12:00 AM" means the midnight that ends the night
+            if end is not None and end <= start and end.date() == start.date():
+                end += timedelta(days=1)
+            if end is not None and end < start:
+                end = None
+        return start, end
 
-            # Extract time
-            time_match = re.search(r'(\d{1,2})(?::(\d{2}))?\s*(am|pm)', text, re.I)
-            hour = 19  # Default to 7pm
-            minute = 0
+    @staticmethod
+    def _event_json_ld(soup: BeautifulSoup) -> dict:
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                data = json.loads(script.string or "")
+            except (TypeError, ValueError):
+                continue
+            if isinstance(data, dict) and data.get("@type") == "Event":
+                return data
+        return {}
 
-            if time_match:
-                hour = int(time_match.group(1))
-                minute = int(time_match.group(2) or 0)
-                if time_match.group(3).lower() == 'pm' and hour != 12:
-                    hour += 12
-                elif time_match.group(3).lower() == 'am' and hour == 12:
-                    hour = 0
-
-            start_datetime = event_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
-
-            # Extract title (remove date and time from text)
-            title = text
-            title = re.sub(r'\d{1,2}/\d{1,2}\s*', '', title)  # Remove date
-            title = re.sub(r'\d{1,2}(?::\d{2})?\s*(?:am|pm)(?:\s*-\s*\d{1,2}(?::\d{2})?\s*(?:am|pm))?', '', title, flags=re.I)  # Remove time
-            title = self.clean_text(title)
-
-            if not title or len(title) < 3:
-                title = "Live Jazz at The Mad Monkfish"
-
-            description = f"{title} - Live jazz in the Jazz Baroness Room at The Mad Monkfish"
-
-            return EventCreate(
-                title=title[:200],
-                description=description[:2000],
-                start_datetime=start_datetime,
-                venue_name="The Mad Monkfish - Jazz Baroness Room",
-                street_address="524 Massachusetts Ave",
-                city="Cambridge",
-                state="MA",
-                zip_code="02139",
-                category=EventCategory.MUSIC,
-                source_name=self.source_name,
-                source_url=url,
-            )
-
-        except Exception as e:
-            logger.debug(f"Error parsing event text '{text}': {e}")
+    def parse_detail(self, soup: BeautifulSoup, url: str, card_title: str,
+                     image: Optional[str] = None) -> Optional[EventCreate]:
+        start, end = self.read_when(soup)
+        if start is None:
+            logger.warning(f"Skipping '{card_title}' - no time on its event page ({url})")
             return None
 
+        structured = self._event_json_ld(soup)
+        listed_date = str(structured.get("startDate") or "")[:10]
+        if listed_date and listed_date != start.date().isoformat():
+            logger.warning(f"Skipping '{card_title}' - page says {start:%Y-%m-%d} but its "
+                           f"structured data says {listed_date} ({url})")
+            return None
 
-# Need to import timedelta
-from datetime import timedelta
+        title = self.clean_title(html.unescape(card_title)) or card_title
+        if not image:
+            image = (structured.get("image") or {}).get("url") if isinstance(structured.get("image"), dict) else None
+
+        return EventCreate(
+            title=title[:200],
+            description=f"{title} - Live jazz in the Jazz Baroness Room at The Mad Monkfish"[:2000],
+            start_datetime=start,
+            end_datetime=end,
+            venue_name="The Mad Monkfish - Jazz Baroness Room",
+            street_address="524 Massachusetts Ave",
+            city="Cambridge",
+            state="MA",
+            zip_code="02139",
+            category=EventCategory.MUSIC,
+            source_name=self.source_name,
+            source_url=url,
+            image_url=image,
+        )
