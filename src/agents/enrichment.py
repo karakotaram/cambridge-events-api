@@ -177,7 +177,23 @@ class EnrichmentAgent(BaseAgent):
         return improved
 
     def fuzzy_cross_source_dedup(self, events: list) -> int:
-        """Cross-source fuzzy dedup: 70% title similarity + same-day match"""
+        """Cross-source fuzzy dedup: 70% title similarity, starts within an
+        hour, and compatible venues.
+
+        This used to match on title and calendar day alone, so two different
+        events at different venues on the same day could collapse into one.
+        The survivor is the venue's own source over an aggregator, then the
+        fuller description - previously the longer description won outright,
+        which credited venues' shows to whichever aggregator wrote more.
+        """
+        from src.utils.deduplicator import (VENUE_SIMILARITY, WINDOW_SECONDS,
+                                            _venue_key, source_rank)
+
+        def start(e):
+            try:
+                return datetime.fromisoformat(str(e.get("start_datetime")))
+            except ValueError:
+                return None
         if len(events) < 2:
             return 0
 
@@ -210,6 +226,14 @@ class EnrichmentAgent(BaseAgent):
                     if e1.get("source_name") == e2.get("source_name"):
                         continue
 
+                    s1, s2 = start(e1), start(e2)
+                    if s1 is None or s2 is None or abs((s1 - s2).total_seconds()) > WINDOW_SECONDS:
+                        continue
+
+                    v1, v2 = _venue_key(e1.get("venue_name")), _venue_key(e2.get("venue_name"))
+                    if v1 and v2 and SequenceMatcher(None, v1, v2).ratio() < VENUE_SIMILARITY:
+                        continue
+
                     title_sim = SequenceMatcher(
                         None,
                         (e1.get("title") or "").lower(),
@@ -217,11 +241,13 @@ class EnrichmentAgent(BaseAgent):
                     ).ratio()
 
                     if title_sim >= 0.70:
-                        # Keep the one with more data (longer description)
-                        desc1 = len(e1.get("description") or "")
-                        desc2 = len(e2.get("description") or "")
-                        remove_idx = j if desc1 >= desc2 else i
+                        # Venue's own source first, then the fuller description
+                        def keep_key(e):
+                            return (source_rank(e.get("source_name")), -len(e.get("description") or ""))
+                        remove_idx = j if keep_key(e1) <= keep_key(e2) else i
                         indices_to_remove.add(remove_idx)
+                        if remove_idx == i:
+                            break
 
         if indices_to_remove:
             # Remove in reverse order to preserve indices

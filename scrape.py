@@ -225,6 +225,15 @@ class ScraperOrchestrator:
                         f"{len(preserved_events) - user_submitted} from skipped or failed sources)")
 
         events_dict = [event.model_dump(mode='json') for event in events]
+
+        # Deduplication ran before these were added back, so a preserved show
+        # that another source also lists would otherwise appear twice.
+        before = len(events_dict) + len(preserved_events)
+        events_dict, preserved_events = EventDeduplicator.reconcile_preserved(events_dict, preserved_events)
+        if before - len(events_dict) - len(preserved_events):
+            logger.info(f"Dropped {before - len(events_dict) - len(preserved_events)} "
+                        "duplicates between preserved and freshly scraped events")
+
         # Deterministic order: stable ids plus a stable order make the daily git
         # diff a readable changelog instead of a full-file rewrite.
         return sort_events(events_dict + preserved_events)
