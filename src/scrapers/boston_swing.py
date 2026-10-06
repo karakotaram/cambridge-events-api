@@ -1,11 +1,20 @@
 """Custom scraper for Boston Swing Central"""
+import logging
 import re
-from datetime import datetime
-from typing import List
+from typing import List, Optional
 from dateutil import parser as date_parser
 
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
+
+logger = logging.getLogger(__name__)
+
+# Each post states its times under a capitalised heading: "🗓 EVENING SCHEDULE"
+# for dances, "TIME + PRICE:" for the boot camp. Matched case-sensitively so
+# that prose ("don't have time to commit") is not mistaken for one.
+TIME_HEADING = re.compile(r'🗓|\bSCHEDULE\b|\bTIME\b')
+# Colon optional: the boot camp lists "11:00am- 1:30 PM", and its blurb "11am".
+START_TIME = re.compile(r'(\d{1,2}(?::\d{2})?\s*[ap]m)|\bnoon\b', re.IGNORECASE)
 
 
 class BostonSwingCentralScraper(BaseScraper):
@@ -25,29 +34,27 @@ class BostonSwingCentralScraper(BaseScraper):
 
         events = []
 
-        # Find date spans (e.g., "Nov, 28" or "Dec, 5")
+        # Find date spans (e.g., "Nov, 28" or "Dec, 5"). Every one is read:
+        # there used to be a [:10] cap here.
         date_spans = soup.find_all('span', string=re.compile(r'[A-Z][a-z]{2},\s+\d{1,2}'))
 
-        # Get current year for dates without year
-        from datetime import datetime as dt
-        current_year = dt.now().year
-        current_month = dt.now().month
-
-        for date_span in date_spans[:10]:  # Limit to next 10 events
+        for date_span in date_spans:
             try:
                 # Extract date from span (e.g., "Nov, 28")
                 date_text = self.clean_text(date_span.get_text())
 
-                # Add year - if month is before current month, assume next year
+                # The year is printed beside it (<span class="day"> 2026 </span>).
+                # It used to be inferred from the clock, which mis-dates a
+                # January event listed in December and makes fixtures age.
+                year_span = date_span.find_next_sibling('span', class_='day')
+                year_text = self.clean_text(year_span.get_text()) if year_span else ''
+                if not re.fullmatch(r'\d{4}', year_text):
+                    logger.warning(f"Skipping {date_text!r} - no year printed beside it")
+                    continue
                 try:
-                    # Parse without year first
-                    temp_date = date_parser.parse(f"{date_text} {current_year}", fuzzy=False)
-                    # If the parsed month is before current month, use next year
-                    if temp_date.month < current_month:
-                        event_date = date_parser.parse(f"{date_text} {current_year + 1}", fuzzy=False)
-                    else:
-                        event_date = temp_date
-                except:
+                    event_date = date_parser.parse(f"{date_text} {year_text}", fuzzy=False)
+                except (ValueError, OverflowError):
+                    logger.warning(f"Skipping {date_text!r} - unparseable date")
                     continue
 
                 # Find the next h3 element (contains event title)
@@ -69,16 +76,12 @@ class BostonSwingCentralScraper(BaseScraper):
                     if href.startswith('http'):
                         event_url = href
 
-                # Special case: Boot Camp uses Wufoo registration
-                if 'boot camp' in title.lower():
-                    event_url = "https://bostonswingcentral.wufoo.com/forms/bsc-swing-boot-camp-2025/"
-
                 # Find the content after the title
                 current = title_elem.find_next_sibling()
 
                 description_parts = []
+                body_nodes = []
                 venue_info = None
-                time_str = None
                 cost = None
 
                 # Gather content until we hit another date span or h3 or run out
@@ -86,16 +89,8 @@ class BostonSwingCentralScraper(BaseScraper):
                     # Also stop if we find another date span
                     if current.find('span', string=re.compile(r'[A-Z][a-z]{2},\s+\d{1,2}')):
                         break
+                    body_nodes.append(current)
                     text = self.clean_text(current.get_text())
-
-                    # Look for time information - check for noon first
-                    if 'noon' in text.lower() and not time_str:
-                        time_str = '12:00 PM'
-                    # Check for standard time patterns in schedule text
-                    elif ('🗓' in text or 'EVENING SCHEDULE' in text.upper() or 'SCHEDULE' in text.upper()) and not time_str:
-                        time_match = re.search(r'(\d{1,2}:\d{2}\s*[ap]m)', text, re.IGNORECASE)
-                        if time_match:
-                            time_str = time_match.group(1)
 
                     # Look for venue/address information
                     if '26 New St' in text or 'New Street' in text:
@@ -114,16 +109,22 @@ class BostonSwingCentralScraper(BaseScraper):
 
                     current = current.find_next_sibling()
 
-                # Build start datetime
-                if time_str:
-                    try:
-                        # Combine date and time
-                        datetime_str = f"{event_date.strftime('%Y-%m-%d')} {time_str}"
-                        start_datetime = date_parser.parse(datetime_str, fuzzy=False)
-                    except:
-                        start_datetime = event_date
-                else:
-                    start_datetime = event_date
+                # Special case: Boot Camp registers through Wufoo. The form's
+                # slug changes each season, so it is read from the post.
+                if 'boot camp' in title.lower():
+                    event_url = self._signup_link(body_nodes) or event_url
+
+                # Build start datetime. No time, no event: the old fallback
+                # published the boot camp at 00:00 instead of 11:00 AM.
+                time_str = self._start_time(' '.join(n.get_text(' ') for n in body_nodes))
+                if time_str is None:
+                    logger.warning(f"Skipping '{title}' on {event_date:%Y-%m-%d} - no start time found")
+                    continue
+                try:
+                    start_datetime = date_parser.parse(f"{event_date:%Y-%m-%d} {time_str}", fuzzy=False)
+                except (ValueError, OverflowError):
+                    logger.warning(f"Skipping '{title}' - unparseable time {time_str!r}")
+                    continue
 
                 # Build description
                 description = ' '.join(description_parts[:3])[:2000] if description_parts else title
@@ -159,3 +160,24 @@ class BostonSwingCentralScraper(BaseScraper):
                 continue
 
         return events
+
+    @staticmethod
+    def _start_time(text: str) -> Optional[str]:
+        """The first time after the post's time heading, e.g. "11:00am"."""
+        heading = TIME_HEADING.search(text)
+        if heading is None:
+            return None
+        match = START_TIME.search(text, heading.end())
+        if match is None:
+            return None
+        return match.group(1) or '12:00 pm'
+
+    @staticmethod
+    def _signup_link(nodes) -> Optional[str]:
+        for node in nodes:
+            if not hasattr(node, 'select_one'):
+                continue
+            link = node.select_one('a[href*="wufoo.com/forms/"]')
+            if link:
+                return link['href']
+        return None
