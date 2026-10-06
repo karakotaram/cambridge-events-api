@@ -2,7 +2,7 @@
 import json
 import re
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from dateutil import parser as date_parser
 
 from src.scrapers.base_scraper import BaseScraper
@@ -37,8 +37,10 @@ class ComedyStudioScraper(BaseScraper):
                 if isinstance(data, dict) and 'events' in data:
                     event_list = data['events']
 
-                    # Limit to reasonable number
-                    for event_data in event_list[:30]:
+                    # Every show. The list is not in date order (163 shows,
+                    # Oct 2026 - May 2027, on 2026-10-06), so the old [:30]
+                    # cap kept an arbitrary slice of the season.
+                    for event_data in event_list:
                         try:
                             # Extract title
                             title = event_data.get('name', '').strip()
@@ -64,22 +66,17 @@ class ComedyStudioScraper(BaseScraper):
                                 description = re.sub(r'TICKET\s+LINK:\s*https?://[^\s]+\s*', '', description, flags=re.IGNORECASE)
                                 description = self.clean_text(description)
 
-                            # Extract image URL
-                            image_url = None
-                            if 'image' in event_data:
-                                if isinstance(event_data['image'], str):
-                                    image_url = event_data['image']
-                                elif isinstance(event_data['image'], dict):
-                                    image_url = event_data['image'].get('url')
-
-                            # If no image, try performer image
-                            if not image_url and 'performer' in event_data:
-                                performer = event_data['performer']
-                                if isinstance(performer, dict) and 'image' in performer:
-                                    if isinstance(performer['image'], str):
-                                        image_url = performer['image']
-                                    elif isinstance(performer['image'], dict):
-                                        image_url = performer['image'].get('url')
+                            # Extract image URL, falling back to the first
+                            # performer's. `performer` is a list on this site
+                            # (schema.org allows one or many), so a dict-only
+                            # check never reached the fallback.
+                            image_url = self._image_url(event_data.get('image'))
+                            if not image_url:
+                                for performer in self._as_list(event_data.get('performer')):
+                                    if isinstance(performer, dict):
+                                        image_url = self._image_url(performer.get('image'))
+                                    if image_url:
+                                        break
 
                             # Extract event URL from offers
                             event_url = self.source_url
@@ -141,3 +138,20 @@ class ComedyStudioScraper(BaseScraper):
                 continue
 
         return events
+
+    @staticmethod
+    def _as_list(value) -> list:
+        """schema.org properties hold one value or a list of them."""
+        if value is None:
+            return []
+        return value if isinstance(value, list) else [value]
+
+    @classmethod
+    def _image_url(cls, value) -> Optional[str]:
+        """An ImageObject, a URL string, or a list of either."""
+        for item in cls._as_list(value):
+            if isinstance(item, str) and item:
+                return item
+            if isinstance(item, dict) and item.get('url'):
+                return item['url']
+        return None
