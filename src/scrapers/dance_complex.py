@@ -28,7 +28,11 @@ PER_PAGE = 50
 # The venue publishes recurring classes indefinitely — 1,527 of them at the time
 # of writing. 60 days matches what the old iCal scraper kept and yields ~420.
 WINDOW_DAYS = 60
-MAX_PAGES = 20
+# Pages are followed to the API's own `total_pages`; this is only a sanity cap
+# against a runaway response. The old cap was 20 pages (1,000 events) and the
+# window held 868 on 2026-10-06, so it was about to truncate silently. 50 pages
+# is 2,500 events; hitting it is logged as an error.
+MAX_PAGES = 50
 
 
 class DanceComplexScraper(BaseScraper):
@@ -46,6 +50,7 @@ class DanceComplexScraper(BaseScraper):
         seen = set()
         end_date = (datetime.now() + timedelta(days=WINDOW_DAYS)).strftime("%Y-%m-%d")
 
+        total_pages = 1
         for page in range(1, MAX_PAGES + 1):
             try:
                 response = requests.get(
@@ -63,8 +68,11 @@ class DanceComplexScraper(BaseScraper):
                 logger.error(f"Error fetching Dance Complex API page {page}: {e}")
                 break
 
+            total_pages = self._int(payload.get("total_pages"), total_pages)
             batch = payload.get("events", [])
             if not batch:
+                if page <= total_pages:
+                    logger.warning(f"Dance Complex API page {page} of {total_pages} came back empty")
                 break
 
             for item in batch:
@@ -77,11 +85,23 @@ class DanceComplexScraper(BaseScraper):
                 seen.add(key)
                 events.append(event)
 
-            if page >= payload.get("total_pages", 1):
+            if page >= total_pages:
                 break
+        else:
+            # The loop ran out before the API did: the listing is truncated.
+            logger.error(f"Dance Complex API reports {total_pages} pages but MAX_PAGES is {MAX_PAGES}; "
+                         f"about {(total_pages - MAX_PAGES) * PER_PAGE} events in the next "
+                         f"{WINDOW_DAYS} days were not read. Raise MAX_PAGES or shorten WINDOW_DAYS.")
 
         logger.info(f"Scraped {len(events)} events from The Dance Complex")
         return events
+
+    @staticmethod
+    def _int(value, default: int) -> int:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
 
     def _parse_event(self, item: dict) -> Optional[EventCreate]:
         title = self._text(item.get("title"))
@@ -109,6 +129,8 @@ class DanceComplexScraper(BaseScraper):
             description=description[:2000],
             start_datetime=start,
             end_datetime=self._parse_datetime(item.get("end_date")),
+            # Tribe writes an all-day event as 00:00:00; the flag says so
+            all_day=bool(item.get("all_day")),
             source_url=item.get("url") or self.source_url,
             source_name=self.source_name,
             # The API's "venue" is the studio room; the building is the venue
