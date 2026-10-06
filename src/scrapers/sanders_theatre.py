@@ -15,7 +15,7 @@ Two things that make this awkward, both handled below:
 import logging
 import re
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from dateutil import parser as date_parser
 
@@ -45,14 +45,12 @@ class SandersTheatreScraper(BasePlaywrightScraper):
         super().__init__(source_name=VENUE, source_url=EVENTS_URL)
 
     def scrape_events(self) -> List[EventCreate]:
-        try:
-            # domcontentloaded, not networkidle — this page never goes idle.
-            self.goto(self.source_url, timeout=60000)
-            self.wait_for_stable_count(".item-description", timeout=30000)
-            soup = self.get_soup()
-        except Exception as e:
-            logger.error(f"Could not load Harvard Box Office events: {e}")
-            return []
+        # domcontentloaded, not networkidle — this page never goes idle.
+        # A failed load raises. It used to return [], which the run recorded as
+        # "ok, 0 events", indistinguishable from an empty season.
+        self.goto(self.source_url, timeout=60000)
+        self.wait_for_stable_count(".item-description", timeout=30000)
+        soup = self.get_soup()
 
         events: List[EventCreate] = []
         seen = set()
@@ -90,11 +88,12 @@ class SandersTheatreScraper(BasePlaywrightScraper):
             # A different Harvard venue — not this source's event.
             return None
 
-        start = self._parse_start(lines[0])
-        if start is None:
+        parsed = self._parse_start(lines[0])
+        if parsed is None:
             # Never guess — see docs/ARCHITECTURE.md "Layer 1 — Scrapers".
             logger.warning(f"Skipping '{title}' - no parseable date ({lines[0]!r})")
             return None
+        start, has_time = parsed
 
         description = " ".join(lines[2:]).strip()
         if len(description) < 20:
@@ -108,6 +107,9 @@ class SandersTheatreScraper(BasePlaywrightScraper):
             title=title[:200],
             description=description[:2000],
             start_datetime=start,
+            # A run listed only by dates ("December 11-28, 2026") has no time;
+            # without this it showed as a 12:00 AM start.
+            all_day=not has_time,
             source_url=url,
             source_name=self.source_name,
             venue_name=VENUE,
@@ -119,11 +121,13 @@ class SandersTheatreScraper(BasePlaywrightScraper):
         )
 
     @staticmethod
-    def _parse_start(text: str) -> Optional[datetime]:
-        """Parse the teaser's first line.
+    def _parse_start(text: str) -> Optional[Tuple[datetime, bool]]:
+        """Parse the teaser's first line into (start, whether a time was given).
 
         A multi-day run ("September 11-12, 2026") becomes its first performance;
-        the others are separate listings on the box office anyway.
+        the others are separate listings on the box office anyway. A run listed
+        with no time ("December 11-28, 2026") starts at midnight of its first
+        day and is all-day: the time is absent, not zero.
         """
         match = DATE_LINE.search(text or "")
         if not match:
@@ -133,7 +137,7 @@ class SandersTheatreScraper(BasePlaywrightScraper):
             parsed = date_parser.parse(f"{month} {day} {year} {time_text or ''}".strip())
         except (ValueError, OverflowError):
             return None
-        return parsed.replace(second=0, microsecond=0)
+        return parsed.replace(second=0, microsecond=0), bool(time_text)
 
     @staticmethod
     def _categorize(title: str, description: str) -> EventCategory:
