@@ -10,11 +10,24 @@ contributed nothing while appearing to work.
 
 The feed carries the whole organisation's calendar, including internal
 committee meetings, so it is filtered down to public programming.
+
+Productions are often entered as one recurring event ("weekly on Thu, Fri, Sat
+until Mar 29") rather than one event per performance, so RRULEs are expanded,
+with EXDATE exclusions and RECURRENCE-ID overrides (a moved matinee) applied.
+Reading only DTSTART listed the opening night of such a run and nothing else.
+
+The feed holds the calendar's whole history back to 2009. Which part of it is
+current is decided relative to the feed's own DTSTAMP — the moment Google
+generated it — not the scraper's clock, so a saved feed parses the same way on
+any day.
 """
 import logging
 import re
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import List, Optional, Tuple
+
+import pytz
+from dateutil.rrule import rrulestr
 
 from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory, to_eastern_naive
@@ -30,6 +43,9 @@ VENUE = "Theatre@First"
 DEFAULT_VENUE = "Unity Somerville"
 DEFAULT_ADDRESS = "6 William St"
 
+# The slice of the feed that is current, relative to the feed's DTSTAMP. The
+# one-day lookback keeps last night's show while today's run is still going.
+LOOKBACK_DAYS = 1
 WINDOW_DAYS = 365
 
 # Internal business, not public programming.
@@ -38,6 +54,8 @@ SKIP_PATTERNS = (
     r"work ?(day|party|session)", r"strike", r"load[- ]?in", r"tech rehearsal",
     r"\brehearsal\b", r"production meeting",
 )
+
+Property = Tuple[str, dict, str]          # (NAME, {PARAM: value}, value)
 
 
 class TheatreAtFirstScraper(BaseScraper):
@@ -56,99 +74,218 @@ class TheatreAtFirstScraper(BaseScraper):
         except Exception as e:
             logger.error(f"Could not fetch Theatre@First calendar feed: {e}")
             return []
+        return self.parse_feed(raw)
 
-        now = datetime.now()
-        horizon = now + timedelta(days=WINDOW_DAYS)
+    def parse_feed(self, raw: str, as_of: Optional[datetime] = None) -> List[EventCreate]:
+        """Every public performance in the feed's current window.
+
+        `as_of` defaults to the feed's own generation time (DTSTAMP).
+        """
+        components = [self._component(block) for block in raw.split("BEGIN:VEVENT")[1:]]
+
+        if as_of is None:
+            as_of = self._feed_time(components)
+            if as_of is None:
+                logger.error("Theatre@First feed has no DTSTAMP - cannot tell which events are current")
+                return []
+        window = (as_of - timedelta(days=LOOKBACK_DAYS), as_of + timedelta(days=WINDOW_DAYS))
+
+        # Occurrences of a recurring event that a separate VEVENT replaces
+        # (same UID, RECURRENCE-ID naming the original slot).
+        overridden = set()
+        for props in components:
+            rid = self._first(props, "RECURRENCE-ID")
+            if rid:
+                original, _ = self._when(rid)
+                if original is not None:
+                    overridden.add((self._value(props, "UID"), original))
 
         events: List[EventCreate] = []
         seen = set()
-        for block in raw.split("BEGIN:VEVENT")[1:]:
-            fields = self._unfold(block)
-
-            summary = fields.get("SUMMARY", "").strip()
+        for props in components:
+            summary = self._value(props, "SUMMARY").strip()
             if len(summary) < 3 or self._is_internal(summary):
                 continue
+            if self._value(props, "STATUS").upper() == "CANCELLED":
+                continue
 
-            start = self._parse_ical_datetime(fields.get("DTSTART"))
+            start, all_day = self._when(self._first(props, "DTSTART"))
             if start is None:
                 # Never guess — see docs/ARCHITECTURE.md "Layer 1 — Scrapers".
                 logger.warning(f"Skipping '{summary}' - no parseable DTSTART")
                 continue
-            if not now - timedelta(days=1) <= start <= horizon:
-                continue
 
-            key = (summary, start)
-            if key in seen:
-                continue
-            seen.add(key)
+            end, _ = self._when(self._first(props, "DTEND"))
+            duration = end - start if end is not None and end > start else None
 
-            venue_name, street = self._location(fields.get("LOCATION", ""))
-            description = self._clean_ical_text(fields.get("DESCRIPTION", ""))
+            venue_name, street = self._location(self._value(props, "LOCATION"))
+            description = self._clean_ical_text(self._value(props, "DESCRIPTION"))
             if len(description) < 20:
                 description = f"{summary} presented by {VENUE} at {venue_name}, Somerville."
 
-            events.append(EventCreate(
-                title=summary[:200],
-                description=description[:2000],
-                start_datetime=start,
-                end_datetime=self._parse_ical_datetime(fields.get("DTEND")),
-                source_url=self.source_url,
-                source_name=self.source_name,
-                venue_name=venue_name[:200],
-                street_address=street[:200] if street else DEFAULT_ADDRESS,
-                city="Somerville",
-                state="MA",
-                zip_code="02144",
-                category=EventCategory.THEATER,
-            ))
+            for occurrence in self._occurrences(props, summary, start, window, overridden):
+                key = (summary, occurrence)
+                if key in seen:
+                    continue
+                seen.add(key)
+
+                events.append(EventCreate(
+                    title=summary[:200],
+                    description=description[:2000],
+                    start_datetime=occurrence,
+                    end_datetime=occurrence + duration if duration else None,
+                    all_day=all_day,
+                    source_url=self.source_url,
+                    source_name=self.source_name,
+                    venue_name=venue_name[:200],
+                    street_address=street[:200] if street else DEFAULT_ADDRESS,
+                    city="Somerville",
+                    state="MA",
+                    zip_code="02144",
+                    category=EventCategory.THEATER,
+                ))
 
         logger.info(f"Scraped {len(events)} events from {VENUE}")
         return events
 
-    @staticmethod
-    def _unfold(block: str) -> dict:
-        """Parse one VEVENT into {NAME: value}, joining RFC 5545 folded lines.
+    # ------------------------------------------------------------------ #
+    # Recurrence
+    # ------------------------------------------------------------------ #
 
-        Property names may carry parameters (DTSTART;TZID=America/New_York), so
-        the key is truncated at the first semicolon.
+    def _occurrences(self, props: List[Property], summary: str, start: datetime,
+                     window: Tuple[datetime, datetime], overridden: set) -> List[datetime]:
+        """The starts of one VEVENT that fall inside the window.
+
+        Expansion is bounded by the window, which comes from the feed's
+        DTSTAMP, so even a rule with neither COUNT nor UNTIL is finite and
+        independent of the scraper's clock.
         """
-        fields: dict = {}
-        current = None
+        lo, hi = window
+        rule = self._first(props, "RRULE")
+        if rule is None or self._first(props, "RECURRENCE-ID"):
+            return [start] if lo <= start <= hi else []
+
+        try:
+            series = rrulestr(self._local_rule(rule[2]), dtstart=start)
+            candidates = series.between(lo, hi, inc=True)
+        except (ValueError, TypeError) as e:
+            # The opening performance is still real; the rest cannot be read.
+            logger.warning(f"Could not expand '{summary}' RRULE {rule[2]!r}: {e}")
+            return [start] if lo <= start <= hi else []
+
+        excluded = set()
+        for _, params, value in self._all(props, "EXDATE"):
+            for part in value.split(","):
+                when, _ = self._parse_ical_datetime(part, params)
+                if when is not None:
+                    excluded.add(when)
+
+        uid = self._value(props, "UID")
+        return [o for o in candidates if o not in excluded and (uid, o) not in overridden]
+
+    @staticmethod
+    def _local_rule(rule: str) -> str:
+        """Restate a UTC UNTIL as naive Eastern.
+
+        The series is expanded in naive Eastern wall clock, so an 8 PM run
+        stays at 8 PM across a DST change. dateutil refuses a UTC UNTIL
+        against a naive DTSTART, so UNTIL is converted into the same terms.
+        """
+        def convert(match):
+            utc = datetime.strptime(match.group(1), "%Y%m%dT%H%M%S").replace(tzinfo=timezone.utc)
+            return "UNTIL=" + to_eastern_naive(utc).strftime("%Y%m%dT%H%M%S")
+        return re.sub(r"UNTIL=(\d{8}T\d{6})Z", convert, rule)
+
+    # ------------------------------------------------------------------ #
+    # iCalendar parsing
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _component(block: str) -> List[Property]:
+        """Parse one VEVENT into (NAME, params, value) triples.
+
+        Joins RFC 5545 folded lines, stops at END:VEVENT, and drops nested
+        VALARMs, whose own DESCRIPTION/UID lines would otherwise overwrite the
+        event's. Properties may repeat (EXDATE), so this is a list, not a dict.
+        """
+        block = block.split("END:VEVENT", 1)[0]
+        block = re.sub(r"BEGIN:VALARM.*?END:VALARM", "", block, flags=re.DOTALL)
+
+        lines: List[str] = []
         for line in block.splitlines():
             if line.startswith((" ", "\t")):        # continuation
-                if current:
-                    fields[current] += line[1:]
+                if lines:
+                    lines[-1] += line[1:]
                 continue
+            lines.append(line)
+
+        props: List[Property] = []
+        for line in lines:
             if ":" not in line:
                 continue
-            name, value = line.split(":", 1)
-            current = name.split(";", 1)[0].strip().upper()
-            fields[current] = value.strip()
-        return fields
+            head, value = line.split(":", 1)
+            name, *raw_params = head.split(";")
+            params = {}
+            for p in raw_params:
+                if "=" in p:
+                    k, v = p.split("=", 1)
+                    params[k.strip().upper()] = v.strip()
+            props.append((name.strip().upper(), params, value.strip()))
+        return props
 
     @staticmethod
-    def _parse_ical_datetime(value: Optional[str]) -> Optional[datetime]:
-        """Parse DTSTART into naive Eastern.
+    def _first(props: List[Property], name: str) -> Optional[Property]:
+        return next((p for p in props if p[0] == name), None)
 
-        A trailing Z means UTC. The Event model would normalize that on
-        construction anyway, but the scraper compares against a window first,
-        and mixing aware and naive raises TypeError — so it converts here, via
-        the same helper, rather than keeping two notions of time in one function.
+    @staticmethod
+    def _all(props: List[Property], name: str) -> List[Property]:
+        return [p for p in props if p[0] == name]
 
-        Date-only values (all-day events) become midnight.
+    @classmethod
+    def _value(cls, props: List[Property], name: str) -> str:
+        prop = cls._first(props, name)
+        return prop[2] if prop else ""
+
+    @classmethod
+    def _feed_time(cls, components: List[List[Property]]) -> Optional[datetime]:
+        """When Google generated the feed: the latest DTSTAMP, naive Eastern."""
+        stamps = [cls._when(p)[0] for props in components for p in cls._all(props, "DTSTAMP")]
+        stamps = [s for s in stamps if s is not None]
+        return max(stamps) if stamps else None
+
+    @classmethod
+    def _when(cls, prop: Optional[Property]) -> Tuple[Optional[datetime], bool]:
+        """Parse a date-valued property, honouring its TZID/VALUE parameters."""
+        if prop is None:
+            return None, False
+        return cls._parse_ical_datetime(prop[2], prop[1])
+
+    @staticmethod
+    def _parse_ical_datetime(value: Optional[str], params: Optional[dict] = None
+                             ) -> Tuple[Optional[datetime], bool]:
+        """Parse a DATE or DATE-TIME into (naive Eastern, is_date_only).
+
+        A trailing Z means UTC; a TZID parameter names the zone; neither means
+        floating time, which for a Somerville theatre is Eastern. A date-only
+        value is an all-day event and becomes midnight with the flag set.
         """
         if not value:
-            return None
+            return None, False
         value = value.strip()
+        params = params or {}
         try:
+            if params.get("VALUE") == "DATE" or re.fullmatch(r"\d{8}", value):
+                return datetime.strptime(value[:8], "%Y%m%d"), True
             if value.endswith("Z"):
                 utc = datetime.strptime(value, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc)
-                return to_eastern_naive(utc)
-            if "T" in value:
-                return datetime.strptime(value, "%Y%m%dT%H%M%S")
-            return datetime.strptime(value[:8], "%Y%m%d")
-        except ValueError:
-            return None
+                return to_eastern_naive(utc), False
+            local = datetime.strptime(value, "%Y%m%dT%H%M%S")
+            tzid = params.get("TZID")
+            if tzid and tzid != "America/New_York":
+                local = to_eastern_naive(pytz.timezone(tzid).localize(local))
+            return local, False
+        except (ValueError, pytz.UnknownTimeZoneError):
+            return None, False
 
     @staticmethod
     def _is_internal(summary: str) -> bool:
