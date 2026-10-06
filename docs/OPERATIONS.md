@@ -130,7 +130,9 @@ the invariants, and refuses to write if any are violated (`--force` overrides).
 
 The cross-source dedup step is not optional: several venues are covered by both
 their own scraper and an aggregator, and splicing without it produces visible
-double listings.
+double listings. It uses the pipeline's rules: the venue's own listing beats an
+aggregator's copy (so repairing a venue can remove an aggregator's duplicate),
+and user submissions always stay.
 
 ## Runbook: a source went quiet
 
@@ -245,6 +247,12 @@ you — that is how this file earns its keep.
 - **`CI_SKIP_SOURCES` sources are preserved, not re-scraped**, so their events go
   stale for weeks with no signal. `cal sources` shows the age in "last scraped";
   run `scrape_local.py` to refresh them.
+- **Deduplication has two rules, and `kind` decides who wins.** Within one source
+  only the same start *and* title is a duplicate; fuzzy matching there merged
+  back-to-back sessions (45 of 105 Longfellow tours, 33 Dance Complex classes).
+  Across sources it is fuzzy, and the merge keeps the lower `KIND_ORDER` source.
+  BostonShows.org was filed as `requests` rather than `aggregator` and took
+  credit for ~50 venues' events. Register a listings site as `aggregator`.
 - **A source can look alive and contribute nothing.** If everything it returns is
   more than 30 days old, `EventValidator` drops all of it. Check the run record's
   `rejected` counts, not just the scraper's status.

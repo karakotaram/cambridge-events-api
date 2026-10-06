@@ -142,6 +142,9 @@ cost the most time:
   client hints say Linux is a contradiction, and bot protection reads it as one.
   That spoof was in the Playwright base and cost us one source outright.
 - **Drift does not block yet** (`GATE_DRIFT=report`). Invariants do, from day one.
+- **A source's `kind` decides who wins deduplication.** Register a listings site
+  as `aggregator`, or it outranks the venues it copies. Within one source, only
+  an identical start and title is a duplicate.
 
 ## Structure
 
