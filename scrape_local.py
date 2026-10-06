@@ -11,9 +11,9 @@ running daily with no monitoring at all.
 """
 import json
 import logging
-import uuid
-from datetime import datetime
+import sys
 
+from src.quality.invariants import check_invariants, errors
 from src.sources import SOURCES
 from src.utils.validator import EventValidator
 from src.utils.deduplicator import EventDeduplicator
@@ -44,11 +44,14 @@ def main():
     logger.info(f"Local-only sources: {', '.join(LOCAL_ONLY_SOURCES)}")
 
     all_events = []
+    produced = set()
     for scraper in scrapers:
         try:
             events = scraper.run()
             logger.info(f"Scraped {len(events)} events from {scraper.source_name}")
             all_events.extend(events)
+            if events:
+                produced.add(scraper.source_name)
         except Exception as e:
             logger.error(f"Scraper {scraper.source_name} failed: {e}")
 
@@ -84,12 +87,29 @@ def main():
     except FileNotFoundError:
         existing_events = []
 
-    # Remove old events from local sources
+    violations = errors(check_invariants(new_events))
+    if violations:
+        for v in violations:
+            logger.error(f"Invariant violated: {v}")
+        logger.error("Refusing to write data/events.json - fix the scraper, then rerun")
+        sys.exit(1)
+
+    # Replace only the sources that produced something. A failed or empty
+    # scrape is not evidence that a venue cancelled its programme, so it must
+    # not delete that venue's stored events.
+    kept_back = sorted(set(LOCAL_ONLY_SOURCES) - produced)
+    if kept_back:
+        logger.warning(f"Keeping stored events for sources that produced nothing: {', '.join(kept_back)}")
     filtered_events = [
         e for e in existing_events
-        if e.get('source_name') not in LOCAL_ONLY_SOURCES
+        if e.get('source_name') not in produced
     ]
     logger.info(f"Kept {len(filtered_events)} events from other sources")
+
+    # The rest of the file was deduplicated without these sources in it, so
+    # an aggregator's copy of a local-only venue's show would otherwise be
+    # listed twice.
+    new_events, filtered_events = EventDeduplicator.reconcile_preserved(new_events, filtered_events)
 
     # Combine
     final_events = filtered_events + new_events
