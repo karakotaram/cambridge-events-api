@@ -75,6 +75,7 @@ class EventSlim(BaseModel):
     title: str
     start_datetime: datetime
     end_datetime: Optional[datetime] = None
+    all_day: bool = False
     venue_name: Optional[str] = None
     city: Optional[str] = None
     latitude: Optional[float] = None
@@ -87,6 +88,16 @@ class EventSlim(BaseModel):
     cost: Optional[str] = None
     score: Optional[float] = None
     featured: bool = False
+
+
+def _all_day_still_on(event, now: datetime) -> bool:
+    """An all-day event is at 00:00 on its first day, so a plain start >= now
+    test drops it the moment its day begins. It stays listed through the last
+    day it runs (a date-only run like "December 11-28")."""
+    if not getattr(event, "all_day", False):
+        return False
+    last = event.end_datetime or event.start_datetime
+    return as_local_naive(last).date() >= as_local_naive(now).date()
 
 
 class TrackRequest(BaseModel):
@@ -362,7 +373,7 @@ async def get_events(
                 # Both have same timezone awareness
                 now_compare = now if now.tzinfo is not None else now.replace(tzinfo=None)
 
-            if event_dt >= now_compare:
+            if event_dt >= now_compare or _all_day_still_on(e, now_compare):
                 filtered_events.append(e)
         events = filtered_events
 
@@ -536,7 +547,7 @@ async def get_events_slim(
             else:
                 now_compare = now if now.tzinfo is not None else now.replace(tzinfo=None)
 
-            if event_dt >= now_compare:
+            if event_dt >= now_compare or _all_day_still_on(e, now_compare):
                 filtered_events.append(e)
         events = filtered_events
 
@@ -655,6 +666,7 @@ async def get_events_slim(
             title=e.title,
             start_datetime=e.start_datetime,
             end_datetime=e.end_datetime,
+            all_day=getattr(e, 'all_day', False),
             venue_name=e.venue_name,
             city=e.city,
             latitude=e.latitude,
@@ -800,6 +812,16 @@ def generate_ics(event: Event) -> str:
     else:
         end_dt = start_dt + timedelta(hours=2)
 
+    if getattr(event, "all_day", False):
+        # Date-only listing: an ICS all-day event, whose DTEND is exclusive
+        first = as_local_naive(start_dt).date()
+        last = as_local_naive(event.end_datetime).date() if event.end_datetime else first
+        ics_times = (f"DTSTART;VALUE=DATE:{first:%Y%m%d}\n"
+                     f"DTEND;VALUE=DATE:{last + timedelta(days=1):%Y%m%d}")
+    else:
+        ics_times = (f"DTSTART:{format_ics_datetime(start_dt)}\n"
+                     f"DTEND:{format_ics_datetime(end_dt)}")
+
     # Build description with source link
     description = event.description or ""
     if event.source_url:
@@ -814,8 +836,7 @@ METHOD:PUBLISH
 BEGIN:VEVENT
 UID:{event.id}@cambridgesomervilleevents.com
 DTSTAMP:{format_ics_datetime(datetime.utcnow())}
-DTSTART:{format_ics_datetime(start_dt)}
-DTEND:{format_ics_datetime(end_dt)}
+{ics_times}
 SUMMARY:{escape_ics_text(event.title)}
 DESCRIPTION:{escape_ics_text(description)}
 LOCATION:{escape_ics_text(location)}{geo_lines}
