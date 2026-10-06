@@ -71,7 +71,6 @@ SOURCES: tuple[Source, ...] = (
            runs_in_ci=False, notes="blocks GitHub cloud IPs; run scrape_local.py"),
     Source("The Comedy Studio", "src.scrapers.comedy_studio", "ComedyStudioScraper", "requests"),
     Source("The Dance Complex", "src.scrapers.dance_complex", "DanceComplexScraper", "requests"),
-    Source("BostonShows.org", "src.scrapers.bostonshows", "BostonShowsScraper", "requests"),
     Source("Theatre at First", "src.scrapers.theatre_at_first", "TheatreAtFirstScraper", "requests"),
     Source("First Parish in Cambridge", "src.scrapers.first_parish", "FirstParishScraper", "requests"),
     Source("Harvard Art Museums", "src.scrapers.harvard_art_museums", "HarvardArtMuseumsScraper", "requests"),
@@ -110,8 +109,6 @@ SOURCES: tuple[Source, ...] = (
            runs_in_ci=False, notes="blocks GitHub cloud IPs; run scrape_local.py"),
 
     # ---- Playwright ----------------------------------------------------------
-    Source("Porter Square Books", "src.scrapers.porter", "PorterSquareBooksScraper", "playwright",
-           notes="Drupal behind bot protection: plain HTTP and Selenium both get 403, Playwright does not"),
     Source("Sanders Theatre", "src.scrapers.sanders_theatre", "SandersTheatreScraper", "playwright",
            notes="calendar.college.harvard.edu 404s; listings moved to the Harvard "
                  "Box Office, an AudienceView storefront that renders client-side"),
@@ -140,6 +137,15 @@ SOURCES: tuple[Source, ...] = (
     # virtual warehouse sale, readings hosted at First Parish) are not carried
     # there, which is the cost of this.
 
+    # Retired 2026-10-06: "Porter Square Books". portersquarebooks.com now
+    # serves Cloudflare's "Performing security verification" challenge (HTTP
+    # 403) to headless Chromium and to plain HTTP, from CI and from a
+    # residential IP alike. It had returned 0 events in CI every day since
+    # 2026-09-04 while its last good listings were preserved and went stale.
+    # Same situation as Harvard Book Store above: getting past it means
+    # defeating protection the venue chose. If they offer a feed, git history
+    # has the scraper.
+
     # Retired 2026-09-01: "Harvard Memorial Church" returns 403 for every path on
     # memorialchurch.harvard.edu — homepage, calendar, RSS, REST — to plain HTTP
     # and to a real headless browser alike, from a residential IP as well as CI.
@@ -157,6 +163,10 @@ SOURCES: tuple[Source, ...] = (
 
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),
+    Source("BostonShows.org", "src.scrapers.bostonshows", "BostonShowsScraper", "aggregator",
+           notes="a listings site, not a venue. Was registered as `requests` until "
+                 "2026-10-06, so it ran first and took credit for ~50 events from "
+                 "Sanders, Rockwell, Portico and the Sinclair in deduplication."),
 
     # ---- not scraped ---------------------------------------------------------
     Source("User Submitted", None, None, "manual",
