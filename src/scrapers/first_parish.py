@@ -15,11 +15,11 @@ import html
 import json
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from src.scrapers.base_scraper import BaseScraper
-from src.models.event import EventCreate, EventCategory
+from src.models.event import EventCreate, EventCategory, to_eastern_naive
 
 logger = logging.getLogger(__name__)
 
@@ -110,15 +110,23 @@ class FirstParishScraper(BaseScraper):
 
     @staticmethod
     def _from_epoch_ms(value) -> Optional[datetime]:
-        """Squarespace timestamps are epoch milliseconds in the site's timezone."""
+        """Squarespace timestamps are epoch milliseconds: a UTC instant.
+
+        The conversion to Eastern must be explicit. `datetime.fromtimestamp`
+        without a tz reads the instant in the *machine's* zone, so the same
+        payload gave 10:30 on an Eastern laptop and 14:30 (15:30 in winter) on
+        the UTC CI runner that publishes the calendar.
+        """
         if not value:
             return None
         try:
-            # Sub-second precision is an artefact of the format, not a published
-            # time; EventValidator rejects start times carrying seconds.
-            return datetime.fromtimestamp(int(value) / 1000).replace(second=0, microsecond=0)
+            instant = datetime.fromtimestamp(int(value) / 1000, tz=timezone.utc)
         except (ValueError, TypeError, OSError, OverflowError):
             return None
+        # Sub-second precision is an artefact of the format (the venue's values
+        # end in .263), not a published time; EventValidator rejects start
+        # times carrying seconds.
+        return to_eastern_naive(instant).replace(second=0, microsecond=0)
 
     @staticmethod
     def _text(value) -> str:
