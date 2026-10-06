@@ -1,7 +1,6 @@
 """Custom scraper for Grolier Poetry Book Shop events"""
 import logging
 import re
-from datetime import datetime
 from typing import List
 from dateutil import parser as date_parser
 
@@ -9,6 +8,17 @@ from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
+
+# Page chrome that shares the reading blocks' markup. Matched against the whole
+# heading: a substring match on "grolier" also dropped real readings such as
+# "Pawn Shop of Coincidence by Andrea L. Fry (Grolier Poetry Press) book launch"
+# and every series the shop co-presents — 3 of the 11 listed on 2026-10-06.
+NAV_HEADINGS = {
+    'upcoming readings', 'upcoming events', 'grolier poetry book shop',
+    'about', 'contact', 'home',
+}
+
+TIME_PATTERN = r'\d{1,2}:\d{2}\s*(AM|PM|am|pm)'
 
 
 class GrolierPoetryBookshopScraper(BaseScraper):
@@ -43,8 +53,7 @@ class GrolierPoetryBookshopScraper(BaseScraper):
                     continue
 
                 # Skip non-event headings
-                skip_keywords = ['upcoming readings', 'grolier', 'about', 'contact', 'home']
-                if any(kw in title.lower() for kw in skip_keywords):
+                if title.lower().strip(' :') in NAV_HEADINGS:
                     continue
 
                 # Get all p tags after the h2
@@ -66,13 +75,15 @@ class GrolierPoetryBookshopScraper(BaseScraper):
                     if re.search(month_pattern, text, re.IGNORECASE):
                         date_str = text
                     # Check if this looks like a time
-                    elif re.search(r'\d{1,2}:\d{2}\s*(AM|PM|am|pm)', text):
+                    elif re.search(TIME_PATTERN, text):
                         time_str = text
 
                 if not date_str:
                     continue
 
-                # Parse datetime
+                # Parse datetime. A reading listed with a date but no time is
+                # an all-day listing, never a guessed hour.
+                all_day = not (time_str or re.search(TIME_PATTERN, date_str))
                 try:
                     datetime_str = date_str
                     if time_str:
@@ -81,10 +92,12 @@ class GrolierPoetryBookshopScraper(BaseScraper):
                 except Exception as e:
                     logger.warning(f"Failed to parse datetime '{datetime_str}': {e}")
                     continue
+                if all_day:
+                    start_datetime = start_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
 
-                # Skip past events
-                if start_datetime < datetime.now():
-                    continue
+                # No clock filter: past readings are EventValidator's to drop.
+                # Comparing to datetime.now() here made the saved fixture lose
+                # a reading every week until its test failed.
 
                 # Build description
                 description = f"Poetry reading featuring {title} at Grolier Poetry Book Shop, the oldest continuous poetry bookshop in the United States."
@@ -101,6 +114,7 @@ class GrolierPoetryBookshopScraper(BaseScraper):
                     title=title[:200],
                     description=description[:2000],
                     start_datetime=start_datetime,
+                    all_day=all_day,
                     source_url=self.source_url,
                     source_name=self.source_name,
                     venue_name="Grolier Poetry Book Shop",
