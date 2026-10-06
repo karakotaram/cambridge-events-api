@@ -2,13 +2,12 @@
 import logging
 import re
 import json
-from datetime import datetime
 from typing import List, Optional
 from dateutil import parser as date_parser
 import html as html_module
 
 from src.scrapers.base_scraper import BaseScraper
-from src.models.event import EventCreate, EventCategory
+from src.models.event import EventCreate, EventCategory, to_eastern_naive
 
 logger = logging.getLogger(__name__)
 
@@ -94,43 +93,41 @@ class HarvardArtMuseumsScraper(BaseScraper):
         if any(phrase in text_lower for phrase in harvard_only_phrases):
             return None
 
-        # Parse date and time
+        # `date` is the start as a UTC instant ("2026-10-07T22:00:31.000000Z",
+        # with stray seconds); `start_time` is the same moment as Eastern wall
+        # clock text ("6:00 PM"). The whole instant is converted: putting the
+        # local time onto the *UTC* date moved anything starting at or after
+        # 8 PM EDT (7 PM EST) to the following day.
         date_str = data.get('date', '')
-        start_time = data.get('start_time', '')
-
         if not date_str:
             return None
-
         try:
-            # Parse the ISO date (UTC)
-            start_datetime = date_parser.parse(date_str)
+            start_datetime = to_eastern_naive(date_parser.parse(date_str))
+        except (ValueError, OverflowError, TypeError) as e:
+            logger.warning(f"Skipping '{title}' - unparseable date {date_str!r}: {e}")
+            return None
+        start_datetime = start_datetime.replace(second=0, microsecond=0)
 
-            # If we have a local start time, use it to adjust
-            if start_time:
-                # Parse time like "10:00 AM"
-                time_match = re.match(r'(\d{1,2}):(\d{2})\s*(AM|PM)', start_time, re.IGNORECASE)
-                if time_match:
-                    hour = int(time_match.group(1))
-                    minute = int(time_match.group(2))
-                    am_pm = time_match.group(3).upper()
-
-                    if am_pm == 'PM' and hour != 12:
-                        hour += 12
-                    elif am_pm == 'AM' and hour == 12:
-                        hour = 0
-
-                    start_datetime = start_datetime.replace(hour=hour, minute=minute, second=0, microsecond=0)
-        except Exception as e:
-            logger.warning(f"Failed to parse date '{date_str}': {e}")
+        # The two renderings agree for every listing seen so far. If they ever
+        # disagree, one of them changed meaning; drop the event rather than
+        # guess which to believe.
+        listed = self._clock_time(data.get('start_time'))
+        if listed is not None and listed != (start_datetime.hour, start_datetime.minute):
+            logger.warning(f"Skipping '{title}' - start_time {data.get('start_time')!r} "
+                           f"disagrees with {date_str} ({start_datetime:%H:%M} Eastern)")
             return None
 
-        # Skip past events - handle timezone-aware datetimes
-        now = datetime.now()
-        # Remove timezone info for comparison if present
-        if start_datetime.tzinfo is not None:
-            start_datetime = start_datetime.replace(tzinfo=None)
-        if start_datetime < now:
-            return None
+        end_datetime = None
+        if data.get('end_date'):
+            try:
+                end_datetime = to_eastern_naive(date_parser.parse(data['end_date'])).replace(second=0, microsecond=0)
+            except (ValueError, OverflowError, TypeError):
+                end_datetime = None
+            if end_datetime is not None and end_datetime <= start_datetime:
+                end_datetime = None
+
+        # No filter on datetime.now(): past events are EventValidator's to
+        # drop, and a clock filter here empties the saved fixture over time.
 
         # Get description - prefer HTML version, clean it up
         description = ""
@@ -247,6 +244,7 @@ class HarvardArtMuseumsScraper(BaseScraper):
             title=title[:200],
             description=description[:2000],
             start_datetime=start_datetime,
+            end_datetime=end_datetime,
             source_url=event_url,
             source_name=self.source_name,
             venue_name="Harvard Art Museums",
@@ -257,6 +255,17 @@ class HarvardArtMuseumsScraper(BaseScraper):
             category=category,
             image_url=image_url
         )
+
+    @staticmethod
+    def _clock_time(text) -> Optional[tuple]:
+        """"6:00 PM" -> (18, 0); None if absent or in another format."""
+        match = re.match(r'\s*(\d{1,2}):(\d{2})\s*(AM|PM)', text or '', re.IGNORECASE)
+        if not match:
+            return None
+        hour, minute = int(match.group(1)) % 12, int(match.group(2))
+        if match.group(3).upper() == 'PM':
+            hour += 12
+        return hour, minute
 
     def categorize_event(self, title: str, description: str, event_type: str) -> EventCategory:
         """Categorize event based on title, description, and type"""
