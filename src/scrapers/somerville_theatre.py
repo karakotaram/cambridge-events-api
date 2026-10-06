@@ -1,9 +1,19 @@
-"""Custom scraper for Somerville Theatre events"""
+"""Custom scraper for Somerville Theatre events
+
+The /events/ page is WordPress (the Theater for WordPress plugin) and renders
+server-side: one `div.wp_theatre_event` per performance, with the date and the
+time in separate elements:
+
+    <div class="wp_theatre_event_date wp_theatre_event_startdate">October 9, 2026</div>
+    <div class="wp_theatre_event_time wp_theatre_event_starttime">7:00 pm</div>
+
+A performance listed with a date and no time is published as all-day. One whose
+date, or whose time text, cannot be read is skipped.
+"""
 import logging
 import re
 from datetime import datetime
 from typing import List, Optional
-from dateutil import parser as date_parser
 from bs4 import BeautifulSoup
 
 from src.scrapers.base_scraper import BaseScraper
@@ -24,6 +34,14 @@ EVENT_DESCRIPTIONS = {
 }
 
 
+USER_AGENT = "CambridgeCalendar/1.0 (+https://cambridgecalendar.com)"
+
+MONTH_DATE = re.compile(
+    r'(January|February|March|April|May|June|July|August|September|October|November|December)'
+    r'\s+(\d{1,2}),?\s*(\d{4})', re.IGNORECASE)
+CLOCK = re.compile(r'^(\d{1,2})(?::(\d{2}))?\s*([ap])\.?m\.?$', re.IGNORECASE)
+
+
 class SomervilleTheatreScraper(BaseScraper):
     """Custom scraper for Somerville Theatre events using requests"""
 
@@ -35,14 +53,14 @@ class SomervilleTheatreScraper(BaseScraper):
         )
 
     def get_browser_headers(self) -> dict:
-        # The site's Cloudflare blocks the default Chrome UA (403) but serves a
-        # Safari UA. cloudscraper (used previously) fails the TLS handshake here.
+        # The server (nginx, no Cloudflare) returns 403 to requests' default
+        # "python-requests" user-agent and 200 to others, so say who we are.
+        # Do not claim to be a browser: CLAUDE.md, "Never spoof a browser
+        # user-agent".
         return {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+            'User-Agent': USER_AGENT,
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
         }
 
     def scrape_events(self) -> List[EventCreate]:
@@ -50,25 +68,15 @@ class SomervilleTheatreScraper(BaseScraper):
         events = []
         seen_events = set()
 
-        try:
-            # cloudscraper's custom SSL adapter fails the TLS handshake against
-            # this host on modern OpenSSL; plain requests negotiates fine.
-            html = self.fetch_html(self.source_url)
-            logger.info(f"Fetched Somerville Theatre page, {len(html)} chars")
-        except Exception as e:
-            logger.error(f"Failed to fetch page: {e}")
-            return events
-
+        # A fetch failure raises: an empty list would read as "the theatre has
+        # no shows" rather than "the scrape failed".
+        html = self.fetch_html(self.source_url)
         soup = BeautifulSoup(html, 'html.parser')
 
-        # Find all event containers - wp_theatre_event class
+        # No fallback selector: if the plugin markup changes, zero events is
+        # the loud, correct outcome; a broad guess would scrape page chrome.
         event_divs = soup.find_all('div', class_='wp_theatre_event')
         logger.info(f"Found {len(event_divs)} wp_theatre_event elements")
-
-        # Also look for event list items or article tags
-        if not event_divs:
-            event_divs = soup.find_all(['article', 'div'], class_=lambda x: x and ('event' in x.lower() or 'production' in x.lower()) if x else False)
-            logger.info(f"Found {len(event_divs)} alternative event elements")
 
         for div in event_divs:
             try:
@@ -108,57 +116,14 @@ class SomervilleTheatreScraper(BaseScraper):
             if href and 'ticketmaster' not in href.lower() and 'ticket' not in href.lower():
                 event_url = href if href.startswith('http') else f"https://www.somervilletheatre.com{href}"
 
-        # Parse date/time from the dedicated datetime div
-        datetime_elem = div.find(class_='wp_theatre_event_datetime')
-
-        if datetime_elem:
-            datetime_text = datetime_elem.get_text()
-        else:
-            datetime_text = div.get_text()
-
-        # The site concatenates date and time like "December 5, 20258:00 pm"
-        # So we need a combined pattern that handles this
-        combined_match = re.search(
-            r'((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s*\d{4})(\d{1,2}:\d{2}\s*(?:am|pm))',
-            datetime_text,
-            re.IGNORECASE
-        )
-
-        if combined_match:
-            date_str = combined_match.group(1).strip()
-            time_str = combined_match.group(2).strip()
-        else:
-            # Fallback: try separate patterns
-            date_match = re.search(
-                r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s*\d{4}',
-                datetime_text,
-                re.IGNORECASE
-            )
-
-            if not date_match:
-                return None
-
-            date_str = date_match.group()
-
-            # Extract time after the date
-            remaining_text = datetime_text[date_match.end():]
-            time_match = re.search(r'(\d{1,2}:\d{2}\s*(?:am|pm))', remaining_text, re.IGNORECASE)
-            time_str = time_match.group(1) if time_match else "8:00 pm"
-
-        # Parse datetime
-        try:
-            datetime_str = f"{date_str} {time_str}"
-            start_datetime = date_parser.parse(datetime_str, fuzzy=True)
-        except Exception as e:
-            logger.warning(f"Failed to parse date '{datetime_str}': {e}")
+        when = self.read_start(div)
+        if when is None:
+            logger.warning(f"Skipping '{title}' - no readable date/time ({event_url})")
             return None
+        start_datetime, all_day = when
 
-        # Skip past events
-        if start_datetime < datetime.now():
-            return None
-
-        # Create unique key to avoid duplicates
-        event_key = f"{title}_{start_datetime.date()}_{start_datetime.hour}"
+        # One row per performance; the listing can repeat a performance
+        event_key = (title, start_datetime)
         if event_key in seen_events:
             return None
         seen_events.add(event_key)
@@ -208,6 +173,7 @@ class SomervilleTheatreScraper(BaseScraper):
             title=title[:200],
             description=description[:2000],
             start_datetime=start_datetime,
+            all_day=all_day,
             source_url=event_url,
             source_name=self.source_name,
             venue_name="Somerville Theatre",
@@ -218,6 +184,40 @@ class SomervilleTheatreScraper(BaseScraper):
             category=category,
             image_url=image_url
         )
+
+    def read_start(self, div) -> Optional[tuple]:
+        """(start, all_day) for one performance, or None if it cannot be dated.
+
+        A date with no time element, or an empty one, is a date-only listing:
+        all-day at midnight. Time text that is present but is not a clock
+        reading ("TBA", "evening") is not date-only - the venue has a time we
+        cannot read - so the performance is skipped. This used to default to
+        8:00 pm.
+        """
+        date_el = div.find(class_='wp_theatre_event_startdate') or div.find(class_='wp_theatre_event_date')
+        if date_el is None:
+            return None
+        match = MONTH_DATE.search(self.clean_text(date_el.get_text()))
+        if not match:
+            return None
+        try:
+            day = datetime.strptime(f"{match.group(1)} {match.group(2)} {match.group(3)}", "%B %d %Y")
+        except ValueError:
+            return None
+
+        time_el = div.find(class_='wp_theatre_event_starttime') or div.find(class_='wp_theatre_event_time')
+        time_text = self.clean_text(time_el.get_text()) if time_el else ''
+        if not time_text:
+            return day, True
+
+        clock = CLOCK.match(time_text)
+        if not clock:
+            return None
+        hour, minute = int(clock.group(1)), int(clock.group(2) or 0)
+        if not (1 <= hour <= 12 and minute <= 59):
+            return None
+        hour = hour % 12 + (12 if clock.group(3).lower() == 'p' else 0)
+        return day.replace(hour=hour, minute=minute), False
 
     def categorize_event(self, title: str, description: str) -> EventCategory:
         """Categorize event based on keywords"""
