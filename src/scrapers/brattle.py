@@ -1,7 +1,7 @@
 """Custom scraper for Brattle Theatre showtimes from coming-soon page"""
 import logging
 import re
-from datetime import datetime
+from datetime import date, datetime, timezone
 from typing import List, Optional
 import requests
 
@@ -9,6 +9,15 @@ from src.scrapers.base_scraper import BaseScraper
 from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
+
+# Each showtime's `data-date` names its calendar day as an epoch second near
+# midnight Pacific, presumably the hosting platform's zone: 07:00 UTC in
+# daylight time, 08:00 UTC in standard time — and 08:00 UTC (01:00 PDT) on the
+# November changeover day, so it is not reliably *exact* midnight Pacific.
+# Midnight in any zone from UTC to UTC-12 falls on the same UTC date, so the UTC
+# date is the listed day however the site computes it. The old code decoded the
+# value in the machine's zone, which was right on UTC and Eastern machines only
+# by luck; anywhere west of Pacific it gave the day before.
 
 
 class BrattleTheaterScraper(BaseScraper):
@@ -27,7 +36,6 @@ class BrattleTheaterScraper(BaseScraper):
         soup = self.parse_html(html)
 
         events = []
-        now = datetime.now()
 
         # Find all show-details containers (each represents a film)
         show_details = soup.find_all('div', class_='show-details')
@@ -105,15 +113,16 @@ class BrattleTheaterScraper(BaseScraper):
                         elif am_pm == 'am' and hour == 12:
                             hour = 0
 
-                        # Create datetime from Unix timestamp (date) + parsed time
-                        date_from_timestamp = datetime.fromtimestamp(timestamp)
-                        start_datetime = date_from_timestamp.replace(
-                            hour=hour, minute=minute, second=0, microsecond=0
-                        )
-
-                        # Skip past events
-                        if start_datetime < now:
+                        # The day comes from data-date, the clock time from the
+                        # visible label. No filter on datetime.now(): past
+                        # showtimes are EventValidator's to drop, and a clock
+                        # filter here empties the saved fixture over time.
+                        day = self.listing_day(timestamp)
+                        if day is None:
+                            logger.warning(f"Skipping {title} at {time_text} - data-date {timestamp} "
+                                           "is not a western-hemisphere midnight; its meaning has changed")
                             continue
+                        start_datetime = datetime(day.year, day.month, day.day, hour, minute)
 
                         # Get purchase URL
                         purchase_url = time_anchor.get('href', film_url)
@@ -150,6 +159,20 @@ class BrattleTheaterScraper(BaseScraper):
 
         logger.info(f"Scraped {len(events)} showtimes from Brattle Theatre")
         return events
+
+    @staticmethod
+    def listing_day(timestamp: int) -> Optional[date]:
+        """The calendar day a `data-date` names, or None if it is not one.
+
+        Only an on-the-hour value in the first half of the UTC day — midnight
+        somewhere in the western hemisphere — is believed. If the site ever
+        changes what the attribute means, its showtimes are skipped loudly
+        instead of quietly shifting by a day.
+        """
+        instant = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+        if instant.hour >= 12 or instant.minute or instant.second:
+            return None
+        return instant.date()
 
     def _fetch_film_description(self, film_url: str, title: str) -> str:
         """Fetch description from film detail page"""
