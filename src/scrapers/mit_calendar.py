@@ -1,245 +1,251 @@
-"""Scraper for MIT Events Calendar using Playwright"""
+"""MIT Events, read from calendar.mit.edu's Localist API
+
+calendar.mit.edu is Localist. Its homepage JSON-LD, which this scraper used to
+read through Playwright, carries only today's and featured events - about 5% of
+the calendar. The API carries all of it:
+
+    https://calendar.mit.edu/api/2/events?days=60&pp=100&page=N
+
+returns one item per occurrence in the window, paged (`page.total`). Each
+item's `event_instances[].event_instance` holds `start` as ISO 8601 with an
+offset ("2026-10-06T18:00:00-04:00") and an `all_day` flag.
+
+Most of the calendar is internal: seminars, office hours, and socials for the
+MIT community. Only events open to the general public belong here. MIT records
+that in the "Events By Audience" filter (`filters.event_audience`), whose
+values are Public, MIT Community, Students, Alumni, Faculty and Staff. An event
+is published when:
+
+  - its audience includes "Public", or its description says it is open to the
+    public ("Free and open to the public") - some are untagged; and
+  - its description does not restrict it ("open the MIT Community only",
+    "invite-only", "not open to the public") - one event tagged Public says so.
+
+Institute Holidays (Veterans Day, Thanksgiving) are closures, not events.
+"""
+import html
 import logging
 import re
-import json
 from datetime import datetime
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
-from src.scrapers.base_playwright_scraper import BasePlaywrightScraper
-from src.models.event import EventCreate, EventCategory
+import requests
+
+from src.models.event import EventCategory, EventCreate
+from src.scrapers.base_scraper import BaseScraper
 
 logger = logging.getLogger(__name__)
 
+API = "https://calendar.mit.edu/api/2/events"
+USER_AGENT = "CambridgeCalendar/1.0 (+https://cambridgecalendar.com)"
 
-class MITCalendarScraper(BasePlaywrightScraper):
-    """Scraper for MIT Events Calendar (calendar.mit.edu)"""
+# Server-side window. ~7 pages of 100 as of 2026-10; the cap only stops a
+# pager that never ends.
+WINDOW_DAYS = 60
+PAGE_SIZE = 100
+MAX_PAGES = 30
+
+PUBLIC_AUDIENCE = "Public"
+
+OPEN_TO_PUBLIC = re.compile(
+    r"(?<!not )(?<!n't )open\s+to\s+the\s+(?:general\s+)?public|public\s+is\s+welcome", re.IGNORECASE)
+# Statements about who may attend - not about who gets in free. "Free for MIT
+# students only" describes a price, and must not hide a public event.
+RESTRICTED = re.compile(
+    r"\bopen\s+(?:only\s+)?(?:to\s+)?(?:the\s+)?(?:mit|harvard)\s+"
+    r"(?:community|students|affiliates|faculty|staff)(?:\s+members)?\s+only"
+    r"|\b(?:only\s+open|open\s+only)\s+to\s+(?:the\s+)?mit\b"
+    r"|\brestricted\s+to\s+(?:the\s+)?mit\b"
+    r"|\binvite[\s-]+only"
+    r"|(?:not|n't)\s+open\s+to\s+the\s+(?:general\s+)?public"
+    r"|\bclosed\s+to\s+the\s+public"
+    r"|\bmit\s+(?:id|kerberos|certificate)\s+(?:is\s+)?required", re.IGNORECASE)
+
+NOT_EVENTS = {"Institute Holidays"}
+
+CATEGORY_BY_TYPE = {
+    "Conferences/Seminars/Lectures": EventCategory.LECTURES,
+    "Career Development": EventCategory.LECTURES,
+    "Workshops/Fairs": EventCategory.LECTURES,
+    "Thesis defense": EventCategory.LECTURES,
+    "Exhibits": EventCategory.ARTS_CULTURE,
+    "Campus Tours": EventCategory.ARTS_CULTURE,
+    "Athletics/Recreation": EventCategory.SPORTS,
+    "Community Event": EventCategory.COMMUNITY,
+    "Meetings/Gatherings": EventCategory.COMMUNITY,
+}
+
+
+class MITCalendarScraper(BaseScraper):
+    """Public events from the MIT Events calendar (calendar.mit.edu)"""
 
     def __init__(self):
         super().__init__(
             source_name="MIT Events",
-            source_url="https://calendar.mit.edu/"
+            source_url="https://calendar.mit.edu/",
+            use_selenium=False,
         )
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from MIT calendar"""
-        events = []
-
-        try:
-            # Navigate to the calendar
-            self.goto(self.source_url, wait_until="networkidle")
-
-            # Wait for events to load
-            self.page.wait_for_timeout(2000)
-
-            # Try to get JSON-LD data first
-            soup = self.get_soup()
-            json_ld_events = self._extract_json_ld_events(soup)
-
-            if json_ld_events:
-                events.extend(json_ld_events)
-                logger.info(f"Found {len(json_ld_events)} events from JSON-LD")
-            else:
-                # Parse from HTML
-                html_events = self._parse_html_events()
-                events.extend(html_events)
-
-            # Try to load more events by clicking "Show all events" if present
-            try:
-                show_all = self.page.query_selector('a:has-text("Show all events")')
-                if show_all:
-                    show_all.click()
-                    self.page.wait_for_timeout(3000)
-
-                    # Parse additional events
-                    soup = self.get_soup()
-                    more_events = self._extract_json_ld_events(soup)
-                    if more_events:
-                        # Add only new events
-                        existing_urls = {e.source_url for e in events}
-                        for event in more_events:
-                            if event.source_url not in existing_urls:
-                                events.append(event)
-            except Exception as e:
-                logger.debug(f"Could not load more events: {e}")
-
-        except Exception as e:
-            logger.error(f"Error scraping MIT Calendar: {e}")
-
-        logger.info(f"Scraped {len(events)} total events from MIT Calendar")
-        return events
-
-    def _extract_json_ld_events(self, soup) -> List[EventCreate]:
-        """Extract events from JSON-LD structured data"""
-        events = []
-
-        for script in soup.find_all('script', type='application/ld+json'):
-            try:
-                data = json.loads(script.string)
-
-                if isinstance(data, list):
-                    for item in data:
-                        if item.get('@type') == 'Event':
-                            event = self._parse_json_ld_event(item)
-                            if event:
-                                events.append(event)
-                elif isinstance(data, dict) and data.get('@type') == 'Event':
-                    event = self._parse_json_ld_event(data)
-                    if event:
-                        events.append(event)
-
-            except (json.JSONDecodeError, TypeError) as e:
-                logger.debug(f"Error parsing JSON-LD: {e}")
-                continue
-
-        return events
-
-    def _parse_json_ld_event(self, data: dict) -> Optional[EventCreate]:
-        """Parse a single JSON-LD event object"""
-        try:
-            title = data.get('name', '').strip()
-            if not title:
-                return None
-
-            start_str = data.get('startDate')
-            if not start_str:
-                return None
-
-            # Parse ISO datetime
-            try:
-                start_datetime = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
-            except:
-                return None
-
-            description = data.get('description', '')
-            if not description:
-                description = f"{title} - MIT Event"
-
-            url = data.get('url', self.source_url)
-
-            # Get location
-            venue_name = "MIT"
-            street_address = "77 Massachusetts Ave"
-            city = "Cambridge"
-
-            location = data.get('location', {})
-            if isinstance(location, dict):
-                venue_name = location.get('name', venue_name)
-                address = location.get('address', {})
-                if isinstance(address, dict):
-                    street_address = address.get('streetAddress', street_address)
-                    city = address.get('addressLocality', city)
-                elif isinstance(address, str):
-                    street_address = address
-
-            # Get image
-            image_url = data.get('image')
-            if isinstance(image_url, list) and image_url:
-                image_url = image_url[0]
-
-            # Detect category
-            category = self._detect_category(title, description)
-
-            return EventCreate(
-                title=title[:200],
-                description=self.clean_text(description)[:2000],
-                start_datetime=start_datetime,
-                venue_name=venue_name,
-                street_address=street_address,
-                city=city,
-                state="MA",
-                category=category,
-                source_name=self.source_name,
-                source_url=url,
-                image_url=image_url,
-            )
-
-        except Exception as e:
-            logger.debug(f"Error parsing JSON-LD event: {e}")
-            return None
-
-    def _parse_html_events(self) -> List[EventCreate]:
-        """Parse events from HTML when JSON-LD not available"""
-        events = []
-
-        try:
-            # Find event cards
-            event_cards = self.query_selector_all('.em-card, .em-event-card, [class*="event-card"]')
-
-            for card in event_cards:
-                try:
-                    # Get title
-                    title_elem = card.query_selector('h2, h3, .em-card_title, [class*="title"]')
-                    if not title_elem:
-                        continue
-
-                    title = self.clean_text(title_elem.text_content())
-                    if not title or len(title) < 3:
-                        continue
-
-                    # Get link
-                    link = card.query_selector('a')
-                    url = link.get_attribute('href') if link else self.source_url
-                    if url and not url.startswith('http'):
-                        url = f"https://calendar.mit.edu{url}"
-
-                    # Get date/time. Skip the event rather than guess a date -
-                    # a made-up date lands the event on the wrong day of the calendar.
-                    date_elem = card.query_selector('.em-list_dates__container, [class*="date"], time')
-                    datetime_attr = date_elem.get_attribute('datetime') if date_elem else None
-                    if not datetime_attr:
-                        logger.warning(f"Skipping '{title}' - no date on listing")
-                        continue
-                    try:
-                        start_datetime = datetime.fromisoformat(datetime_attr.replace('Z', '+00:00'))
-                    except ValueError:
-                        logger.warning(f"Skipping '{title}' - unparseable date {datetime_attr!r}")
-                        continue
-
-                    # Get location
-                    location_elem = card.query_selector('[class*="location"], [class*="venue"]')
-                    venue_name = self.clean_text(location_elem.text_content()) if location_elem else "MIT"
-
-                    category = self._detect_category(title, "")
-
-                    event = EventCreate(
-                        title=title[:200],
-                        description=f"{title} - MIT Event",
-                        start_datetime=start_datetime,
-                        venue_name=venue_name,
-                        city="Cambridge",
-                        state="MA",
-                        category=category,
-                        source_name=self.source_name,
-                        source_url=url,
-                    )
+        events: List[EventCreate] = []
+        seen = set()
+        page, total = 1, 1
+        while page <= total and page <= MAX_PAGES:
+            body = self._fetch(page)
+            total = int((body.get("page") or {}).get("total") or 0)
+            for event in self.parse_items(x.get("event") or {} for x in body.get("events") or []):
+                # Departments re-post events ("copy-of-copy-of-symplectic-
+                # geometry-seminar"), so identity is what, when and where.
+                key = (event.title.lower(), event.start_datetime, event.venue_name)
+                if key not in seen:
+                    seen.add(key)
                     events.append(event)
-
-                except Exception as e:
-                    logger.debug(f"Error parsing event card: {e}")
-                    continue
-
-        except Exception as e:
-            logger.error(f"Error parsing HTML events: {e}")
-
+            page += 1
+        if page <= total:
+            logger.warning(f"MIT Events: stopped at {MAX_PAGES} of {total} pages")
+        logger.info(f"Scraped {len(events)} public events from {self.source_name}")
         return events
 
-    def _detect_category(self, title: str, description: str) -> EventCategory:
-        """Detect event category"""
-        text = f"{title} {description}".lower()
+    def _fetch(self, page: int) -> dict:
+        response = requests.get(
+            API,
+            params={"days": WINDOW_DAYS, "pp": PAGE_SIZE, "page": page},
+            timeout=30,
+            headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+        )
+        response.raise_for_status()
+        return response.json()
 
-        if any(word in text for word in ['concert', 'music', 'recital', 'jazz', 'symphony', 'orchestra', 'choir', 'performance']):
-            return EventCategory.MUSIC
-        elif any(word in text for word in ['lecture', 'talk', 'seminar', 'symposium', 'colloquium', 'speaker', 'presentation']):
-            return EventCategory.LECTURES
-        elif any(word in text for word in ['exhibit', 'exhibition', 'gallery', 'art', 'museum', 'display']):
-            return EventCategory.ARTS_CULTURE
-        elif any(word in text for word in ['theater', 'theatre', 'play', 'drama', 'comedy', 'improv']):
-            return EventCategory.THEATER
-        elif any(word in text for word in ['workshop', 'class', 'training', 'hands-on']):
-            return EventCategory.COMMUNITY
-        elif any(word in text for word in ['film', 'movie', 'screening', 'cinema']):
-            return EventCategory.ARTS_CULTURE
-        elif any(word in text for word in ['sport', 'game', 'match', 'athletic', 'fitness']):
-            return EventCategory.SPORTS
+    @staticmethod
+    def is_public(item: dict) -> bool:
+        """Open to the general public, by MIT's audience tag or its own words."""
+        audiences = {a.get("name") for a in (item.get("filters") or {}).get("event_audience") or []}
+        text = f"{item.get('title') or ''}\n{item.get('description_text') or ''}"
+        if RESTRICTED.search(text):
+            return False
+        return PUBLIC_AUDIENCE in audiences or bool(OPEN_TO_PUBLIC.search(text))
 
+    def parse_items(self, items: Iterable[dict]) -> List[EventCreate]:
+        events = []
+        for item in items:
+            try:
+                events.extend(self.parse_item(item))
+            except Exception as e:
+                logger.warning(f"Failed to parse MIT Events item {item.get('id')}: {e}")
+        return events
+
+    def parse_item(self, item: dict) -> List[EventCreate]:
+        """One EventCreate per instance of a public event."""
+        title = self._clean(item.get("title"))
+        url = (item.get("localist_url") or "").strip()
+        if not title or not url.startswith("http"):
+            return []
+
+        types = [t.get("name") for t in (item.get("filters") or {}).get("event_types") or []]
+        if NOT_EVENTS.intersection(types) or not self.is_public(item):
+            return []
+
+        description = self._clean(item.get("description_text")) or f"{title} at MIT"
+        venue_name, street, city, state, zip_code, lat, lng = self._location(item)
+        category = self._category(title, types)
+        cost = self._cost(item)
+        image_url = item.get("photo_url") or None
+
+        events = []
+        for wrapper in item.get("event_instances") or []:
+            instance = wrapper.get("event_instance") or {}
+            start = self._instant(instance.get("start"))
+            if start is None:
+                logger.warning(f"Skipping an instance of '{title}' - unreadable start "
+                               f"{instance.get('start')!r} ({url})")
+                continue
+            end = self._instant(instance.get("end"))
+            all_day = bool(instance.get("all_day"))
+            events.append(EventCreate(
+                title=title[:200],
+                description=description[:2000],
+                start_datetime=start,
+                end_datetime=end if end and end > start and not all_day else None,
+                all_day=all_day,
+                venue_name=venue_name,
+                street_address=street,
+                city=city,
+                state=state,
+                zip_code=zip_code,
+                latitude=lat,
+                longitude=lng,
+                category=category,
+                cost=cost,
+                source_url=url,
+                source_name=self.source_name,
+                website_url=(item.get("url") or None),
+                image_url=image_url,
+            ))
+        return events
+
+    @staticmethod
+    def _instant(value) -> Optional[datetime]:
+        """ISO 8601 with an offset. The model converts it to naive Eastern."""
+        if not value:
+            return None
+        try:
+            dt = datetime.fromisoformat(value)
+        except (TypeError, ValueError):
+            return None
+        if dt.tzinfo is None or dt.second or dt.microsecond:
+            # Localist always sends an offset and whole minutes; anything else
+            # means the field changed meaning.
+            return None
+        return dt
+
+    def _location(self, item: dict) -> tuple:
+        """(venue, street, city, state, zip, lat, lng). Virtual events are "Online"."""
+        if item.get("experience") == "virtual":
+            return "Online", None, None, None, None, None, None
+
+        geo = item.get("geo") or {}
+        name = self._clean(item.get("location_name")) or self._clean(item.get("location"))
+        room = self._clean(item.get("room_number"))
+        if name and room:
+            # "449" -> "Building 2, Room 449"; "Thomas Tull Concert Hall" as is
+            name = f"{name}, Room {room}" if re.match(r"^[A-Z]?-?\d", room) else f"{name}, {room}"
+        street = self._clean(geo.get("street")) or None
+        city = self._clean(geo.get("city")) or None
+        zip_code = self._clean(geo.get("zip")) or None
+        try:
+            lat = float(geo["latitude"]) if geo.get("latitude") else None
+            lng = float(geo["longitude"]) if geo.get("longitude") else None
+        except (TypeError, ValueError):
+            lat = lng = None
+        state = (self._clean(geo.get("state")) or None) if city else None
+        if state and len(state) != 2:
+            state = None
+        return (name or "MIT")[:150], street, city, state, zip_code, lat, lng
+
+    @staticmethod
+    def _category(title: str, types: list) -> EventCategory:
+        for name in types:
+            if name == "Performing Arts":
+                lowered = title.lower()
+                if any(w in lowered for w in ("concert", "music", "orchestra", "ensemble", "choir", "jazz")):
+                    return EventCategory.MUSIC
+                if any(w in lowered for w in ("theater", "theatre", "play", "dance")):
+                    return EventCategory.THEATER
+                return EventCategory.ARTS_CULTURE
+            if name in CATEGORY_BY_TYPE:
+                return CATEGORY_BY_TYPE[name]
         return EventCategory.OTHER
+
+    def _cost(self, item: dict) -> Optional[str]:
+        raw = self._clean(str(item.get("ticket_cost") or ""))
+        if raw and raw not in ("0", "$0"):
+            return (raw[:1].upper() + raw[1:])[:100]
+        if item.get("free") or raw in ("0", "$0"):
+            return "Free"
+        return None
+
+    @staticmethod
+    def _clean(value) -> str:
+        if not value or not isinstance(value, str):
+            return ""
+        return " ".join(html.unescape(value).split())
