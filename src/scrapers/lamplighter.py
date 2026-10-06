@@ -10,6 +10,12 @@ from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
 
+_CLOCK = r'\d{1,2}(?::\d{2})?\s*(?:am|pm)'
+TIME_RANGE = rf'({_CLOCK})\s*[-–]\s*({_CLOCK})'
+SINGLE_TIME = rf'({_CLOCK})'
+# Anything that says a time is listed, whether or not we can read it
+TIME_LIKE = r'\d:\d{2}|\b(?:am|pm|a\.m\.|p\.m\.|noon|midnight)\b'
+
 
 class LamplighterScraper(BaseScraper):
     """Custom scraper for Lamplighter Brewing events"""
@@ -100,11 +106,10 @@ class LamplighterScraper(BaseScraper):
         # Find all links to product pages (events)
         event_links = soup.find_all('a', href=re.compile(r'/products/'))
 
-        # Filter out gift cards and other non-event products
+        # Filter out gift cards and other non-event products. No cap on the
+        # count: the collection peaked at 28 events against a [:30] slice,
+        # which would have dropped the rest silently.
         event_links = [link for link in event_links if 'gift' not in link.get('href', '').lower()]
-
-        # Limit to reasonable number
-        event_links = event_links[:30]
 
         for link in event_links:
             try:
@@ -146,23 +151,30 @@ class LamplighterScraper(BaseScraper):
                        ['private party', 'private event', 'closed to public', 'invite only']):
                     continue
 
-                # Extract time (after date, before location)
+                # Extract time (after date, before location): a range
+                # ("7 pm - 9 pm"), else a single start ("7 pm").
                 remaining_text = full_text[date_match.end():]
-                time_pattern = r'(\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*-\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))'
-                time_match = re.search(time_pattern, remaining_text, re.IGNORECASE)
+                time_match = (re.search(TIME_RANGE, remaining_text, re.IGNORECASE)
+                              or re.search(SINGLE_TIME, remaining_text, re.IGNORECASE))
 
+                all_day = False
                 if time_match:
-                    time_str = time_match.group()
-                    # Use start time for datetime
-                    start_time = time_match.group(1)
-                    datetime_str = f"{date_str} {start_time}"
+                    datetime_str = f"{date_str} {time_match.group(1)}"
+                elif re.search(TIME_LIKE, remaining_text, re.IGNORECASE):
+                    # A time is listed but not in a shape we read. Never
+                    # guess one — midnight used to be the guess.
+                    logger.warning(f"Skipping '{title}' - unreadable time in {remaining_text!r}")
+                    continue
                 else:
+                    # The venue gives a date only
+                    all_day = True
                     datetime_str = date_str
 
                 # Parse the datetime
                 try:
                     start_datetime = date_parser.parse(datetime_str, fuzzy=True)
-                except:
+                except (ValueError, OverflowError):
+                    logger.warning(f"Skipping '{title}' - unparseable date {datetime_str!r}")
                     continue
 
                 # Extract location (after time or date)
@@ -221,6 +233,7 @@ class LamplighterScraper(BaseScraper):
                     title=title[:200],
                     description=description[:2000],
                     start_datetime=start_datetime,
+                    all_day=all_day,
                     source_url=f"https://lamplighterbrewing.com{event_url}" if event_url.startswith('/') else event_url,
                     source_name=self.source_name,
                     venue_name=venue_name[:200],
