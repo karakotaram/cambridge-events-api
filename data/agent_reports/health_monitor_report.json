@@ -1,8 +1,8 @@
 {
   "status": "ok",
-  "timestamp": "2026-10-05T14:41:49.577375",
-  "total_events": 4455,
-  "total_sources": 38,
+  "timestamp": "2026-10-06T13:36:16.501060",
+  "total_events": 5253,
+  "total_sources": 40,
   "history_runs": 6,
   "alerts": [],
   "diagnosis": null,
