@@ -15,7 +15,9 @@ from src.quality import gate as gate_module
 from src.quality.fingerprint import record as record_fingerprints
 from src.quality.run_record import RunRecord, ScraperResult
 
-# Configure logging
+# Configure logging. logs/ is not in the repo, so a fresh checkout has none;
+# opening the file handler without it failed any import of this module.
+os.makedirs('logs', exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
