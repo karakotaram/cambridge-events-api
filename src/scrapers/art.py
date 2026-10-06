@@ -1,427 +1,253 @@
-"""Custom scraper for American Repertory Theater (A.R.T.) events"""
+"""Scraper for the American Repertory Theater (A.R.T.).
+
+/shows-events/ links each current show; each show page lists every performance
+as a `div.c-booking-instance`, server-rendered, so plain requests read it.
+
+A performance prints its weekday and date ("Tuesday" / "May 18") and a time,
+never a year. The year is the one whose calendar puts that date on that
+weekday; a performance whose weekday matches no nearby year is skipped. Taking
+the year from the clock instead published a whole run on 2026 dates that
+belonged in 2027.
+
+Shows play in different buildings, named in the show's masthead
+(`p.c-masthead__venue`): Loeb Drama Center and Farkas Hall in Harvard Square,
+and the Goel Center in Allston, which is in Boston.
+"""
 import logging
 import re
-from datetime import datetime
-from typing import List, Optional, Dict
-from dateutil import parser as date_parser
+from datetime import date, datetime
+from typing import Dict, List, Optional
+
+import requests
 from bs4 import BeautifulSoup
 
+from src.models.event import EventCategory, EventCreate
 from src.scrapers.base_scraper import BaseScraper
-from src.models.event import EventCreate, EventCategory
 
 logger = logging.getLogger(__name__)
 
+BASE_URL = "https://americanrepertorytheater.org"
+
+WEEKDAYS = {name: i for i, name in enumerate(
+    ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"))}
+MONTHS = {name: i for i, name in enumerate(
+    ("january", "february", "march", "april", "may", "june", "july", "august",
+     "september", "october", "november", "december"), start=1)}
+
+# Addresses as A.R.T. publishes them: Loeb in its site footer, Farkas Hall in
+# 1972's venue card, the Goel Center on /a-new-home-in-allston/ ("175 N.
+# Harvard Street in Boston").
+VENUES = {
+    "loeb drama center": {"name": "Loeb Drama Center", "address": "64 Brattle Street",
+                          "city": "Cambridge", "zip": "02138"},
+    "farkas hall": {"name": "Farkas Hall", "address": "12 Holyoke Street",
+                    "city": "Cambridge", "zip": "02138"},
+    "goel center": {"name": "Goel Center for Creativity & Performance", "address": "175 N. Harvard Street",
+                    "city": "Boston", "zip": "02134"},
+}
+
+
+def year_for_weekday(month: int, day: int, weekday: int, reference: date) -> Optional[int]:
+    """The year near `reference` in which month/day falls on `weekday`, or None.
+
+    Adjacent years put a date on different weekdays, so at most one of the
+    three candidates matches.
+    """
+    for year in (reference.year, reference.year + 1, reference.year - 1):
+        try:
+            if date(year, month, day).weekday() == weekday:
+                return year
+        except ValueError:          # Feb 29 in a common year
+            continue
+    return None
+
 
 class AmericanRepertoryTheaterScraper(BaseScraper):
-    """Custom scraper for American Repertory Theater events"""
+    """A.R.T.'s show pages, one performance per booking instance."""
 
-    def __init__(self):
+    def __init__(self, today: Optional[date] = None):
         super().__init__(
             source_name="American Repertory Theater",
-            source_url="https://americanrepertorytheater.org/shows-events/",
-            use_selenium=True
+            source_url=f"{BASE_URL}/shows-events/",
+            use_selenium=False,
         )
-        self.base_url = "https://americanrepertorytheater.org"
+        self.base_url = BASE_URL
+        # Only the year is inferred from it, and only through the weekday match.
+        self.today = today
+
+    def fetch_page(self, url: str) -> str:
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        return response.text
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from American Repertory Theater"""
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        import time
+        reference = self.today or date.today()
+        show_urls = self._get_show_urls(self.parse_html(self.fetch_page(self.source_url)))
+        logger.info(f"Found {len(show_urls)} show pages to scrape")
+        if not show_urls:
+            raise ValueError(f"{self.source_name}: no show links on {self.source_url}")
 
         events = []
-
-        # First, get the list of shows from the main page
-        html = self.fetch_html(self.source_url)
-        if self.driver:
+        for url in show_urls:
             try:
-                WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, "a"))
-                )
-                time.sleep(2)
-                html = self.driver.page_source
+                events.extend(self.parse_show(self.parse_html(self.fetch_page(url)), url, reference))
             except Exception as e:
-                logger.warning(f"Timeout on main page: {e}")
-
-        soup = self.parse_html(html)
-        show_urls = self._get_show_urls(soup)
-        logger.info(f"Found {len(show_urls)} show pages to scrape")
-
-        # Visit each show page and extract events
-        for show_url in show_urls:
-            try:
-                show_events = self._scrape_show_page(show_url)
-                events.extend(show_events)
-                logger.info(f"Got {len(show_events)} events from {show_url}")
-            except Exception as e:
-                logger.warning(f"Error scraping {show_url}: {e}")
-                continue
-
+                logger.warning(f"{self.source_name}: error scraping {url}: {e}")
         return events
 
     def _get_show_urls(self, soup: BeautifulSoup) -> List[str]:
-        """Extract all show/event page URLs from the main listing"""
-        urls = set()
+        """Every show page linked from the listing, in page order."""
+        urls = []
+        for link in soup.find_all("a", href=True):
+            href = link["href"]
+            if href.startswith("/"):
+                href = f"{self.base_url}{href}"
+            if (href.startswith(f"{self.base_url}/shows-events/") and href.rstrip("/") != self.source_url.rstrip("/")
+                    and not any(skip in href for skip in ("#", "?", "category", "page"))
+                    and href not in urls):
+                urls.append(href)
+        return urls
 
-        for link in soup.find_all('a', href=True):
-            href = link['href']
-            if '/shows-events/' in href and href != '/shows-events/' and href != self.source_url:
-                if href.startswith('/'):
-                    href = f"{self.base_url}{href}"
-                if href.startswith(self.base_url) and href not in urls:
-                    if not any(skip in href for skip in ['#', '?', 'category', 'page']):
-                        urls.add(href)
+    # --- one show ------------------------------------------------------------
 
-        return list(urls)
-
-    def _scrape_show_page(self, url: str) -> List[EventCreate]:
-        """Scrape all performances from a single show page"""
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        import time
-
-        events = []
-
-        html = self.fetch_html(url)
-        if self.driver:
-            try:
-                WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, "script"))
-                )
-                time.sleep(3)
-                # Scroll to load calendar
-                self.driver.execute_script('window.scrollTo(0, 500);')
-                time.sleep(2)
-                html = self.driver.page_source
-            except Exception as e:
-                logger.warning(f"Timeout on {url}: {e}")
-
-        soup = self.parse_html(html)
-
-        # Extract show metadata
+    def parse_show(self, soup: BeautifulSoup, url: str, reference: date) -> List[EventCreate]:
         title = self._get_title(soup)
         if not title:
+            logger.warning(f"{self.source_name}: no title on {url}")
             return []
-
-        description = self._get_description(soup)
+        description = self._get_description(soup) or f"{title} at the American Repertory Theater."
         image_url = self._get_image(soup)
-        venue_info = self._get_venue(soup, url)
+        venue = self._get_venue(soup, url)
+        category = self._categorize(title, description)
 
-        # Parse performance instances from HTML
-        performances = self._extract_performances(soup)
+        instances = soup.find_all("div", class_="c-booking-instance")
+        if not instances:
+            logger.warning(f"{self.source_name}: no performances listed for '{title}' ({url})")
 
-        if performances:
-            for perf in performances:
-                event = self._create_event(
-                    title, description, image_url, venue_info, url, perf
-                )
-                if event:
-                    events.append(event)
-            logger.info(f"Found {len(events)} performances for {title}")
-        else:
-            # Fallback: create single event from page metadata
-            event = self._create_fallback_event(
-                soup, title, description, image_url, venue_info, url
-            )
-            if event:
-                events.append(event)
-
+        events = []
+        for instance in instances:
+            start = self.performance_start(instance, reference)
+            if start is None:
+                day = " ".join(instance.get_text(" ").split())[:60]
+                logger.warning(f"Skipping a performance of '{title}' - no readable date ({day!r}, {url})")
+                continue
+            events.append(EventCreate(
+                title=title[:200],
+                description=description[:2000],
+                start_datetime=start,
+                source_url=self._booking_url(instance) or url,
+                source_name=self.source_name,
+                venue_name=venue["name"],
+                street_address=venue.get("address"),
+                city=venue.get("city"),
+                state="MA",
+                zip_code=venue.get("zip"),
+                category=category,
+                tags=self._access(instance),
+                cost=self._cost(instance),
+                image_url=image_url,
+            ))
+        logger.info(f"Found {len(events)} performances for {title}")
         return events
 
+    @staticmethod
+    def performance_start(instance, reference: date) -> Optional[datetime]:
+        """ "Tuesday" + "May 18" + "7:30PM ET" -> the year whose May 18 is a Tuesday."""
+        day = instance.find(class_="c-booking-instance__day")
+        month_day = instance.find(class_="c-booking-instance__month")
+        times = instance.find(class_="c-booking-instance__times")
+        if not (day and month_day and times):
+            return None
+
+        weekday = WEEKDAYS.get(day.get_text(strip=True).lower())
+        md = re.fullmatch(r"([A-Za-z]+)\s+(\d{1,2})", " ".join(month_day.get_text(" ").split()))
+        tm = re.search(r"(\d{1,2})(?::(\d{2}))?\s*([AP]M)", times.get_text(" "), re.I)
+        if weekday is None or not md or not tm or md.group(1).lower() not in MONTHS:
+            return None
+
+        month, dom = MONTHS[md.group(1).lower()], int(md.group(2))
+        year = year_for_weekday(month, dom, weekday, reference)
+        if year is None:
+            return None
+        hour = int(tm.group(1)) % 12 + (12 if tm.group(3).upper() == "PM" else 0)
+        return datetime(year, month, dom, hour, int(tm.group(2) or 0))
+
+    def _booking_url(self, instance) -> Optional[str]:
+        link = instance.find("a", href=True)
+        if not link:
+            return None
+        href = link["href"]
+        return f"{self.base_url}{href}" if href.startswith("/") else href if href.startswith("http") else None
+
+    def _cost(self, instance) -> Optional[str]:
+        button = instance.find("div", class_="c-booking-instance__button")
+        if button and "sold out" in button.get_text(" ").lower():
+            return "Sold Out"
+        price = instance.find("div", class_="c-booking-instance__price")
+        return self.clean_text(price.get_text(" ")) if price else None
+
+    def _access(self, instance) -> List[str]:
+        """"ASL Interpreted", "Audio Described", "Open Captioned" - each before its "[?]"."""
+        access = instance.find(class_="c-booking-instance__access")
+        text = self.clean_text(access.get_text(" ")) if access else ""
+        return [m.strip() for m in re.findall(r"([A-Z][A-Za-z ]{3,40}?)\s*\[\?\]", text)]
+
     def _get_title(self, soup: BeautifulSoup) -> Optional[str]:
-        """Extract the show title"""
-        og_title = soup.find('meta', property='og:title')
-        if og_title and og_title.get('content'):
-            title = og_title['content']
-            if ' - ' in title:
-                title = title.split(' - ')[0]
-            if ' | ' in title:
-                title = title.split(' | ')[0]
-            return self.clean_text(title)
+        """"1972" + subtitle "A Rock Opera" -> "1972: A Rock Opera"."""
+        title = soup.find(class_="c-pg-titles__title")
+        if title and self.clean_text(title.get_text(" ")):
+            text = self.clean_text(title.get_text(" "))
+            subtitle = soup.find(class_="c-pg-titles__subtitle")
+            sub = self.clean_text(subtitle.get_text(" ")) if subtitle else ""
+            return f"{text}: {sub}" if sub else text
 
-        h1 = soup.find('h1')
-        if h1:
-            return self.clean_text(h1.get_text())
-
-        return None
+        og_title = soup.find("meta", property="og:title")
+        if og_title and og_title.get("content"):
+            return self.clean_text(re.sub(r"\s+at A\.R\.T\.?$", "", og_title["content"].split(" | ")[0]))
+        h1 = soup.find("h1")
+        return self.clean_text(h1.get_text()) if h1 else None
 
     def _get_description(self, soup: BeautifulSoup) -> str:
-        """Extract the show description"""
-        og_desc = soup.find('meta', property='og:description')
-        if og_desc and og_desc.get('content'):
-            return self.clean_text(og_desc['content'])
-
-        meta_desc = soup.find('meta', attrs={'name': 'description'})
-        if meta_desc and meta_desc.get('content'):
-            return self.clean_text(meta_desc['content'])
-
+        for attrs in ({"property": "og:description"}, {"name": "description"}):
+            meta = soup.find("meta", attrs=attrs)
+            if meta and meta.get("content"):
+                return self.clean_text(meta["content"])
         return ""
 
     def _get_image(self, soup: BeautifulSoup) -> Optional[str]:
-        """Extract the show image"""
-        og_image = soup.find('meta', property='og:image')
-        if og_image and og_image.get('content'):
-            return og_image['content']
-        return None
+        og_image = soup.find("meta", property="og:image")
+        return og_image["content"] if og_image and og_image.get("content") else None
 
     def _get_venue(self, soup: BeautifulSoup, url: str) -> Dict:
-        """Extract venue information"""
-        # Default venue for A.R.T. mainstage shows
-        venue = {
-            "name": "Loeb Drama Center",
-            "address": "64 Brattle Street",
-            "city": "Cambridge",
-            "state": "MA",
-            "zip": "02138"
-        }
+        """The building named in the masthead, with its address."""
+        named = soup.find(class_="c-masthead__venue")
+        name = self.clean_text(named.get_text(" ")) if named else ""
+        key = name.lower()
+        for prefix, venue in VENUES.items():
+            if key.startswith(prefix):
+                return venue
+        if not name:
+            logger.warning(f"{self.source_name}: no venue in the masthead of {url}; using Loeb Drama Center")
+            return VENUES["loeb drama center"]
 
-        # Look for explicit venue mentions in specific elements (not full page text)
-        # Check the URL for venue hints
-        url_lower = url.lower()
-
-        # Only check for alternate venues if the URL suggests it's not a main show
-        if 'screening' in url_lower or 'family-matters' in url_lower:
-            page_text = soup.get_text().lower()
-            if 'brattle theatre' in page_text or 'the brattle' in page_text:
-                venue = {
-                    "name": "Brattle Theatre",
-                    "address": "40 Brattle Street",
-                    "city": "Cambridge",
-                    "state": "MA",
-                    "zip": "02138"
-                }
-        elif 'choosing-kindness' in url_lower:
-            venue = {
-                "name": "Cambridge Public Library",
-                "address": "449 Broadway",
-                "city": "Cambridge",
-                "state": "MA",
-                "zip": "02138"
-            }
-
-        return venue
-
-    def _extract_performances(self, soup: BeautifulSoup) -> List[Dict]:
-        """Extract performance data from booking instance elements"""
-        performances = []
-
-        # Find all booking instance divs
-        instances = soup.find_all('div', class_=re.compile(r'c-booking-instance(?!__)'))
-
-        for instance in instances:
-            try:
-                perf = {}
-
-                # Get date from class name or content
-                class_str = ' '.join(instance.get('class', []))
-                class_match = re.search(r'c-booking-instance--(\w+)-(\d+)', class_str)
-
-                # Get the day name and date number
-                days_elem = instance.find('div', class_='c-booking-instance__dates--days')
-                if days_elem:
-                    date_text = days_elem.get_text(strip=True)
-                    # Parse "TuesdayDecember 9" format - day name and month are merged
-                    months = ['January', 'February', 'March', 'April', 'May', 'June',
-                              'July', 'August', 'September', 'October', 'November', 'December']
-                    for month in months:
-                        if month in date_text:
-                            # Extract month and day number
-                            match = re.search(rf'{month}\s*(\d+)', date_text)
-                            if match:
-                                perf['date_str'] = f"{month} {match.group(1)}"
-                            break
-
-                # Get time
-                time_elem = instance.find('div', class_='c-booking-instance__dates--time')
-                if time_elem:
-                    perf['time_str'] = time_elem.get_text(strip=True).replace(' ET', '')
-
-                # Get price
-                price_elem = instance.find('div', class_='c-booking-instance__price')
-                if price_elem:
-                    perf['price'] = price_elem.get_text(strip=True)
-
-                # Get availability
-                button_elem = instance.find('div', class_='c-booking-instance__button')
-                if button_elem:
-                    button_text = button_elem.get_text(strip=True)
-                    if 'sold out' in button_text.lower():
-                        perf['availability'] = 'Sold Out'
-                    elif 'limited' in button_text.lower():
-                        perf['availability'] = 'Limited'
-                    else:
-                        perf['availability'] = 'Available'
-
-                # Get booking link
-                link = instance.find('a', href=True)
-                if link:
-                    perf['booking_url'] = link['href']
-
-                if 'date_str' in perf and 'time_str' in perf:
-                    performances.append(perf)
-
-            except Exception as e:
-                logger.warning(f"Error parsing performance instance: {e}")
-                continue
-
-        return performances
-
-    def _create_event(
-        self,
-        title: str,
-        description: str,
-        image_url: Optional[str],
-        venue_info: Dict,
-        source_url: str,
-        perf: Dict
-    ) -> Optional[EventCreate]:
-        """Create an event from performance data"""
-        try:
-            # Parse datetime
-            date_str = perf.get('date_str', '')
-            time_str = perf.get('time_str', '7PM')
-
-            # Parse time
-            time_match = re.match(r'(\d+)(?::(\d+))?\s*(AM|PM)', time_str, re.I)
-            if time_match:
-                hour = int(time_match.group(1))
-                minute = int(time_match.group(2) or 0)
-                if time_match.group(3).upper() == 'PM' and hour < 12:
-                    hour += 12
-                elif time_match.group(3).upper() == 'AM' and hour == 12:
-                    hour = 0
-            else:
-                hour, minute = 19, 0  # Default 7PM
-
-            # Parse date
-            try:
-                dt = date_parser.parse(date_str)
-                # Handle year
-                now = datetime.now()
-                if dt.month < now.month or (dt.month == now.month and dt.day < now.day):
-                    dt = dt.replace(year=now.year + 1)
-                else:
-                    dt = dt.replace(year=now.year)
-
-                start_datetime = dt.replace(hour=hour, minute=minute, second=0)
-            except Exception as e:
-                logger.warning(f"Could not parse date '{date_str}': {e}")
-                return None
-
-            # Skip past events
-            if start_datetime < datetime.now():
-                return None
-
-            # Build cost string
-            cost = None
-            if perf.get('price'):
-                cost = perf['price']
-            if perf.get('availability') == 'Sold Out':
-                cost = 'Sold Out'
-
-            # Format time for title
-            time_display = start_datetime.strftime('%I:%M %p').lstrip('0').replace(':00 ', ' ')
-            event_title = f"{title} - {time_display}"
-
-            booking_url = perf.get('booking_url', source_url)
-            if booking_url and not booking_url.startswith('http'):
-                booking_url = f"{self.base_url}{booking_url}"
-
-            return EventCreate(
-                title=event_title[:200],
-                description=description[:2000] if description else f"{title} at American Repertory Theater",
-                start_datetime=start_datetime,
-                source_url=booking_url or source_url,
-                source_name=self.source_name,
-                venue_name=venue_info["name"],
-                street_address=venue_info["address"],
-                city=venue_info["city"],
-                state=venue_info["state"],
-                zip_code=venue_info["zip"],
-                category=self._categorize(title, description),
-                cost=cost,
-                image_url=image_url
-            )
-
-        except Exception as e:
-            logger.warning(f"Error creating event: {e}")
-            return None
-
-    def _create_fallback_event(
-        self,
-        soup: BeautifulSoup,
-        title: str,
-        description: str,
-        image_url: Optional[str],
-        venue_info: Dict,
-        source_url: str
-    ) -> Optional[EventCreate]:
-        """Create a single event from page metadata (fallback)"""
-        page_text = soup.get_text()
-
-        # Look for date
-        date_match = re.search(
-            r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}',
-            page_text,
-            re.IGNORECASE
-        )
-
-        if not date_match:
-            return None
-
-        try:
-            start_datetime = date_parser.parse(date_match.group(), fuzzy=True)
-            now = datetime.now()
-            if start_datetime.year < now.year:
-                start_datetime = start_datetime.replace(year=now.year)
-            if start_datetime < now:
-                start_datetime = start_datetime.replace(year=now.year + 1)
-
-            # Look for time
-            time_match = re.search(r'(\d{1,2})\s*(pm|am)', page_text, re.IGNORECASE)
-            if time_match:
-                hour = int(time_match.group(1))
-                if 'pm' in time_match.group(2).lower() and hour < 12:
-                    hour += 12
-                start_datetime = start_datetime.replace(hour=hour, minute=0)
-            else:
-                start_datetime = start_datetime.replace(hour=19, minute=0)
-
-            if start_datetime < datetime.now():
-                return None
-
-            return EventCreate(
-                title=title[:200],
-                description=description[:2000] if description else f"{title} at American Repertory Theater",
-                start_datetime=start_datetime,
-                source_url=source_url,
-                source_name=self.source_name,
-                venue_name=venue_info["name"],
-                street_address=venue_info["address"],
-                city=venue_info["city"],
-                state=venue_info["state"],
-                zip_code=venue_info["zip"],
-                category=self._categorize(title, description),
-                image_url=image_url
-            )
-
-        except Exception as e:
-            logger.warning(f"Error creating fallback event: {e}")
-            return None
+        # A building we have not seen: take the address from the page's venue card.
+        card = soup.find(id="venue")
+        lines = [self.clean_text(t) for t in card.find("p").stripped_strings] if card and card.find("p") else []
+        where = re.match(r"(.+),\s*([A-Z]{2})\s+(\d{5})", lines[1]) if len(lines) > 1 else None
+        if where:
+            return {"name": name, "address": lines[0], "city": where.group(1), "zip": where.group(3)}
+        logger.warning(f"{self.source_name}: unknown venue '{name}' with no address on {url}")
+        return {"name": name}
 
     def _categorize(self, title: str, description: str) -> EventCategory:
-        """Categorize the event"""
         text = f"{title} {description}".lower()
-
         if any(word in text for word in ['workshop', 'class', 'conversation', 'panel', 'discussion']):
-            return EventCategory.EDUCATION
+            return EventCategory.LECTURES
         elif any(word in text for word in ['screening', 'film', 'movie']):
             return EventCategory.ARTS_CULTURE
         elif any(word in text for word in ['gala', 'fundraiser', 'benefit']):
             return EventCategory.COMMUNITY
-        elif any(word in text for word in ['concert', 'music', 'orchestra', 'symphony']):
+        elif any(word in text for word in ['concert', 'orchestra', 'symphony']):
             return EventCategory.MUSIC
         else:
             return EventCategory.THEATER
