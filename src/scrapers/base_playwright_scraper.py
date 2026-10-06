@@ -2,14 +2,17 @@
 import logging
 import re
 from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
 from src.models.event import EventCreate
 
 logger = logging.getLogger(__name__)
+
+
+class ScrapeRefusedError(RuntimeError):
+    """The venue answered with an error status and the scrape found nothing."""
 
 
 class BasePlaywrightScraper(ABC):
@@ -37,6 +40,9 @@ class BasePlaywrightScraper(ABC):
         self._browser = None
         self._context = None
         self._page = None
+        # Every navigation's (requested url, final url, HTTP status), so run()
+        # can tell "the venue has nothing listed" from "the venue refused us".
+        self.navigations: List[Tuple[str, str, Optional[int]]] = []
 
     def setup_browser(self):
         """Initialize Playwright browser with stealth settings"""
@@ -96,9 +102,9 @@ class BasePlaywrightScraper(ABC):
             self.setup_browser()
         return self._page
 
-    def goto(self, url: str, wait_until: str = "domcontentloaded", timeout: int = 30000) -> None:
+    def goto(self, url: str, wait_until: str = "domcontentloaded", timeout: int = 30000):
         """
-        Navigate to URL with smart waiting.
+        Navigate to URL with smart waiting, and record the HTTP status.
 
         Args:
             url: URL to navigate to
@@ -107,8 +113,27 @@ class BasePlaywrightScraper(ABC):
                        - 'load': Full page load including resources
                        - 'networkidle': No network activity for 500ms (slowest but most complete)
             timeout: Maximum wait time in milliseconds
+
+        Returns the Playwright response (None for same-document navigations).
+
+        The status used to be thrown away. A 403, or a Cloudflare challenge
+        page, is still a page: it parsed as zero listings and the run recorded
+        the source as "ok, 0 events". Six sources sat in that state in CI for
+        weeks with nothing to say they were being refused. `run()` now turns
+        "nothing found after a refused navigation" into a failure.
         """
-        self.page.goto(url, wait_until=wait_until, timeout=timeout)
+        response = self.page.goto(url, wait_until=wait_until, timeout=timeout)
+        status = getattr(response, "status", None) if response is not None else None
+        final_url = getattr(response, "url", None) or url
+        self.navigations.append((url, final_url, status))
+        if status is not None and status >= 400:
+            logger.warning(f"{self.source_name}: HTTP {status} for {final_url}")
+        return response
+
+    def refused_navigations(self) -> List[Tuple[str, str, int]]:
+        """Navigations in this run that the server answered with an error status."""
+        return [(url, final, status) for url, final, status in self.navigations
+                if status is not None and status >= 400]
 
     def wait_for_selector(self, selector: str, timeout: int = 10000, state: str = "visible"):
         """
@@ -307,11 +332,29 @@ class BasePlaywrightScraper(ABC):
         pass
 
     def run(self) -> List[EventCreate]:
-        """Execute the scraper and return events"""
+        """Execute the scraper and return events.
+
+        Raises when the scrape found nothing *and* a navigation was refused
+        (HTTP status 400 or above). Zero events from a page that loaded is a
+        venue with nothing listed; zero events from a 403 is a block, and the
+        orchestrator must record it as `failed` — which also keeps the source's
+        existing upcoming events instead of letting the gate see an empty source.
+        """
         try:
             logger.info(f"Starting Playwright scrape of {self.source_name}")
+            self.navigations = []
             self.setup_browser()
             events = self.scrape_events()
+            refused = self.refused_navigations()
+            if not events and refused:
+                url, final, status = refused[0]
+                where = url if final == url else f"{url} (redirected to {final})"
+                more = f" and {len(refused) - 1} more" if len(refused) > 1 else ""
+                raise ScrapeRefusedError(
+                    f"{self.source_name}: 0 events after HTTP {status} from {where}{more}")
+            if refused:
+                logger.warning(f"{self.source_name}: {len(refused)} navigation(s) refused "
+                               f"but {len(events)} events found; keeping them")
             logger.info(f"Successfully scraped {len(events)} events from {self.source_name}")
             return events
         except Exception as e:
