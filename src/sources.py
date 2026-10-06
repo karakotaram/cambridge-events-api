@@ -115,16 +115,20 @@ SOURCES: tuple[Source, ...] = (
                  "reads both departments' calendar APIs"),
     Source("MIT Open Space", "src.scrapers.openspace_mit", "OpenSpaceMITScraper", "requests",
            notes="Squarespace calendar JSON (upcoming only)"),
-
-    # ---- Selenium ------------------------------------------------------------
-    Source("The Lily Pad", "src.scrapers.lilypad", "LilyPadScraper", "selenium"),
-    Source("The Middle East", "src.scrapers.mideast", "MideastClubScraper", "selenium"),
-    Source("Portico Brewing", "src.scrapers.portico", "PorticoScraper", "selenium"),
-    Source("Arts at the Armory", "src.scrapers.armory", "ArtsAtTheArmoryScraper", "selenium"),
-    Source("Central Square Theater", "src.scrapers.central_square", "CentralSquareTheaterScraper", "selenium"),
-    Source("American Repertory Theater", "src.scrapers.art", "AmericanRepertoryTheaterScraper", "selenium"),
-    Source("Aeronaut Brewing", "src.scrapers.aeronaut", "AeronautScraper", "selenium",
-           runs_in_ci=False, notes="blocks GitHub cloud IPs; run scrape_local.py"),
+    Source("The Lily Pad", "src.scrapers.lilypad", "LilyPadScraper", "requests",
+           notes="Squarespace JSON; was Selenium, capped at 30 of ~120"),
+    Source("The Middle East", "src.scrapers.mideast", "MideastClubScraper", "requests",
+           notes="server-rendered /page/N; was Selenium on page 1 only (20 of ~228)"),
+    Source("Portico Brewing", "src.scrapers.portico", "PorticoScraper", "requests",
+           notes="Squarespace JSON; was Selenium"),
+    Source("Arts at the Armory", "src.scrapers.armory", "ArtsAtTheArmoryScraper", "requests",
+           notes="Events Manager iCal feed. Plain requests were refused from GitHub IPs "
+                 "in Dec 2025, so it falls back to fetching the feed in a browser"),
+    Source("Central Square Theater", "src.scrapers.central_square", "CentralSquareTheaterScraper", "requests",
+           notes="EventON's month endpoint; was Selenium clicking through months, which "
+                 "a newsletter popup blocked after the second"),
+    Source("American Repertory Theater", "src.scrapers.art", "AmericanRepertoryTheaterScraper", "requests",
+           notes="venue per show from the masthead; the year from the printed weekday"),
 
     # ---- Playwright ----------------------------------------------------------
     Source("Sanders Theatre", "src.scrapers.sanders_theatre", "SandersTheatreScraper", "playwright",
@@ -146,6 +150,15 @@ SOURCES: tuple[Source, ...] = (
     # scraper's last good run did. A handful of their off-site events (the
     # virtual warehouse sale, readings hosted at First Parish) are not carried
     # there, which is the cost of this.
+
+    # Retired 2026-10-06: "Aeronaut Brewing". Cloudflare challenges plain HTTP
+    # (403) and headless Chrome; it had been passing only because the browser
+    # claimed to be Windows Chrome 120, which CLAUDE.md forbids. An honest
+    # headless browser never clears the challenge, and the remaining way through
+    # was driving a visible browser window so the check reads it as a person -
+    # defeating protection the venue chose, as with Porter Square Books below.
+    # BostonShows.org carries ~24 of their music shows; the rest of their
+    # programme (trivia, featured events) is the cost.
 
     # Retired 2026-10-06: "Porter Square Books". portersquarebooks.com now
     # serves Cloudflare's "Performing security verification" challenge (HTTP

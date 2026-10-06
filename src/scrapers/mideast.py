@@ -18,7 +18,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from src.models.event import EventCategory, EventCreate
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_scraper import BaseScraper, USER_AGENT
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,6 @@ PAGE_DELAY_S = 1.5
 RETRY_DELAY_S = 10
 
 # Says who is asking. Not a browser's, so it contradicts nothing.
-USER_AGENT = "cambridgecalendar-scraper/1.0 (+https://cambridgecalendar.com)"
 
 CANCELLED = re.compile(r"\bcancel+ed\b", re.I)
 
