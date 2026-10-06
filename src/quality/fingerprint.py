@@ -59,7 +59,7 @@ class Fingerprint:
     max_events_one_timestamp: int = 0
     distinct_titles_ratio: float = 0.0
     distinct_venues: int = 0
-    distinct_images_ratio: float = 0.0
+    distinct_images_ratio: Optional[float] = None   # None when the source has no images at all
     median_description_len: int = 0
     null_venue_rate: float = 0.0
     latest_start: Optional[str] = None
@@ -108,7 +108,10 @@ def fingerprint_source(source: str, events: list[dict]) -> Fingerprint:
     fp.null_venue_rate = _ratio(sum(1 for v in venues if not v), len(events))
 
     images = [e.get("image_url") for e in events if e.get("image_url")]
-    fp.distinct_images_ratio = _ratio(len(set(images)), len(images))
+    # No images is not "images collapsed to a placeholder": an unenriched
+    # scrape (cal scrape) has none, and reading that as a ratio of 0 raised a
+    # false drift error against the enriched baseline.
+    fp.distinct_images_ratio = _ratio(len(set(images)), len(images)) if images else None
 
     lengths = sorted(len(e.get("description") or "") for e in events)
     fp.median_description_len = lengths[len(lengths) // 2]

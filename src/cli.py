@@ -24,8 +24,8 @@ import argparse
 import json
 import subprocess
 import sys
-from collections import Counter, defaultdict
-from datetime import datetime, timedelta
+from collections import Counter
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -188,7 +188,9 @@ def cmd_sources(args) -> int:
         } for s in SOURCES], indent=2))
         return 0
 
-    now = datetime.now()
+    # scraped_at is stored as naive UTC; comparing it with local time made a
+    # scrape from the last few hours read as "-1d ago".
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     print(f"{'source':<34}{'kind':<12}{'ci':<5}{'events':>7}{'furthest out':>15}  last scraped")
     print("-" * 92)
     for s in SOURCES:
@@ -222,6 +224,7 @@ def cmd_sources(args) -> int:
 def cmd_scrape(args) -> int:
     from src.quality import check_invariants
     from src.quality.fingerprint import compare, fingerprint_source, load_baselines
+    from src.models.event import Event
 
     source = BY_NAME.get(args.source)
     if source is None:
@@ -248,8 +251,12 @@ def cmd_scrape(args) -> int:
     violations = check_invariants(as_dicts)
     print(f"{OK} clean" if not violations else "\n".join(f"{BAD} {v}" for v in violations))
 
-    _rule("shape")
-    fp = fingerprint_source(source.name, as_dicts)
+    # Baselines describe published data, which has been validated and
+    # deduplicated; measuring the raw scrape against them raised false alarms
+    # ("23 vs baseline 8 - duplicate explosion?").
+    _rule("shape (after validation and dedup, as it would publish)")
+    fp = fingerprint_source(source.name, [Event.from_create(e).model_dump(mode="json")
+                                          for e in _prepare(events)])
     for key, value in fp.to_dict().items():
         if key != "source":
             print(f"  {key:<26}{value}")
@@ -344,7 +351,7 @@ def cmd_runs(args) -> int:
         changes = f"+{d.get('added', 0)} -{d.get('removed', 0)} ~{d.get('changed', 0)}" if d else "-"
         print(f"{r['run_id']:<24}{r.get('gate', {}).get('decision', '?'):<10}"
               f"{r.get('counts', {}).get('final', 0):>7}"
-              f"{ok}/{len(r.get('scrapers', [])):>9}{r.get('duration_s', 0):>6.0f}s  {changes}")
+              f"{f'{ok}/' + str(len(r.get('scrapers', []))):>10}{r.get('duration_s', 0):>6.0f}s  {changes}")
     return 0
 
 
@@ -429,6 +436,24 @@ def cmd_diff(args) -> int:
 # repair
 # --------------------------------------------------------------------------- #
 
+def _prepare(raw: list) -> list:
+    """Validate and deduplicate one source's scrape, as the pipeline would."""
+    from src.utils.deduplicator import EventDeduplicator
+    from src.utils.validator import EventValidator
+
+    validator = EventValidator()
+    valid, rejected = [], Counter()
+    for event in raw:
+        event = validator.clean_and_enhance(event)
+        ok, error = validator.validate_event(event)
+        valid.append(event) if ok else rejected.update([error])
+    print(f"valid {len(valid)}" + (f", rejected {dict(rejected)}" if rejected else ""))
+
+    kept = EventDeduplicator.deduplicate_events(valid)
+    print(f"after internal dedup {len(kept)}")
+    return kept
+
+
 def cmd_repair(args) -> int:
     """Re-scrape one source and splice it in, leaving every other source alone.
 
@@ -439,7 +464,6 @@ def cmd_repair(args) -> int:
     from src.quality import check_invariants
     from src.utils.deduplicator import EventDeduplicator
     from src.utils.storage import diff_events, load_events, write_events
-    from src.utils.validator import EventValidator
 
     source = BY_NAME.get(args.source)
     if source is None or not source.is_scraped:
@@ -453,37 +477,21 @@ def cmd_repair(args) -> int:
 
     raw = source.load().run()
     print(f"scraped {len(raw)}")
+    kept = _prepare(raw)
 
-    validator = EventValidator()
-    valid, rejected = [], Counter()
-    for event in raw:
-        event = validator.clean_and_enhance(event)
-        ok, error = validator.validate_event(event)
-        valid.append(event) if ok else rejected.update([error])
-    print(f"valid {len(valid)}" + (f", rejected {dict(rejected)}" if rejected else ""))
+    # Several venues are covered by both their own scraper and an aggregator.
+    # Reconcile with the same rules as the pipeline: the venue's own listing
+    # beats an aggregator copy and user submissions always stay. This used to
+    # drop the repaired source's event on any match, so repairing a venue
+    # handed its shows to whichever aggregator also listed them.
+    fresh = [Event.from_create(e).model_dump(mode="json") for e in kept]
+    others_before = len(others)
+    fresh, others = EventDeduplicator.reconcile_preserved(fresh, others)
+    print(f"after cross-source dedup {len(fresh)}"
+          + (f"; dropped {others_before - len(others)} duplicate copies held by other sources"
+             if others_before > len(others) else ""))
 
-    kept = EventDeduplicator.deduplicate_events(valid)
-    print(f"after internal dedup {len(kept)}")
-
-    # Several venues are covered by both their own scraper and an aggregator;
-    # skipping this produces visible double listings. Bucket by day because the
-    # comparison does fuzzy title matching and is O(n*m).
-    by_day = defaultdict(list)
-    for e in others:
-        try:
-            from src.models.event import EventCreate
-            oc = EventCreate(**{k: v for k, v in e.items() if k != "id"})
-        except Exception:
-            continue
-        by_day[EventDeduplicator.normalize_datetime(oc.start_datetime).date()].append(oc)
-
-    final = [e for e in kept
-             if not any(EventDeduplicator.are_duplicates(e, o)
-                        for o in by_day.get(
-                            EventDeduplicator.normalize_datetime(e.start_datetime).date(), ()))]
-    print(f"after cross-source dedup {len(final)}")
-
-    publish = [Event.from_create(e).model_dump(mode="json") for e in final] + others
+    publish = fresh + others
 
     violations = check_invariants(publish)
     blocking = [v for v in violations if v.severity == "error"]
