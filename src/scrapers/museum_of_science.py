@@ -1,66 +1,193 @@
 """Scraper for the Museum of Science special events
 
 The museum's `/events` page lists a handful of dated special events — the rest of
-its programme is daily exhibits and shows, which are not calendar entries. Five
-listings is the real number, not a truncated one.
+its programme is daily exhibits and shows, which are not calendar entries. About
+a dozen listings is the real number, not a truncated one.
 
-Dates read as "Saturday, September 26, 2026 | 10:00 am – 4:00 pm", and sometimes
-"Sunday, September 27 | 6:00 – 10:00 pm" with the year left off. A missing year
-is inferred forward from today — never backward — because the page only ever
-advertises upcoming events.
+The page renders client-side from a JSON endpoint, `/api/v1/event-listing/...`,
+and this reads that endpoint directly with plain HTTP. Each result is one
+pre-rendered listing card; its date is a free-text field written by hand:
+
+    "Saturday, November 14, 2026 | 10:00 am – 4:00 pm"
+    "Sunday, October 11 | 6:00 – 9:00 pm"                     no year
+    "Friday, October 16 | Doors open at 7:30 pm; Performance starts at 8:00 pm"
+    "Thursday, October 29 at 7:30 pm; Friday, October 30 at 6:30 pm and 8:00 pm"
+    "Masked Access Hours, Saturday, November 7th | 8–9 am"
+
+The previous scraper handed dateutil everything after the "|", which rejected
+the last three shapes outright: four of eleven listings were dropped. Here the
+date and the first time are each found with a regex.
+
+A missing year is decided by the printed weekday, never by rolling forward.
+The previous scraper moved any date that had passed into next year, which
+published "Strange Land" (venue: "Wednesday, September 23 | 7:30 pm", i.e.
+2026, already over) as 2027-09-23 — a Thursday. Of last year, this year and
+next, at most one puts a month and day on a given weekday; that year is used,
+and with no match (or no weekday to check against) the event is skipped.
 """
 import logging
 import re
-from datetime import datetime
-from typing import List, Optional
+from datetime import date, datetime
+from typing import List, Optional, Tuple
 
-from dateutil import parser as date_parser
+import requests
+from bs4 import BeautifulSoup
 
-from src.scrapers.base_playwright_scraper import BasePlaywrightScraper
-from src.models.event import EventCreate, EventCategory
+from src.models.event import EventCategory, EventCreate
+from src.scrapers.base_scraper import BaseScraper
 
 logger = logging.getLogger(__name__)
 
 BASE = "https://www.mos.org"
+# The request the /events page makes for its listing. 96 and 101 are the two
+# event-type terms the page filters on ("Event" and the Public Science Common's).
+API_URL = f"{BASE}/api/v1/event-listing/event_detail/96+101/all/all/all/all"
+PER_PAGE = 18          # the largest page size the endpoint offers
+MAX_PAGES = 5
+
+# An honest client identity. Never a browser's — see CLAUDE.md "Traps".
+USER_AGENT = "cambridgecalendar.com event listings (+https://cambridgecalendar.com)"
+
 VENUE = "Museum of Science"
 ADDRESS = "1 Science Park"
 
-# "Saturday, September 26, 2026 | 10:00 am – 4:00 pm" -> date part, time part
-DATE_TIME_SPLIT = re.compile(r"\s*\|\s*")
-# Ranges use an en dash more often than a hyphen
-TIME_RANGE_SPLIT = re.compile(r"\s*(?:–|—|-|to)\s*")
+_MONTHS = ("january", "february", "march", "april", "may", "june", "july",
+           "august", "september", "october", "november", "december")
+_WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+
+# "Saturday, November 7th", "Sunday, October 11", "Saturday, November 14, 2026".
+# The weekday may be absent; the month must be a month name.
+DATE = re.compile(
+    r"(?:\b(?P<weekday>mon(?:day)?|tue(?:s(?:day)?)?|wed(?:nesday)?|thu(?:r(?:s(?:day)?)?)?"
+    r"|fri(?:day)?|sat(?:urday)?|sun(?:day)?)\b\.?,?\s+)?"
+    r"\b(?P<month>jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?"
+    r"|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b\.?\s+"
+    r"(?P<day>\d{1,2})(?:st|nd|rd|th)?\b"
+    r"(?:,?\s+(?P<year>\d{4})\b)?",
+    re.I)
+
+# A clock time with a meridiem of its own ("7:30 pm", "8 a.m."), or a bare one
+# that opens a range ending in one ("6:00 – 9:00 pm", "8–9 am").
+_MERIDIEM = r"(?:\s*(?P<{0}>[ap])\.?\s?m\b\.?)"
+TIME = re.compile(
+    r"(?<![\d:])(?P<hour>\d{1,2})(?::(?P<minute>\d{2}))?(?!\d)" + _MERIDIEM.format("mer") + "?"
+    r"(?:\s*(?:–|—|-|to)\s*(?P<end_hour>\d{1,2})(?::(?P<end_minute>\d{2}))?(?!\d)"
+    + _MERIDIEM.format("end_mer") + ")?",
+    re.I)
 
 
-class MuseumOfScienceScraper(BasePlaywrightScraper):
+def _to_24h(hour: int, minute: int, meridiem: str) -> Optional[Tuple[int, int]]:
+    if not (1 <= hour <= 12 and 0 <= minute <= 59):
+        return None
+    hour = hour % 12 + (12 if meridiem.lower() == "p" else 0)
+    return hour, minute
+
+
+def first_time(text: str) -> Optional[Tuple[int, int]]:
+    """The first clock time in `text` that carries, or borrows, a meridiem.
+
+    A bare number with no meridiem anywhere near it is not taken as a time.
+    """
+    for m in TIME.finditer(text):
+        hour, minute = int(m["hour"]), int(m["minute"] or 0)
+        if m["mer"]:
+            return _to_24h(hour, minute, m["mer"])
+        if m["end_mer"]:
+            # "6:00 – 9:00 pm" borrows the end's meridiem, unless that would put
+            # the start after the end: "11:00 – 1:00 pm" starts in the morning.
+            start = _to_24h(hour, minute, m["end_mer"])
+            end = _to_24h(int(m["end_hour"]), int(m["end_minute"] or 0), m["end_mer"])
+            if start and end and start > end and m["end_mer"].lower() == "p":
+                start = _to_24h(hour, minute, "a")
+            return start
+    return None
+
+
+def parse_when(text: str, today: date) -> Optional[Tuple[datetime, bool]]:
+    """Read a listing's date text as (start, all_day), or None if it cannot be dated.
+
+    `today` only bounds which years are candidates when none is printed; the
+    printed weekday chooses among them.
+    """
+    match = DATE.search(text or "")
+    if not match:
+        return None
+    month = _MONTHS.index(next(m for m in _MONTHS if m.startswith(match["month"].lower()))) + 1
+    day = int(match["day"])
+
+    if match["year"]:
+        years = [int(match["year"])]
+    else:
+        years = [today.year - 1, today.year, today.year + 1]
+
+    candidates = []
+    for year in years:
+        try:
+            candidates.append(date(year, month, day))
+        except ValueError:          # 31 November, 29 February in a common year
+            continue
+
+    if match["weekday"]:
+        weekday = next(i for i, w in enumerate(_WEEKDAYS) if w.startswith(match["weekday"].lower()))
+        candidates = [c for c in candidates if c.weekday() == weekday]
+    elif not match["year"]:
+        # No year and no weekday: nothing printed decides the year.
+        return None
+    if len(candidates) != 1:
+        return None
+    day_ = candidates[0]
+
+    clock = first_time(text[match.end():])
+    if clock is None:
+        return datetime(day_.year, day_.month, day_.day), True
+    return datetime(day_.year, day_.month, day_.day, *clock), False
+
+
+class MuseumOfScienceScraper(BaseScraper):
     """Scraper for Museum of Science events"""
 
     def __init__(self):
-        super().__init__(source_name=VENUE, source_url=f"{BASE}/events")
+        super().__init__(source_name=VENUE, source_url=f"{BASE}/events", use_selenium=False)
 
     def scrape_events(self) -> List[EventCreate]:
-        try:
-            self.goto(self.source_url)
-            self.wait_for_stable_count(".listing-item", timeout=25000)
-            soup = self.get_soup()
-        except Exception as e:
-            logger.error(f"Could not load Museum of Science events: {e}")
-            return []
+        cards = []
+        for page in range(MAX_PAGES):
+            # No try/except: a refusal or a non-JSON body (a challenge page)
+            # must fail the source, not read as a museum with nothing on.
+            response = requests.get(
+                API_URL,
+                params={"items_per_page": PER_PAGE, "sort_by": "date_asc", "page": page},
+                headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+                timeout=30,
+            )
+            response.raise_for_status()
+            payload = response.json()
+            cards += [r.get("event_listing") or "" for r in payload.get("results") or []]
+            if page + 1 >= (payload.get("pager") or {}).get("total_pages", 1):
+                break
 
+        events = self.parse_cards(cards, self.today())
+        logger.info(f"Scraped {len(events)} events from {VENUE} ({len(cards)} listed)")
+        return events
+
+    @staticmethod
+    def today() -> date:
+        """Only bounds the candidate years for a date printed without one."""
+        return date.today()
+
+    def parse_cards(self, cards: List[str], today: date) -> List[EventCreate]:
         events: List[EventCreate] = []
         seen = set()
-        for item in soup.find_all(class_="listing-item"):
-            event = self._parse_item(item)
-            if event is None:
-                continue
-            if event.source_url in seen:
+        for card in cards:
+            item = BeautifulSoup(card, "html.parser").find(class_="listing-item")
+            event = self._parse_item(item, today) if item else None
+            if event is None or event.source_url in seen:
                 continue
             seen.add(event.source_url)
             events.append(event)
-
-        logger.info(f"Scraped {len(events)} events from {VENUE}")
         return events
 
-    def _parse_item(self, item) -> Optional[EventCreate]:
+    def _parse_item(self, item, today: date) -> Optional[EventCreate]:
         link = item.find("a", class_="listing-item__image", href=True) or item.find("a", href=True)
         if not link:
             return None
@@ -83,12 +210,13 @@ class MuseumOfScienceScraper(BasePlaywrightScraper):
             return None
 
         date_el = item.find(class_="listing-item__date")
-        start = self._parse_start(self.clean_text(date_el.get_text()) if date_el else "")
-        if start is None:
+        date_text = self.clean_text(date_el.get_text()) if date_el else ""
+        when = parse_when(date_text, today)
+        if when is None:
             # Never guess — see docs/ARCHITECTURE.md "Layer 1 — Scrapers".
-            logger.warning(f"Skipping '{title}' - no parseable date "
-                           f"({self.clean_text(date_el.get_text()) if date_el else None!r})")
+            logger.warning(f"Skipping '{title}' - no parseable date ({date_text!r})")
             return None
+        start, all_day = when
 
         body = item.find(class_=re.compile(r"listing-item__(summary|description|content-body)"))
         description = self.clean_text(body.get_text()) if body else ""
@@ -104,6 +232,7 @@ class MuseumOfScienceScraper(BasePlaywrightScraper):
             title=title[:200],
             description=description[:2000],
             start_datetime=start,
+            all_day=all_day,
             source_url=f"{BASE}{path}" if path.startswith("/") else path,
             source_name=self.source_name,
             venue_name=VENUE,
@@ -114,34 +243,3 @@ class MuseumOfScienceScraper(BasePlaywrightScraper):
             category=EventCategory.ARTS_CULTURE,
             image_url=image_url,
         )
-
-    @staticmethod
-    def _parse_start(text: str) -> Optional[datetime]:
-        if not text:
-            return None
-        parts = DATE_TIME_SPLIT.split(text, maxsplit=1)
-        date_part = parts[0].strip()
-        time_part = TIME_RANGE_SPLIT.split(parts[1].strip())[0] if len(parts) > 1 else ""
-
-        # An end-of-range time like "4:00 pm" carries the meridiem the start may
-        # be missing ("6:00 – 10:00 pm"); borrow it when the start has none.
-        if time_part and not re.search(r"[ap]\.?m", time_part, re.I) and len(parts) > 1:
-            meridiem = re.search(r"([ap]\.?m)", parts[1], re.I)
-            if meridiem:
-                time_part = f"{time_part} {meridiem.group(1)}"
-
-        now = datetime.now()
-        try:
-            parsed = date_parser.parse(f"{date_part} {time_part}".strip(),
-                                       default=now.replace(hour=0, minute=0, second=0, microsecond=0))
-        except (ValueError, OverflowError):
-            return None
-
-        # The page only advertises upcoming events, so a date that lands in the
-        # past means the year was omitted — roll forward, never backward.
-        if parsed < now and not re.search(r"\d{4}", date_part):
-            try:
-                parsed = parsed.replace(year=parsed.year + 1)
-            except ValueError:      # 29 Feb
-                return None
-        return parsed.replace(second=0, microsecond=0)
