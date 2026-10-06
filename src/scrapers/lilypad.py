@@ -1,218 +1,126 @@
-"""Custom scraper for The Lily Pad music venue"""
-import re
-from datetime import datetime
-from typing import List
-from dateutil import parser as date_parser
+"""Scraper for The Lily Pad, Inman Square.
 
+The venue's site is a Squarespace events collection. Appending `?format=json`
+returns every upcoming event in one response — start and end as epoch
+milliseconds, plus the full post body — so no browser and no per-event page
+loads are needed. The rendered page is no better: it is cached, and on
+2026-10-06 it still marked six shows from two days earlier as upcoming.
+"""
+import html
+import logging
+import re
+from datetime import datetime, timezone
+from typing import List, Optional
+
+import requests
+from bs4 import BeautifulSoup
+
+from src.models.event import EventCategory, EventCreate, to_eastern_naive
 from src.scrapers.base_scraper import BaseScraper
-from src.models.event import EventCreate, EventCategory
+
+logger = logging.getLogger(__name__)
+
+SITE = "https://www.lilypadinman.com"
+
+# Squarespace editor placeholders that survive into published bodies.
+PLACEHOLDERS = re.compile(r"double-click to edit\.*|your custom text here", re.I)
+
+PRIVATE = ("private party", "private event", "closed to public",
+           "invite only", "members only", "by invitation")
+
+
+def epoch_ms_to_eastern(ms) -> Optional[datetime]:
+    """Squarespace epoch milliseconds -> naive Eastern wall clock, on the minute.
+
+    The milliseconds are noise Squarespace adds to keep timestamps unique
+    (19:30 arrives as ...400563), and EventValidator rightly rejects a start
+    carrying sub-minute precision, so they are dropped.
+    """
+    if not isinstance(ms, (int, float)) or ms <= 0:
+        return None
+    instant = datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
+    return to_eastern_naive(instant).replace(second=0, microsecond=0)
 
 
 class LilyPadScraper(BaseScraper):
-    """Custom scraper for The Lily Pad events"""
+    """The Lily Pad's Squarespace events collection, read as JSON."""
 
     def __init__(self):
         super().__init__(
             source_name="The Lily Pad",
-            source_url="https://www.lilypadinman.com/",
-            use_selenium=True  # JavaScript-rendered content
+            source_url=f"{SITE}/",
+            use_selenium=False,
         )
 
-    def fetch_event_description(self, event_url: str) -> str:
-        """Fetch the full description from an event detail page"""
-        try:
-            if not self.driver:
-                return ""
-
-            # Navigate to event page
-            self.driver.get(event_url)
-            import time
-            time.sleep(2)  # Wait for page load
-
-            # Parse the page
-            html = self.driver.page_source
-            soup = self.parse_html(html)
-
-            # Find description in .sqs-html-content divs
-            description_parts = []
-            content_divs = soup.find_all(class_='sqs-html-content')
-
-            for div in content_divs:
-                paragraphs = div.find_all('p')
-                for p in paragraphs:
-                    text = self.clean_text(p.get_text())
-
-                    # Skip template text and metadata
-                    text_lower = text.lower()
-                    if any(skip_phrase in text_lower for skip_phrase in [
-                        'your custom text here',
-                        'click here',
-                        'learn more',
-                        'buy tickets'
-                    ]):
-                        continue
-
-                    # Skip if it's just price/time info (short with $ or AM/PM)
-                    if len(text) < 50 and ('$' in text or 'AM' in text or 'PM' in text or ':' in text):
-                        continue
-
-                    # Only include substantial paragraphs
-                    if len(text) > 30:
-                        description_parts.append(text)
-
-            if description_parts:
-                full_description = ' '.join(description_parts)
-
-                # Remove "Your Custom Text Here" if it appears at the start
-                full_description = re.sub(r'^Your Custom Text Here\s*', '', full_description, flags=re.IGNORECASE)
-
-                return full_description[:2000]
-
-            return ""
-        except Exception as e:
-            return ""
+    def fetch_collection(self) -> dict:
+        response = requests.get(self.source_url, params={"format": "json"}, timeout=30)
+        response.raise_for_status()
+        return response.json()
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from The Lily Pad"""
-        html = self.fetch_html(self.source_url)
-
-        # Add extra wait for JavaScript to load
-        if self.driver:
-            import time
-            time.sleep(3)  # Give JS time to render events
-            html = self.driver.page_source
-
-        soup = self.parse_html(html)
+        payload = self.fetch_collection()
+        if "upcoming" not in payload:
+            # A shape change must fail the source, not publish an empty one.
+            raise ValueError(f"{self.source_name}: Squarespace JSON has no 'upcoming' list")
 
         events = []
-
-        # Find all event containers
-        event_elements = soup.find_all(class_='eventlist-event')
-
-        # Debug: print how many elements were found
-        if len(event_elements) == 0:
-            # Try alternative selectors
-            event_elements = soup.find_all('div', class_=re.compile(r'eventlist'))
-            if len(event_elements) == 0:
-                # Try finding by article or other tags
-                event_elements = soup.find_all('article')
-
-        # Only process upcoming events (not past events)
-        # Filter to events marked as upcoming
-        upcoming_elements = [e for e in event_elements if 'eventlist--upcoming' in str(e.get('class', []))]
-        if upcoming_elements:
-            event_elements = upcoming_elements
-
-        # Limit to reasonable number to avoid excessive page loads
-        # Process first 30 events
-        event_elements = event_elements[:30]
-
-        for element in event_elements:
+        for item in payload["upcoming"]:
             try:
-                # Extract title and URL using the correct class
-                title_link = element.find('a', class_='eventlist-title-link')
-                if not title_link:
-                    # Fallback: try any link
-                    title_link = element.find('a', href=True)
-                if not title_link:
-                    continue
-
-                title = self.clean_text(title_link.get_text())
-                if len(title) < 3:
-                    continue
-
-                # Get all text from the element
-                full_text = self.clean_text(element.get_text())
-
-                # Skip private events
-                full_text_lower = full_text.lower()
-                private_keywords = ['private party', 'private event', 'closed to public',
-                                   'invite only', 'members only', 'by invitation']
-                if any(keyword in full_text_lower for keyword in private_keywords):
-                    continue
-
-                # Build full event URL
-                event_url = title_link.get('href', '')
-                if event_url.startswith('/'):
-                    event_url = f"https://www.lilypadinman.com{event_url}"
-                elif not event_url.startswith('http'):
-                    event_url = self.source_url
-
-                # Extract date from datetag element or from text
-                date_text = None
-
-                # Try to find the full date text like "Monday, November 17, 2025 7:00 PM"
-                full_date_pattern = r'(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\s+\d{1,2}:\d{2}\s*(?:AM|PM)'
-                full_date_match = re.search(full_date_pattern, full_text, re.IGNORECASE)
-
-                if full_date_match:
-                    date_text = full_date_match.group()
-                else:
-                    # Fallback: look for "Month DD" and time
-                    date_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:,?\s+\d{4})?'
-                    date_match = re.search(date_pattern, full_text, re.IGNORECASE)
-
-                    time_pattern = r'\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)'
-                    time_match = re.search(time_pattern, full_text, re.IGNORECASE)
-
-                    if date_match:
-                        date_text = date_match.group()
-                        if time_match:
-                            date_text = f"{date_text} {time_match.group()}"
-
-                if not date_text:
-                    # Skip events without dates
-                    continue
-
-                # Parse the date
-                try:
-                    start_datetime = date_parser.parse(date_text, fuzzy=True)
-                except:
-                    # If parsing fails, skip this event
-                    continue
-
-                # Fetch real description from detail page
-                description = self.fetch_event_description(event_url)
-
-                # Fallback if description fetch failed
-                if not description or len(description) < 20:
-                    description = f"{title} - Live music at The Lily Pad in Inman Square, Cambridge"
-
-                # Extract cost information
-                cost = None
-                cost_pattern = r'\$\d+(?:\s*/\s*\$\d+)?'
-                cost_match = re.search(cost_pattern, full_text)
-                if cost_match:
-                    cost = cost_match.group()
-
-                # The Lily Pad is located in Inman Square
-                venue_name = "The Lily Pad"
-                street_address = "1353 Cambridge St"
-                city = "Cambridge"
-                state = "MA"
-                zip_code = "02139"
-
-                # All Lily Pad events are music events
-                category = EventCategory.MUSIC
-
-                event = EventCreate(
-                    title=title[:200],
-                    description=description[:2000],
-                    start_datetime=start_datetime,
-                    source_url=event_url,
-                    source_name=self.source_name,
-                    venue_name=venue_name,
-                    street_address=street_address,
-                    city=city,
-                    state=state,
-                    zip_code=zip_code,
-                    category=category,
-                    cost=cost
-                )
-                events.append(event)
-
+                event = self.parse_item(item)
             except Exception as e:
-                # Log error but continue processing other events
+                logger.warning(f"{self.source_name}: failed to parse {item.get('fullUrl')}: {e}")
                 continue
-
+            if event:
+                events.append(event)
         return events
+
+    def body_text(self, body_html: str) -> str:
+        soup = BeautifulSoup(body_html or "", "html.parser")
+        blocks = [self.clean_text(b.get_text(" ")) for b in soup.select(".sqs-html-content")]
+        blocks = [PLACEHOLDERS.sub("", b).strip() for b in blocks]
+        return self.clean_text(" ".join(b for b in blocks if b))
+
+    def parse_item(self, item: dict) -> Optional[EventCreate]:
+        title = self.clean_text(html.unescape(item.get("title") or ""))
+        if len(title) < 3:
+            return None
+        url = f"{SITE}{item.get('fullUrl', '')}" if item.get("fullUrl") else self.source_url
+
+        start = epoch_ms_to_eastern(item.get("startDate"))
+        if start is None:
+            logger.warning(f"Skipping '{title}' - no parseable date ({url})")
+            return None
+        end = epoch_ms_to_eastern(item.get("endDate"))
+        if end is not None and end < start:
+            end = None
+
+        excerpt = self.clean_text(BeautifulSoup(item.get("excerpt") or "", "html.parser").get_text(" "))
+        description = self.body_text(item.get("body")) or excerpt
+        if any(k in f"{title} {description}".lower() for k in PRIVATE):
+            logger.info(f"{self.source_name}: skipping private event '{title}'")
+            return None
+        if len(description) < 20:
+            description = f"{title} - live at The Lily Pad in Inman Square, Cambridge."
+
+        cost = re.search(r"\$\d+(?:\s*-\s*\$?\d+|\s*/\s*\$\d+)?", excerpt or description)
+
+        genres = [self.clean_text(c) for c in item.get("categories") or [] if c]
+        category = EventCategory.SPORTS if "Yoga" in genres else EventCategory.MUSIC
+
+        return EventCreate(
+            title=title[:200],
+            description=description[:2000],
+            start_datetime=start,
+            end_datetime=end,
+            source_url=url,
+            source_name=self.source_name,
+            venue_name="The Lily Pad",
+            street_address="1353 Cambridge St",
+            city="Cambridge",
+            state="MA",
+            zip_code="02139",
+            category=category,
+            tags=genres,
+            cost=cost.group() if cost else None,
+            image_url=item.get("assetUrl") or None,
+        )
