@@ -1,187 +1,180 @@
-"""Scraper for Longy School of Music events using Playwright"""
+"""Scraper for Longy School of Music events
+
+Reads the site's The Events Calendar (Tribe) REST API with plain HTTP. One
+request returns the whole season — 34 events on 2026-10-06, a single page.
+
+It used to drive headless Chromium to `/calendar/` and read that page's
+JSON-LD. That page shows the first ten upcoming events, so whenever the
+scraper worked it returned exactly 10. By 2026-10-05 headless Chromium was
+refused outright (HTTP 403). The API answers an honestly identified client.
+
+The site rate-limits into an Imunify360 challenge page under repeated
+requests, so this makes as few as it can: one page per 50 events, no retries.
+A challenge or an error status raises, and the source is recorded as failed
+instead of as a school with nothing scheduled.
+"""
+import html
 import logging
 import re
-import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
-from src.scrapers.base_playwright_scraper import BasePlaywrightScraper
-from src.models.event import EventCreate, EventCategory
+import requests
+
+from src.models.event import EventCategory, EventCreate, to_eastern_naive
+from src.scrapers.base_scraper import BaseScraper
 
 logger = logging.getLogger(__name__)
 
+API_URL = "https://longy.edu/wp-json/tribe/events/v1/events"
+PER_PAGE = 50
+MAX_PAGES = 4
 
-class LongyScraper(BasePlaywrightScraper):
+# An honest client identity. Never a browser's — see CLAUDE.md "Traps".
+USER_AGENT = "cambridgecalendar.com event listings (+https://cambridgecalendar.com)"
+
+# WPBakery layout markup left in the description: "[vc_row type=...]", "[/vc_column]"
+SHORTCODE = re.compile(r"\[/?[a-z][a-z0-9_]*(?:\s[^\]]*)?\]")
+
+VENUE = "Longy School of Music"
+ADDRESS = "27 Garden Street"
+
+
+class LongyScraper(BaseScraper):
     """Scraper for Longy School of Music of Bard College"""
 
     def __init__(self):
         super().__init__(
             source_name="Longy School of Music",
-            source_url="https://longy.edu/calendar/"
+            source_url="https://longy.edu/calendar/",
+            use_selenium=False,
         )
 
     def scrape_events(self) -> List[EventCreate]:
-        """Scrape events from Longy calendar"""
-        events = []
-
-        try:
-            self.goto(self.source_url, wait_until="networkidle")
-            self.page.wait_for_timeout(2000)
-
-            soup = self.get_soup()
-
-            # Extract JSON-LD events
-            events = self._extract_json_ld_events(soup)
-
-            # If no JSON-LD, parse HTML
-            if not events:
-                events = self._parse_html_events(soup)
-
-        except Exception as e:
-            logger.error(f"Error scraping Longy: {e}")
-
-        logger.info(f"Scraped {len(events)} events from Longy")
-        return events
-
-    def _extract_json_ld_events(self, soup) -> List[EventCreate]:
-        """Extract events from JSON-LD structured data"""
-        events = []
-
-        for script in soup.find_all('script', type='application/ld+json'):
-            try:
-                data = json.loads(script.string)
-
-                if isinstance(data, list):
-                    for item in data:
-                        if item.get('@type') == 'Event':
-                            event = self._parse_json_ld_event(item)
-                            if event:
-                                events.append(event)
-                elif data.get('@type') == 'Event':
-                    event = self._parse_json_ld_event(data)
-                    if event:
-                        events.append(event)
-
-            except (json.JSONDecodeError, TypeError) as e:
-                logger.debug(f"Error parsing JSON-LD: {e}")
-                continue
-
-        return events
-
-    def _parse_json_ld_event(self, data: dict) -> Optional[EventCreate]:
-        """Parse a single JSON-LD event object"""
-        try:
-            title = data.get('name', '').strip()
-            if not title:
-                return None
-
-            start_str = data.get('startDate')
-            if not start_str:
-                return None
-
-            start_datetime = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
-
-            description = data.get('description', '')
-            if not description:
-                description = f"{title} at Longy School of Music"
-
-            url = data.get('url', self.source_url)
-
-            # Get venue from location
-            venue_name = "Longy School of Music"
-            street_address = "27 Garden Street"
-            location = data.get('location', {})
-            if isinstance(location, dict):
-                venue_name = location.get('name', venue_name)
-                address = location.get('address', {})
-                if isinstance(address, dict):
-                    street_address = address.get('streetAddress', street_address)
-
-            # Get image
-            image_url = data.get('image')
-            if isinstance(image_url, list) and image_url:
-                image_url = image_url[0]
-
-            return EventCreate(
-                title=title[:200],
-                description=self.clean_text(description)[:2000],
-                start_datetime=start_datetime,
-                venue_name=venue_name,
-                street_address=street_address,
-                city="Cambridge",
-                state="MA",
-                zip_code="02138",
-                category=EventCategory.MUSIC,
-                source_name=self.source_name,
-                source_url=url,
-                image_url=image_url,
+        items: List[dict] = []
+        for page in range(1, MAX_PAGES + 1):
+            # No retries and no try/except: a second attempt is exactly what
+            # trips the rate limit, and a refusal must fail the source.
+            response = requests.get(
+                API_URL,
+                params={"start_date": "now", "per_page": PER_PAGE, "page": page},
+                headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+                timeout=30,
             )
+            response.raise_for_status()
+            payload = response.json()
+            items += payload.get("events") or []
+            if page >= payload.get("total_pages", 1):
+                break
 
-        except Exception as e:
-            logger.debug(f"Error parsing JSON-LD event: {e}")
+        events = self.parse_items(items)
+        logger.info(f"Scraped {len(events)} events from Longy ({len(items)} listed)")
+        return events
+
+    def parse_items(self, items: List[dict]) -> List[EventCreate]:
+        events: List[EventCreate] = []
+        seen = set()
+        for item in items:
+            event = self._parse_event(item)
+            if event is None:
+                continue
+            key = (event.source_url, event.start_datetime)
+            if key in seen:
+                continue
+            seen.add(key)
+            events.append(event)
+        return events
+
+    def _parse_event(self, item: dict) -> Optional[EventCreate]:
+        if item.get("status", "publish") != "publish" or item.get("hide_from_listings"):
             return None
 
-    def _parse_html_events(self, soup) -> List[EventCreate]:
-        """Parse events from HTML when JSON-LD not available"""
-        events = []
+        title = self._text(item.get("title"))
+        if len(title) < 3:
+            return None
 
-        # Find event containers
-        event_items = soup.find_all('article', class_=re.compile(r'tribe-events'))
-        if not event_items:
-            event_items = soup.find_all('div', class_=re.compile(r'tribe-events-calendar-list__event'))
+        all_day = bool(item.get("all_day"))
+        start = self._start(item, all_day)
+        if start is None:
+            # Never guess — see docs/ARCHITECTURE.md "Layer 1 — Scrapers".
+            logger.warning(f"Skipping '{title}' - no parseable start ({item.get('start_date')!r})")
+            return None
+        end = None if all_day else self._utc(item.get("utc_end_date"))
+        if end is not None and end <= start:
+            end = None
 
-        for item in event_items:
-            try:
-                # Get title
-                title_elem = item.find(['h2', 'h3'], class_=re.compile(r'tribe-events'))
-                if not title_elem:
-                    continue
+        venue = self._as_dict(item.get("venue"))
+        venue_name = self._text(venue.get("venue")) or VENUE
+        street = self._text(venue.get("address")) or ADDRESS
+        city = self._text(venue.get("city")) or "Cambridge"
+        zip_code = self._text(venue.get("zip")) or "02138"
 
-                link = title_elem.find('a')
-                title = self.clean_text(link.get_text() if link else title_elem.get_text())
-                url = link.get('href') if link else self.source_url
+        description = self._prose(item.get("excerpt")) or self._prose(item.get("description"))
+        if len(description) < 20:
+            description = f"{title} at {VENUE}, Cambridge."
 
-                if not title or len(title) < 3:
-                    continue
+        return EventCreate(
+            title=title[:200],
+            description=description[:2000],
+            start_datetime=start,
+            end_datetime=end,
+            all_day=all_day,
+            venue_name=venue_name[:150],
+            street_address=street[:200],
+            city=city,
+            state="MA",
+            zip_code=zip_code,
+            category=EventCategory.MUSIC,
+            cost=self._text(item.get("cost")) or None,
+            source_name=self.source_name,
+            source_url=item.get("url") or self.source_url,
+            image_url=self._as_dict(item.get("image")).get("url"),
+        )
 
-                # Get date/time. Skip the event rather than guess a date -
-                # a made-up date lands the event on the wrong day of the calendar.
-                datetime_elem = item.find('time') or item.find(class_=re.compile(r'tribe-event-date'))
-                datetime_attr = datetime_elem.get('datetime') if datetime_elem else None
-                if not datetime_attr:
-                    logger.warning(f"Skipping '{title}' - no date on listing")
-                    continue
-                try:
-                    start_datetime = datetime.fromisoformat(datetime_attr.replace('Z', '+00:00'))
-                except ValueError:
-                    logger.warning(f"Skipping '{title}' - unparseable date {datetime_attr!r}")
-                    continue
+    def _start(self, item: dict, all_day: bool) -> Optional[datetime]:
+        """The UTC start, converted to Eastern; an all-day event's local date."""
+        if all_day:
+            local = self._naive(item.get("start_date"))
+            return local.replace(hour=0, minute=0) if local else None
+        return self._utc(item.get("utc_start_date"))
 
-                # Get description
-                desc_elem = item.find(class_=re.compile(r'tribe-events.*description|excerpt'))
-                description = self.clean_text(desc_elem.get_text()) if desc_elem else f"{title} at Longy"
+    @classmethod
+    def _utc(cls, value) -> Optional[datetime]:
+        """Tribe's utc_* fields are UTC wall clock with no offset written."""
+        naive = cls._naive(value)
+        if naive is None:
+            return None
+        return to_eastern_naive(naive.replace(tzinfo=timezone.utc))
 
-                # Get venue
-                venue_elem = item.find(class_=re.compile(r'tribe-events-venue'))
-                venue_name = self.clean_text(venue_elem.get_text()) if venue_elem else "Longy School of Music"
+    @staticmethod
+    def _naive(value) -> Optional[datetime]:
+        """Tribe writes "2026-10-08 19:30:00"."""
+        if not value:
+            return None
+        try:
+            parsed = datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            return None
+        return parsed.replace(second=0, microsecond=0)
 
-                event = EventCreate(
-                    title=title[:200],
-                    description=description[:2000],
-                    start_datetime=start_datetime,
-                    venue_name=venue_name,
-                    street_address="27 Garden Street",
-                    city="Cambridge",
-                    state="MA",
-                    zip_code="02138",
-                    category=EventCategory.MUSIC,
-                    source_name=self.source_name,
-                    source_url=url,
-                )
-                events.append(event)
+    @staticmethod
+    def _as_dict(value) -> dict:
+        """Tribe returns venue/image as a dict, an empty list, or a list of dicts."""
+        if isinstance(value, dict):
+            return value
+        if isinstance(value, list) and value and isinstance(value[0], dict):
+            return value[0]
+        return {}
 
-            except Exception as e:
-                logger.debug(f"Error parsing Longy event: {e}")
-                continue
+    @classmethod
+    def _prose(cls, value) -> str:
+        """A description without its page-builder shortcodes ("[vc_row ...]")."""
+        return re.sub(r"\s+", " ", SHORTCODE.sub(" ", cls._text(value))).strip()
 
-        return events
+    @staticmethod
+    def _text(value) -> str:
+        """Strip HTML and decode entities — the API returns both ("&#8220;")."""
+        if not value or not isinstance(value, str):
+            return ""
+        text = re.sub(r"<[^>]+>", " ", value)
+        return re.sub(r"\s+", " ", html.unescape(text)).strip()
