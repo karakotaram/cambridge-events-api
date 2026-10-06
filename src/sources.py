@@ -97,6 +97,16 @@ SOURCES: tuple[Source, ...] = (
     Source("Somerville Public Library", "src.scrapers.somerville_library", "SomervillePublicLibraryScraper", "requests",
            notes="reads the Assabet Interactive calendar the library's site embeds; "
                  "JSON-LD dates, cross-checked against the visible card"),
+    Source("Museum of Science", "src.scrapers.museum_of_science", "MuseumOfScienceScraper", "requests",
+           notes="reads the event-listing API the page itself fetches. Was Playwright, "
+                 "and returned 0 in CI for weeks behind Cloudflare without saying so"),
+    Source("Longy School of Music", "src.scrapers.longy", "LongyScraper", "requests",
+           notes="Tribe REST API, not the calendar page (which held only 10). Rate-limits "
+                 "into an Imunify360 challenge under repeated requests; a single daily "
+                 "scrape is fine, bursts are not"),
+    Source("Skip the Small Talk", "src.scrapers.skip_small_talk", "SkipSmallTalkScraper", "requests",
+           notes="Squarespace store JSON, Boston category; the public-events page "
+                 "was replaced by /store in Sept 2026"),
 
     # ---- Selenium ------------------------------------------------------------
     Source("The Lily Pad", "src.scrapers.lilypad", "LilyPadScraper", "selenium"),
@@ -115,15 +125,10 @@ SOURCES: tuple[Source, ...] = (
     Source("Longfellow House", "src.scrapers.longfellow_house", "LongfellowHouseScraper", "playwright",
            notes="captures the NPS calendar JSON from the browser: parsing the cards "
                  "races a progressive render, and calling the API directly takes ~150s"),
-    Source("Museum of Science", "src.scrapers.museum_of_science", "MuseumOfScienceScraper", "playwright"),
     Source("Regent Theatre", "src.scrapers.regent_theatre", "RegentTheatreScraper", "playwright"),
-    Source("Longy School of Music", "src.scrapers.longy", "LongyScraper", "playwright",
-           notes="rate-limits into an Imunify360 challenge page under repeated "
-                 "requests; a single daily scrape is fine, bursts are not"),
     Source("MIT Events", "src.scrapers.mit_calendar", "MITCalendarScraper", "playwright"),
     Source("MIT Music & Theater", "src.scrapers.mit_music_theater", "MITMusicTheaterScraper", "playwright"),
     Source("MIT Open Space", "src.scrapers.openspace_mit", "OpenSpaceMITScraper", "playwright"),
-    Source("Skip the Small Talk", "src.scrapers.skip_small_talk", "SkipSmallTalkScraper", "playwright"),
 
     # Retired 2026-09-01: "Harvard Book Store". harvard.com moved behind
     # Cloudflare's interstitial — "Just a moment... Enable JavaScript and
