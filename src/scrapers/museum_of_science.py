@@ -83,24 +83,35 @@ def _to_24h(hour: int, minute: int, meridiem: str) -> Optional[Tuple[int, int]]:
     return hour, minute
 
 
+def _time_of(m) -> Optional[Tuple[int, int]]:
+    hour, minute = int(m["hour"]), int(m["minute"] or 0)
+    if m["mer"]:
+        return _to_24h(hour, minute, m["mer"])
+    if m["end_mer"]:
+        # "6:00 – 9:00 pm" borrows the end's meridiem, unless that would put
+        # the start after the end: "11:00 – 1:00 pm" starts in the morning.
+        start = _to_24h(hour, minute, m["end_mer"])
+        end = _to_24h(int(m["end_hour"]), int(m["end_minute"] or 0), m["end_mer"])
+        if start and end and start > end and m["end_mer"].lower() == "p":
+            start = _to_24h(hour, minute, "a")
+        return start
+    return None
+
+
 def first_time(text: str) -> Optional[Tuple[int, int]]:
     """The first clock time in `text` that carries, or borrows, a meridiem.
 
-    A bare number with no meridiem anywhere near it is not taken as a time.
+    A bare number with no meridiem anywhere near it is not taken as a time. A
+    doors-open time is passed over when a later time follows it: "Doors open at
+    7:30 pm; Performance starts at 8:00 pm" starts at 8.
     """
-    for m in TIME.finditer(text):
-        hour, minute = int(m["hour"]), int(m["minute"] or 0)
-        if m["mer"]:
-            return _to_24h(hour, minute, m["mer"])
-        if m["end_mer"]:
-            # "6:00 – 9:00 pm" borrows the end's meridiem, unless that would put
-            # the start after the end: "11:00 – 1:00 pm" starts in the morning.
-            start = _to_24h(hour, minute, m["end_mer"])
-            end = _to_24h(int(m["end_hour"]), int(m["end_minute"] or 0), m["end_mer"])
-            if start and end and start > end and m["end_mer"].lower() == "p":
-                start = _to_24h(hour, minute, "a")
-            return start
-    return None
+    found = [(m, t) for m in TIME.finditer(text) if (t := _time_of(m))]
+    if not found:
+        return None
+    m, t = found[0]
+    if len(found) > 1 and re.search(r"\bdoors?\b[^;.|]*$", text[:m.start()], re.I):
+        return found[1][1]
+    return t
 
 
 def parse_when(text: str, today: date) -> Optional[Tuple[datetime, bool]]:

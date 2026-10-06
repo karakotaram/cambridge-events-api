@@ -45,7 +45,8 @@ def test_no_year_and_no_weekday_is_not_dated():
 
 @pytest.mark.parametrize("text,expected", [
     # The four the previous parser rejected outright
-    ("Friday, October 16 | Doors open at 7:30 pm; Performance starts at 8:00 pm", datetime(2026, 10, 16, 19, 30)),
+    # Doors open at 7:30; the event starts at 8
+    ("Friday, October 16 | Doors open at 7:30 pm; Performance starts at 8:00 pm", datetime(2026, 10, 16, 20, 0)),
     ("Sunday, October 18 | Family-friendly presentation included with Exhibit Halls admission 1:30 pm; "
      "Fireside chat at 6:30 pm", datetime(2026, 10, 18, 13, 30)),
     ("Thursday, October 29 at 7:30 pm; Friday, October 30 at 6:30 pm and 8:00 pm", datetime(2026, 10, 29, 19, 30)),
@@ -77,7 +78,7 @@ def test_every_listing_in_the_payload_is_dated(offline):
     assert all(e.start_datetime.year == 2026 for e in events)
 
     collier = next(e for e in events if "Jacob Collier" in e.title)
-    assert (collier.start_datetime, collier.all_day) == (datetime(2026, 10, 16, 19, 30), False)
+    assert (collier.start_datetime, collier.all_day) == (datetime(2026, 10, 16, 20, 0), False), "performance, not doors"
 
     errors = [v for v in check_invariants([e.model_dump(mode="json") for e in events], now=datetime(2026, 10, 6))
               if v.severity == "error"]
