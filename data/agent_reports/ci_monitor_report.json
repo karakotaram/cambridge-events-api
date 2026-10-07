@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-10-06T14:24:44.519568",
-  "total_events": 6274,
-  "total_sources_registered": 39,
-  "total_sources_with_events": 39,
+  "timestamp": "2026-10-07T13:16:33.629304",
+  "total_events": 6389,
+  "total_sources_registered": 42,
+  "total_sources_with_events": 42,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 20,
+      "event_count": 18,
       "days_since_scrape": 0
     },
     {
@@ -17,12 +17,12 @@
     },
     {
       "source": "The Comedy Studio",
-      "event_count": 163,
+      "event_count": 161,
       "days_since_scrape": 0
     },
     {
       "source": "The Dance Complex",
-      "event_count": 868,
+      "event_count": 860,
       "days_since_scrape": 0
     },
     {
@@ -32,17 +32,17 @@
     },
     {
       "source": "First Parish in Cambridge",
-      "event_count": 3,
+      "event_count": 4,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 71,
+      "event_count": 83,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 73,
+      "event_count": 71,
       "days_since_scrape": 0
     },
     {
@@ -67,7 +67,7 @@
     },
     {
       "source": "Mount Auburn Cemetery",
-      "event_count": 39,
+      "event_count": 38,
       "days_since_scrape": 0
     },
     {
@@ -82,17 +82,17 @@
     },
     {
       "source": "The Sinclair",
-      "event_count": 67,
+      "event_count": 68,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard-Radcliffe Dramatic Club",
-      "event_count": 5,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 1064,
+      "event_count": 1089,
       "days_since_scrape": 0
     },
     {
@@ -122,17 +122,17 @@
     },
     {
       "source": "Skip the Small Talk",
-      "event_count": 24,
+      "event_count": 26,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Events",
-      "event_count": 164,
+      "event_count": 162,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Music & Theater",
-      "event_count": 48,
+      "event_count": 49,
       "days_since_scrape": 0
     },
     {
@@ -142,22 +142,22 @@
     },
     {
       "source": "The Lily Pad",
-      "event_count": 112,
+      "event_count": 122,
       "days_since_scrape": 0
     },
     {
       "source": "The Middle East",
-      "event_count": 226,
+      "event_count": 225,
       "days_since_scrape": 0
     },
     {
       "source": "Portico Brewing",
-      "event_count": 28,
+      "event_count": 29,
       "days_since_scrape": 0
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 81,
+      "event_count": 80,
       "days_since_scrape": 0
     },
     {
@@ -177,7 +177,7 @@
     },
     {
       "source": "Longfellow House",
-      "event_count": 157,
+      "event_count": 156,
       "days_since_scrape": 0
     },
     {
@@ -186,18 +186,33 @@
       "days_since_scrape": 0
     },
     {
+      "source": "Porter Square Books",
+      "event_count": 45,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "Harvard Book Store",
+      "event_count": 45,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "Aeronaut Brewing",
+      "event_count": 9,
+      "days_since_scrape": 0
+    },
+    {
       "source": "Harvard Square",
-      "event_count": 191,
+      "event_count": 161,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1064,
+      "event_count": 1068,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
-      "event_count": 298,
+      "event_count": 302,
       "days_since_scrape": 0
     }
   ],
@@ -205,7 +220,7 @@
   "missing": [],
   "unregistered": [],
   "summary": {
-    "healthy": 39,
+    "healthy": 42,
     "stale": 0,
     "missing": 0,
     "unregistered": 0
