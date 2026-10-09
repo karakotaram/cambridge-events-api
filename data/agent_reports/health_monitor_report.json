@@ -1,22 +1,14 @@
 {
   "status": "ok",
-  "timestamp": "2026-10-08T13:23:50.744511",
-  "total_events": 6384,
+  "timestamp": "2026-10-09T13:09:23.847254",
+  "total_events": 6435,
   "total_sources": 42,
   "history_runs": 6,
-  "alerts": [
-    {
-      "source": "MIT Open Space",
-      "severity": "WARNING",
-      "current": 7,
-      "average": 14.8,
-      "message": "7 events vs avg 15 (47%)"
-    }
-  ],
+  "alerts": [],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 1,
+    "warning": 0,
     "missing": 0
   }
 }
