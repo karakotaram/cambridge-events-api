@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-10-14T11:44:30.778428",
-  "total_events": 6237,
+  "timestamp": "2026-10-15T11:22:57.118502",
+  "total_events": 6247,
   "total_sources_registered": 42,
   "total_sources_with_events": 42,
   "healthy": [
@@ -13,16 +13,16 @@
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "The Comedy Studio",
-      "event_count": 154,
+      "event_count": 153,
       "days_since_scrape": 0
     },
     {
       "source": "The Dance Complex",
-      "event_count": 888,
+      "event_count": 882,
       "days_since_scrape": 0
     },
     {
@@ -37,12 +37,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 74,
+      "event_count": 75,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 57,
+      "event_count": 55,
       "days_since_scrape": 0
     },
     {
@@ -57,17 +57,17 @@
     },
     {
       "source": "The Rockwell",
-      "event_count": 119,
+      "event_count": 118,
       "days_since_scrape": 0
     },
     {
       "source": "The Mad Monkfish",
-      "event_count": 28,
+      "event_count": 27,
       "days_since_scrape": 0
     },
     {
       "source": "Mount Auburn Cemetery",
-      "event_count": 33,
+      "event_count": 32,
       "days_since_scrape": 0
     },
     {
@@ -87,12 +87,12 @@
     },
     {
       "source": "Harvard-Radcliffe Dramatic Club",
-      "event_count": 13,
+      "event_count": 36,
       "days_since_scrape": 0
     },
     {
       "source": "City of Cambridge",
-      "event_count": 1045,
+      "event_count": 1046,
       "days_since_scrape": 0
     },
     {
@@ -102,7 +102,7 @@
     },
     {
       "source": "City of Somerville",
-      "event_count": 227,
+      "event_count": 225,
       "days_since_scrape": 0
     },
     {
@@ -122,32 +122,32 @@
     },
     {
       "source": "MIT Events",
-      "event_count": 154,
+      "event_count": 152,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Music & Theater",
-      "event_count": 43,
+      "event_count": 42,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Open Space",
-      "event_count": 7,
+      "event_count": 5,
       "days_since_scrape": 0
     },
     {
       "source": "The Lily Pad",
-      "event_count": 117,
+      "event_count": 119,
       "days_since_scrape": 0
     },
     {
       "source": "The Middle East",
-      "event_count": 212,
+      "event_count": 208,
       "days_since_scrape": 0
     },
     {
       "source": "Portico Brewing",
-      "event_count": 25,
+      "event_count": 24,
       "days_since_scrape": 0
     },
     {
@@ -167,7 +167,7 @@
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 19,
+      "event_count": 20,
       "days_since_scrape": 0
     },
     {
@@ -178,52 +178,52 @@
     {
       "source": "Porter Square Books",
       "event_count": 45,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Harvard Book Store",
       "event_count": 45,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Harvard Square",
-      "event_count": 146,
+      "event_count": 142,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1047,
+      "event_count": 1059,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
       "event_count": 319,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [
     {
       "source": "Museum of Science",
       "ci": true,
-      "event_count": 10,
-      "days_stale": 7,
+      "event_count": 9,
+      "days_stale": 8,
       "latest_scraped": "2026-10-06T14:24:43.814656",
       "threshold_days": 3,
-      "issue": "Last scraped 7 days ago (threshold: 3)"
+      "issue": "Last scraped 8 days ago (threshold: 3)"
     },
     {
       "source": "Regent Theatre",
       "ci": true,
-      "event_count": 30,
-      "days_stale": 7,
+      "event_count": 29,
+      "days_stale": 8,
       "latest_scraped": "2026-10-06T14:24:43.824829",
       "threshold_days": 3,
-      "issue": "Last scraped 7 days ago (threshold: 3)"
+      "issue": "Last scraped 8 days ago (threshold: 3)"
     }
   ],
   "missing": [],
