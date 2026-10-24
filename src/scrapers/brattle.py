@@ -142,7 +142,7 @@ class BrattleTheaterScraper(BaseScraper):
                             city="Cambridge",
                             state="MA",
                             zip_code="02138",
-                            category=EventCategory.ARTS_CULTURE,
+                            category=EventCategory.FILM,
                             image_url=image_url,
                             source_name=self.source_name,
                             source_url=purchase_url

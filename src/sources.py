@@ -75,6 +75,8 @@ SOURCES: tuple[Source, ...] = (
     Source("First Parish in Cambridge", "src.scrapers.first_parish", "FirstParishScraper", "requests"),
     Source("Harvard Art Museums", "src.scrapers.harvard_art_museums", "HarvardArtMuseumsScraper", "requests"),
     Source("Brattle Theatre", "src.scrapers.brattle", "BrattleTheaterScraper", "requests"),
+    Source("Harvard Film Archive", "src.scrapers.harvard_film_archive", "HarvardFilmArchiveScraper", "requests",
+           notes="calendar is paged via rel=next; one detail page per screening for its blurb"),
     Source("Grolier Poetry Book Shop", "src.scrapers.grolier", "GrolierPoetryBookshopScraper", "requests"),
     Source("Multicultural Arts Center", "src.scrapers.multicultural_arts", "MulticulturalArtsCenterScraper", "requests"),
     Source("The Rockwell", "src.scrapers.rockwell", "RockwellScraper", "requests"),

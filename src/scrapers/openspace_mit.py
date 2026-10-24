@@ -162,6 +162,6 @@ class OpenSpaceMITScraper(BaseScraper):
         elif any(word in text for word in ['game', 'trivia', 'social']):
             return EventCategory.COMMUNITY
         elif any(word in text for word in ['film', 'movie', 'screening']):
-            return EventCategory.ARTS_CULTURE
+            return EventCategory.FILM
 
         return EventCategory.COMMUNITY

@@ -8,7 +8,7 @@ from src.services.preferences import classify_timing_slot, TIMING_SLOTS
 
 # Category values matching EventCategory enum
 CATEGORIES = [
-    "music", "arts and culture", "food and drink", "theater",
+    "music", "arts and culture", "food and drink", "theater", "film",
     "lectures", "sports", "community", "other",
 ]
 

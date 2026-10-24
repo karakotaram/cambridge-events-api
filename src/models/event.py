@@ -70,6 +70,7 @@ class EventCategory(str, Enum):
     ARTS_CULTURE = "arts and culture"
     FOOD_DRINK = "food and drink"
     THEATER = "theater"
+    FILM = "film"
     LECTURES = "lectures"
     SPORTS = "sports"
     COMMUNITY = "community"

@@ -152,7 +152,7 @@ class RegentTheatreScraper(BasePlaywrightScraper):
         if any(w in text for w in ("comedy", "comedian", "stand-up", "standup", "improv")):
             return EventCategory.THEATER
         if any(w in text for w in ("film", "movie", "screening", "cinema")):
-            return EventCategory.ARTS_CULTURE
+            return EventCategory.FILM
         if any(w in text for w in ("tribute", "band", "concert", "live", "music", "orchestra")):
             return EventCategory.MUSIC
         return EventCategory.MUSIC

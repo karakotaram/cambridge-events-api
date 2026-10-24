@@ -18,7 +18,7 @@ FAMILY_VENUES = {
 }
 
 VALID_CATEGORIES = {
-    "music", "arts and culture", "food and drink", "theater",
+    "music", "arts and culture", "food and drink", "theater", "film",
     "lectures", "sports", "community", "other",
 }
 

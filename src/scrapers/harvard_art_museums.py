@@ -275,13 +275,13 @@ class HarvardArtMuseumsScraper(BaseScraper):
         if 'concert' in event_type.lower() or 'music' in event_type.lower():
             return EventCategory.MUSIC
         elif 'film' in event_type.lower():
-            return EventCategory.ARTS_CULTURE
+            return EventCategory.FILM
 
         # Check keywords
         if any(word in text for word in ['concert', 'music', 'performance', 'recital', 'jazz']):
             return EventCategory.MUSIC
         elif any(word in text for word in ['film', 'screening', 'movie', 'cinema']):
-            return EventCategory.ARTS_CULTURE
+            return EventCategory.FILM
         elif any(word in text for word in ['lecture', 'talk', 'discussion', 'panel', 'symposium']):
             return EventCategory.ARTS_CULTURE
         elif any(word in text for word in ['tour', 'gallery', 'exhibition', 'curator']):

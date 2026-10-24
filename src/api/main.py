@@ -334,7 +334,8 @@ async def get_events(
     family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
     ranked: bool = Query(False, description="Sort by relevance score instead of date"),
     sort_order: str = Query("asc", regex="^(asc|desc)$", description="Sort order: asc or desc (ignored when ranked=true)"),
-    limit: int = Query(1000, ge=1, le=5000),
+    # The frontend's static-page build reads every event through here.
+    limit: int = Query(1000, ge=1, le=20000),
     offset: int = Query(0, ge=0)
 ):
     """
@@ -512,7 +513,10 @@ async def get_events_slim(
     family_friendly: Optional[bool] = Query(None, description="Filter for family-friendly events"),
     ranked: bool = Query(True, description="Sort by relevance score instead of date (default: true)"),
     user_id: Optional[str] = Query(None, description="User UUID for personalized ranking"),
-    limit: int = Query(1000, ge=1, le=5000),
+    # The website loads every upcoming event in one request and searches them
+    # in the browser, so this must stay well above the upcoming count. At 5000
+    # it silently cut ~450 events (5,448 upcoming on 2026-10-24).
+    limit: int = Query(1000, ge=1, le=20000),
     offset: int = Query(0, ge=0)
 ):
     """

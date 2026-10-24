@@ -40,7 +40,7 @@ CATEGORY_MAP = {
     "community": EventCategory.COMMUNITY,
     "gaming": EventCategory.COMMUNITY,
     "literary art": EventCategory.ARTS_CULTURE,
-    "film": EventCategory.ARTS_CULTURE,
+    "film": EventCategory.FILM,
     "exhibit": EventCategory.ARTS_CULTURE,
     "podcast": EventCategory.ARTS_CULTURE,
 }
@@ -226,7 +226,7 @@ class ArtsAtTheArmoryScraper(BaseScraper):
         elif any(word in text for word in ['art', 'paint', 'craft', 'exhibit', 'gallery', 'sculpture']):
             return EventCategory.ARTS_CULTURE
         elif any(word in text for word in ['film', 'movie', 'cinema', 'screening']):
-            return EventCategory.ARTS_CULTURE
+            return EventCategory.FILM
         elif any(word in text for word in ['workshop', 'class', 'lesson', 'learn']):
             return EventCategory.ARTS_CULTURE
         else:

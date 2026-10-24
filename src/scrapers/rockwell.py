@@ -148,7 +148,7 @@ class RockwellScraper(BaseScraper):
         if cat_names & {"comedy", "stand-up", "improv"}:
             return EventCategory.THEATER
         if cat_names & {"film", "screening", "movie"}:
-            return EventCategory.ARTS_CULTURE
+            return EventCategory.FILM
         if cat_names & {"food", "drink", "tasting"}:
             return EventCategory.FOOD_DRINK
         if cat_names & {"community", "trivia", "game", "bingo"}:
@@ -166,7 +166,7 @@ class RockwellScraper(BaseScraper):
         if any(w in text for w in ["drag", "cabaret", "burlesque", "show", "performance"]):
             return EventCategory.THEATER
         if any(w in text for w in ["film", "movie", "screening"]):
-            return EventCategory.ARTS_CULTURE
+            return EventCategory.FILM
 
         return EventCategory.OTHER
 

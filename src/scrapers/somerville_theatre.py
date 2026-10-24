@@ -9,11 +9,18 @@ time in separate elements:
 
 A performance listed with a date and no time is published as all-day. One whose
 date, or whose time text, cannot be read is skipped.
+
+The listing says nothing about what kind of show a performance is, and its
+fallback blurb ("... live at Somerville Theatre") contains the word "theatre",
+which once filed every concert under theater. Each production's own page
+carries the plugin's categories on its article (`category-movie`,
+`category-live-show`) and a blurb written by the presenter; both feed
+categorize_event().
 """
 import logging
 import re
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Set, Tuple
 from bs4 import BeautifulSoup
 
 from src.scrapers.base_scraper import BaseScraper, USER_AGENT
@@ -49,6 +56,7 @@ class SomervilleTheatreScraper(BaseScraper):
             source_url="https://www.somervilletheatre.com/events/",
             use_selenium=False
         )
+        self._productions: dict = {}
 
     def get_browser_headers(self) -> dict:
         # The server (nginx, no Cloudflare) returns 403 to requests' default
@@ -126,16 +134,18 @@ class SomervilleTheatreScraper(BaseScraper):
             return None
         seen_events.add(event_key)
 
-        # Get description - check curated descriptions first
-        description = None
+        # A curated description, then the presenter's blurb from the production page
+        curated = None
         title_lower = title.lower()
         for key, desc in EVENT_DESCRIPTIONS.items():
             if key in title_lower:
-                description = desc
+                curated = desc
                 break
 
-        if not description:
-            description = f"{title} live at Somerville Theatre in Davis Square."
+        categories, blurb = (None, None)
+        if '/production/' in event_url:
+            categories, blurb = self._fetch_production(event_url)
+        description = curated or blurb or f"{title} live at Somerville Theatre in Davis Square."
 
         # Get image URL - site uses lazy loading with data URI placeholders
         # Find the real image URL (starts with https://)
@@ -164,8 +174,7 @@ class SomervilleTheatreScraper(BaseScraper):
                     if img_src.startswith('https://'):
                         image_url = img_src
 
-        # Categorize
-        category = self.categorize_event(title, description)
+        category = self.categorize_event(title, f"{blurb or ''} {curated or ''}", categories)
 
         return EventCreate(
             title=title[:200],
@@ -217,19 +226,62 @@ class SomervilleTheatreScraper(BaseScraper):
         hour = hour % 12 + (12 if clock.group(3).lower() == 'p' else 0)
         return day.replace(hour=hour, minute=minute), False
 
-    def categorize_event(self, title: str, description: str) -> EventCategory:
-        """Categorize event based on keywords"""
-        text = f"{title} {description}".lower()
+    def categorize_event(self, title: str, description: str,
+                         categories: Optional[Set[str]] = None) -> EventCategory:
+        """What kind of show, from its words and its production categories.
 
-        if any(word in text for word in ['concert', 'music', 'band', 'dj', 'live music', 'symphony', 'orchestra', 'fiddle', 'celtic', 'irish']):
+        `categories` is None when the production page could not be read; an
+        empty set means it was read and carries none.
+        """
+        # The venue's name says nothing about the show
+        text = re.sub(r'somerville theat(?:re|er)', ' ', f"{title} {description}".lower())
+
+        def has(*words: str) -> bool:
+            return any(re.search(rf'\b{re.escape(w)}\b', text) for w in words)
+
+        if has('comedy', 'comedian', 'stand-up', 'standup', 'improv'):
+            return EventCategory.THEATER
+        if has('magic', 'magician', 'mentalism', 'mentalist'):
+            return EventCategory.ARTS_CULTURE
+        if has('burlesque', 'slutcracker', 'ballet', 'the play', 'a play', 'new play', 'stage play'):
+            return EventCategory.THEATER
+        if categories is not None and 'movie' in categories:
+            # A screening with a band playing its score is a concert
+            if has('score', 'scores', 'new score', 'live score', 'composer', 'orchestra'):
+                return EventCategory.MUSIC
+            return EventCategory.FILM
+        if categories is None and has('film', 'movie', 'screening', 'cinema', '35mm', '70mm'):
+            return EventCategory.FILM
+        if has('in conversation', 'conversation with', 'bestselling author', 'lecture', 'book tour'):
+            return EventCategory.LECTURES
+        if has('music', 'musician', 'musicians', 'concert', 'concerts', 'massconcerts', 'band',
+               'album', 'tour', 'singer', 'songwriter', 'songs', 'vocalist', 'vocals', 'rapper',
+               'guitar', 'guitarist', 'jazz', 'folk', 'celtic', 'irish', 'fiddle', 'orchestra',
+               'symphony', 'quartet', 'trio', 'beats', 'dj', 'hip-hop'):
             return EventCategory.MUSIC
-        elif any(word in text for word in ['magic', 'magician', 'mentalism']):
-            return EventCategory.ARTS_CULTURE
-        elif any(word in text for word in ['comedy', 'stand-up', 'comedian', 'improv', 'slutcracker', 'burlesque']):
-            return EventCategory.THEATER
-        elif any(word in text for word in ['film', 'movie', 'screening', 'cinema']):
-            return EventCategory.ARTS_CULTURE
-        elif any(word in text for word in ['theater', 'theatre', 'play', 'musical', 'ballet', 'dance']):
-            return EventCategory.THEATER
-        else:
-            return EventCategory.ARTS_CULTURE
+        return EventCategory.ARTS_CULTURE
+
+    def _fetch_production(self, url: str) -> Tuple[Optional[Set[str]], Optional[str]]:
+        """A production page's categories and blurb, or (None, None).
+
+        Optional: on any failure the listing alone decides. Cached, as every
+        performance of a run shares one page.
+        """
+        if url in self._productions:
+            return self._productions[url]
+
+        result: Tuple[Optional[Set[str]], Optional[str]] = (None, None)
+        try:
+            soup = BeautifulSoup(self.fetch_html(url, retries=1), 'html.parser')
+            article = soup.find(class_='wp_theatre_prod')
+            if article is not None:
+                categories = {c[len('category-'):] for c in article.get('class', []) if c.startswith('category-')}
+                og = soup.find('meta', property='og:description')
+                blurb = self.clean_text(og.get('content', '')) if og else ''
+                blurb = re.sub(r'(?:\.\.\.|…)?\s*Read More$', '…', blurb).strip()
+                result = (categories, blurb or None)
+        except Exception as e:
+            logger.warning(f"No production page for {url}: {e}")
+
+        self._productions[url] = result
+        return result

@@ -67,6 +67,7 @@ CATEGORY_SCORES: Dict[str, float] = {
     "music": 0.90,
     "arts and culture": 0.85,
     "theater": 0.83,
+    "film": 0.83,
     "lectures": 0.80,
     "community": 0.78,
     "food and drink": 0.75,

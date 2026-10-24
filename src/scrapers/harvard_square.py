@@ -39,7 +39,7 @@ CATEGORY_MAP = {
     "concerts": EventCategory.MUSIC,
     "theater": EventCategory.THEATER,
     "theatre": EventCategory.THEATER,
-    "film": EventCategory.ARTS_CULTURE,
+    "film": EventCategory.FILM,
     "art": EventCategory.ARTS_CULTURE,
     "arts": EventCategory.ARTS_CULTURE,
     "museums": EventCategory.ARTS_CULTURE,

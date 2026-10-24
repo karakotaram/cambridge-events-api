@@ -51,7 +51,7 @@ default for most integrations.** Omits descriptions; returns only essential fiel
 | `family_friendly` | bool | — | Only family-friendly events |
 | `upcoming_only` | bool | `true` | Only events from today forward |
 | `ranked` | bool | `true` | Sort by relevance score; if `false`, sort by date ascending |
-| `limit` | int | `1000` | Max results (1–5000) |
+| `limit` | int | `1000` | Max results (1–20000) |
 | `offset` | int | `0` | Pagination offset |
 
 **Response** — array of slim event objects:
@@ -96,7 +96,7 @@ Full event list, including `description` and all metadata. Heavier payload — u
 | `family_friendly` | bool | — | Only family-friendly events |
 | `ranked` | bool | `false` | Sort by relevance score |
 | `sort_order` | `asc`\|`desc` | `asc` | Date sort order (ignored when `ranked=true`) |
-| `limit` | int | `1000` | Max results (1–5000) |
+| `limit` | int | `1000` | Max results (1–20000) |
 | `offset` | int | `0` | Pagination offset |
 
 ### `GET /events/{event_id}`
@@ -133,8 +133,8 @@ The current Editor's Picks list (title + source_name pairs).
 
 ## Categories
 
-`music`, `arts and culture`, `food and drink`, `theater`, `lectures`, `sports`,
-`community`, `other`
+`music`, `arts and culture`, `food and drink`, `theater`, `film`, `lectures`,
+`sports`, `community`, `other`
 
 ## Event object (full)
 

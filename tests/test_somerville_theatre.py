@@ -6,8 +6,10 @@ from __future__ import annotations
 
 from datetime import datetime
 
+import pytest
 from bs4 import BeautifulSoup
 
+from src.models.event import EventCategory
 from src.quality.invariants import check_invariants
 from src.scrapers.somerville_theatre import SomervilleTheatreScraper
 from tests.conftest import read_fixture
@@ -85,6 +87,64 @@ def test_identifies_itself_instead_of_posing_as_safari():
     UA claiming macOS; an honest one is served just the same."""
     ua = SomervilleTheatreScraper().get_browser_headers()["User-Agent"]
     assert "Mozilla" not in ua and "Safari" not in ua and "python-requests" not in ua
+
+
+def _show(title: str, slug: str, production=None):
+    """One performance of `title`, its production page served from a fixture
+    saved 2026-10-24 (or by `production`, a function of the URL)."""
+    scraper = SomervilleTheatreScraper()
+    url = f"https://www.somervilletheatre.com/production/{slug}/"
+    card = (f'<div class="wp_theatre_event"><figure><a href="{url}"></a></figure>'
+            f'<div class="wp_theatre_event_title">{title}</div>'
+            '<div class="wp_theatre_event_datetime">'
+            '<div class="wp_theatre_event_date wp_theatre_event_startdate">November 20, 2026</div>'
+            '<div class="wp_theatre_event_time wp_theatre_event_starttime">8:00 pm</div></div></div>')
+    fetched = []
+
+    def fetch(page, *a, **k):
+        if page == scraper.source_url:
+            return card * 2  # two performances of one production
+        fetched.append(page)
+        assert page == url
+        return production(page) if production else read_fixture(
+            "somerville_theatre", f"production-{slug}-2026-10-24.html.gz")
+
+    scraper.fetch_html = fetch
+    events = scraper.scrape_events()
+    assert fetched == [url], "one production page per production"
+    return events[0]
+
+
+@pytest.mark.parametrize("title, slug, category", [
+    ("An Evening with Faun", "an-evening-with-faun", EventCategory.MUSIC),
+    ("CLAUDIO SIMONETTI'S GOBLIN / TENEBRE", "claudio-simonettis-goblin-tenebre", EventCategory.MUSIC),
+    ("The Rocky Horror Picture Show in 35mm with shadowcast",
+     "the-rocky-horror-picture-show-in-35mm-with-shadowcast", EventCategory.FILM),
+    ("Warren Miller’s Days Off", "warren-millers-days-off", EventCategory.FILM),
+    ("Boston Comedy Festival Contest Finals", "boston-comedy-festival-contest-finals", EventCategory.THEATER),
+    ("Love and Pigeons", "love-and-pigeons", EventCategory.THEATER),
+    ("DAILY STOIC LIVE", "daily-stoic-live", EventCategory.LECTURES),
+    ("AWE - The Asi Wind Experience", "awe-the-asi-wind-experience", EventCategory.ARTS_CULTURE),
+])
+def test_category_comes_from_the_show_not_the_venue_name(title, slug, category, offline):
+    """Every listing's fallback blurb ends "live at Somerville Theatre", and
+    "theatre" filed concerts, a film score and a talk under theater. A film
+    with a band playing its score live is a concert; one without is a film."""
+    assert _show(title, slug).category == category
+
+
+def test_the_presenters_blurb_becomes_the_description(offline):
+    faun = _show("An Evening with Faun", "an-evening-with-faun")
+    assert faun.description.startswith("MassConcerts presents An Evening with Faun")
+    assert not faun.description.endswith("Read More")
+
+
+def test_without_its_production_page_a_show_is_still_not_theater(offline):
+    def down(url):
+        raise ConnectionError("production page down")
+    thief = _show("The Pineapple Thief", "the-pineapple-thief", production=down)
+    assert thief.description == "The Pineapple Thief live at Somerville Theatre in Davis Square."
+    assert thief.category != EventCategory.THEATER
 
 
 def test_markup_drift_yields_nothing_rather_than_page_chrome(offline):

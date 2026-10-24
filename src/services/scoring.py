@@ -29,6 +29,7 @@ CATEGORY_WEIGHTS = {
     'music': 1.2,
     'theater': 1.1,
     'arts and culture': 1.1,
+    'film': 1.1,
     'food and drink': 1.0,
     'lectures': 0.9,
     'community': 0.9,

@@ -244,7 +244,7 @@ class AmericanRepertoryTheaterScraper(BaseScraper):
         if any(word in text for word in ['workshop', 'class', 'conversation', 'panel', 'discussion']):
             return EventCategory.LECTURES
         elif any(word in text for word in ['screening', 'film', 'movie']):
-            return EventCategory.ARTS_CULTURE
+            return EventCategory.FILM
         elif any(word in text for word in ['gala', 'fundraiser', 'benefit']):
             return EventCategory.COMMUNITY
         elif any(word in text for word in ['concert', 'orchestra', 'symphony']):

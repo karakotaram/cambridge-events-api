@@ -186,8 +186,11 @@ class EventValidator:
             'farmers market', "farmer's market", 'food festival',
         ]
 
+        # Whole words only, like the venue types above: as substrings, 'ipa'
+        # matched "participants" and "anticipating" and filed 282 dance classes,
+        # workshops and films under food and drink (Oct 2026).
         for keyword in food_drink_keywords:
-            if keyword in text:
+            if re.search(rf'\b{re.escape(keyword)}\b', text):
                 return True
 
         return False
