@@ -1,28 +1,28 @@
 {
   "status": "ok",
-  "timestamp": "2026-10-27T12:04:23.433484",
-  "total_events": 6041,
+  "timestamp": "2026-10-28T12:44:05.487916",
+  "total_events": 6043,
   "total_sources_registered": 43,
   "total_sources_with_events": 43,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 28,
+      "event_count": 27,
       "days_since_scrape": 0
     },
     {
       "source": "Boston Swing Central",
       "event_count": 2,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "The Comedy Studio",
-      "event_count": 158,
+      "event_count": 157,
       "days_since_scrape": 0
     },
     {
       "source": "The Dance Complex",
-      "event_count": 863,
+      "event_count": 862,
       "days_since_scrape": 0
     },
     {
@@ -37,12 +37,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 60,
+      "event_count": 59,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 60,
+      "event_count": 58,
       "days_since_scrape": 0
     },
     {
@@ -52,7 +52,7 @@
     },
     {
       "source": "Grolier Poetry Book Shop",
-      "event_count": 7,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
@@ -62,7 +62,7 @@
     },
     {
       "source": "The Rockwell",
-      "event_count": 136,
+      "event_count": 135,
       "days_since_scrape": 0
     },
     {
@@ -82,7 +82,7 @@
     },
     {
       "source": "Harvard GSD",
-      "event_count": 8,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -97,22 +97,22 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 976,
+      "event_count": 973,
       "days_since_scrape": 0
     },
     {
       "source": "Somerville Theatre",
       "event_count": 37,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "City of Somerville",
-      "event_count": 208,
+      "event_count": 215,
       "days_since_scrape": 0
     },
     {
       "source": "Somerville Public Library",
-      "event_count": 648,
+      "event_count": 655,
       "days_since_scrape": 0
     },
     {
@@ -123,7 +123,7 @@
     {
       "source": "Longy School of Music",
       "event_count": 31,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Skip the Small Talk",
@@ -137,7 +137,7 @@
     },
     {
       "source": "MIT Music & Theater",
-      "event_count": 45,
+      "event_count": 44,
       "days_since_scrape": 0
     },
     {
@@ -147,7 +147,7 @@
     },
     {
       "source": "The Lily Pad",
-      "event_count": 96,
+      "event_count": 100,
       "days_since_scrape": 0
     },
     {
@@ -162,7 +162,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 91,
+      "event_count": 89,
       "days_since_scrape": 0
     },
     {
@@ -172,7 +172,7 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 125,
+      "event_count": 124,
       "days_since_scrape": 0
     },
     {
@@ -188,32 +188,32 @@
     {
       "source": "Porter Square Books",
       "event_count": 46,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Harvard Book Store",
       "event_count": 44,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Harvard Square",
-      "event_count": 205,
+      "event_count": 207,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1015,
+      "event_count": 1006,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
-      "event_count": 340,
-      "days_since_scrape": 1
+      "event_count": 345,
+      "days_since_scrape": 0
     }
   ],
   "stale": [
@@ -221,10 +221,10 @@
       "source": "Regent Theatre",
       "ci": true,
       "event_count": 19,
-      "days_stale": 20,
+      "days_stale": 21,
       "latest_scraped": "2026-10-06T14:24:43.824829",
       "threshold_days": 3,
-      "issue": "Last scraped 20 days ago (threshold: 3)"
+      "issue": "Last scraped 21 days ago (threshold: 3)"
     }
   ],
   "missing": [],
