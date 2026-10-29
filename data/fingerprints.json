@@ -14,21 +14,6 @@
         "null_venue_rate": 0.0,
         "latest_start": "2026-09-25",
         "earliest_start": "2026-09-04",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
-      {
-        "source": "Boston Swing Central",
-        "events": 5,
-        "date_span_days": 22,
-        "max_events_one_day": 1,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 1.0,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 0.0,
-        "median_description_len": 33,
-        "null_venue_rate": 0.0,
-        "latest_start": "2026-09-25",
-        "earliest_start": "2026-09-04",
         "run_id": "2026-10-01T12-59-00Z"
       },
       {
@@ -450,24 +435,24 @@
         "latest_start": "2026-11-06",
         "earliest_start": "2026-10-30",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Boston Swing Central",
+        "events": 2,
+        "date_span_days": 8,
+        "max_events_one_day": 1,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 1.0,
+        "distinct_venues": 1,
+        "distinct_images_ratio": null,
+        "median_description_len": 49,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-11-06",
+        "earliest_start": "2026-10-30",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "BostonShows.org": [
-      {
-        "source": "BostonShows.org",
-        "events": 1251,
-        "date_span_days": 254,
-        "max_events_one_day": 35,
-        "max_events_one_timestamp": 9,
-        "distinct_titles_ratio": 0.6427,
-        "distinct_venues": 42,
-        "distinct_images_ratio": 1.0,
-        "median_description_len": 56,
-        "null_venue_rate": 0.0,
-        "latest_start": "2027-06-09",
-        "earliest_start": "2026-09-29",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "BostonShows.org",
         "events": 1260,
@@ -902,24 +887,24 @@
         "latest_start": "2027-06-24",
         "earliest_start": "2026-10-27",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "BostonShows.org",
+        "events": 1016,
+        "date_span_days": 240,
+        "max_events_one_day": 34,
+        "max_events_one_timestamp": 8,
+        "distinct_titles_ratio": 0.6112,
+        "distinct_venues": 45,
+        "distinct_images_ratio": null,
+        "median_description_len": 66,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-06-24",
+        "earliest_start": "2026-10-28",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Brattle Theatre": [
-      {
-        "source": "Brattle Theatre",
-        "events": 52,
-        "date_span_days": 29,
-        "max_events_one_day": 5,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 0.8462,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 0.75,
-        "median_description_len": 61,
-        "null_venue_rate": 0.0,
-        "latest_start": "2026-10-28",
-        "earliest_start": "2026-09-30",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Brattle Theatre",
         "events": 51,
@@ -1354,24 +1339,24 @@
         "latest_start": "2026-11-23",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Brattle Theatre",
+        "events": 57,
+        "date_span_days": 26,
+        "max_events_one_day": 5,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.614,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.614,
+        "median_description_len": 55,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-11-23",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "First Parish in Cambridge": [
-      {
-        "source": "First Parish in Cambridge",
-        "events": 4,
-        "date_span_days": 43,
-        "max_events_one_day": 1,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 1.0,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 1.0,
-        "median_description_len": 359,
-        "null_venue_rate": 0.0,
-        "latest_start": "2026-11-15",
-        "earliest_start": "2026-10-04",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "First Parish in Cambridge",
         "events": 4,
@@ -1806,24 +1791,24 @@
         "latest_start": "2026-11-15",
         "earliest_start": "2026-11-01",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "First Parish in Cambridge",
+        "events": 2,
+        "date_span_days": 15,
+        "max_events_one_day": 1,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 1.0,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 1.0,
+        "median_description_len": 358,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-11-15",
+        "earliest_start": "2026-11-01",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Harvard Art Museums": [
-      {
-        "source": "Harvard Art Museums",
-        "events": 69,
-        "date_span_days": 219,
-        "max_events_one_day": 5,
-        "max_events_one_timestamp": 2,
-        "distinct_titles_ratio": 0.7101,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 1.0,
-        "median_description_len": 959,
-        "null_venue_rate": 0.0,
-        "latest_start": "2027-05-06",
-        "earliest_start": "2026-09-30",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Harvard Art Museums",
         "events": 72,
@@ -2258,24 +2243,24 @@
         "latest_start": "2027-05-06",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Harvard Art Museums",
+        "events": 62,
+        "date_span_days": 190,
+        "max_events_one_day": 4,
+        "max_events_one_timestamp": 2,
+        "distinct_titles_ratio": 0.7581,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 1.0,
+        "median_description_len": 889,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-05-06",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Lamplighter Brewing": [
-      {
-        "source": "Lamplighter Brewing",
-        "events": 17,
-        "date_span_days": 67,
-        "max_events_one_day": 2,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 0.6471,
-        "distinct_venues": 2,
-        "distinct_images_ratio": 0.6471,
-        "median_description_len": 916,
-        "null_venue_rate": 0.0,
-        "latest_start": "2026-12-05",
-        "earliest_start": "2026-09-30",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Lamplighter Brewing",
         "events": 28,
@@ -2710,24 +2695,24 @@
         "latest_start": "2026-12-05",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Lamplighter Brewing",
+        "events": 27,
+        "date_span_days": 38,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.6296,
+        "distinct_venues": 2,
+        "distinct_images_ratio": 0.6667,
+        "median_description_len": 916,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-12-05",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Multicultural Arts Center": [
-      {
-        "source": "Multicultural Arts Center",
-        "events": 6,
-        "date_span_days": 232,
-        "max_events_one_day": 1,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 1.0,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 1.0,
-        "median_description_len": 310,
-        "null_venue_rate": 0.0,
-        "latest_start": "2027-05-20",
-        "earliest_start": "2026-10-01",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Multicultural Arts Center",
         "events": 6,
@@ -3162,24 +3147,24 @@
         "latest_start": "2027-05-20",
         "earliest_start": "2026-10-25",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Multicultural Arts Center",
+        "events": 5,
+        "date_span_days": 208,
+        "max_events_one_day": 1,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 1.0,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 1.0,
+        "median_description_len": 1353,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-05-20",
+        "earliest_start": "2026-10-25",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "The Rockwell": [
-      {
-        "source": "The Rockwell",
-        "events": 101,
-        "date_span_days": 412,
-        "max_events_one_day": 3,
-        "max_events_one_timestamp": 2,
-        "distinct_titles_ratio": 0.3465,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 0.33,
-        "median_description_len": 427,
-        "null_venue_rate": 0.0,
-        "latest_start": "2027-11-15",
-        "earliest_start": "2026-09-30",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "The Rockwell",
         "events": 100,
@@ -3614,24 +3599,24 @@
         "latest_start": "2027-11-15",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "The Rockwell",
+        "events": 143,
+        "date_span_days": 383,
+        "max_events_one_day": 3,
+        "max_events_one_timestamp": 2,
+        "distinct_titles_ratio": 0.3916,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.3916,
+        "median_description_len": 1128,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-11-15",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "User Submitted": [
-      {
-        "source": "User Submitted",
-        "events": 287,
-        "date_span_days": 430,
-        "max_events_one_day": 8,
-        "max_events_one_timestamp": 2,
-        "distinct_titles_ratio": 0.9024,
-        "distinct_venues": 138,
-        "distinct_images_ratio": 0.8643,
-        "median_description_len": 597,
-        "null_venue_rate": 0.0801,
-        "latest_start": "2027-03-13",
-        "earliest_start": "2026-01-08",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "User Submitted",
         "events": 289,
@@ -4066,24 +4051,24 @@
         "latest_start": "2027-11-13",
         "earliest_start": "2026-01-08",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "User Submitted",
+        "events": 346,
+        "date_span_days": 675,
+        "max_events_one_day": 8,
+        "max_events_one_timestamp": 3,
+        "distinct_titles_ratio": 0.8815,
+        "distinct_venues": 165,
+        "distinct_images_ratio": 0.843,
+        "median_description_len": 596,
+        "null_venue_rate": 0.0838,
+        "latest_start": "2027-11-13",
+        "earliest_start": "2026-01-08",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "City of Cambridge": [
-      {
-        "source": "City of Cambridge",
-        "events": 1034,
-        "date_span_days": 63,
-        "max_events_one_day": 39,
-        "max_events_one_timestamp": 7,
-        "distinct_titles_ratio": 0.2872,
-        "distinct_venues": 42,
-        "distinct_images_ratio": 0.705,
-        "median_description_len": 236,
-        "null_venue_rate": 0.0416,
-        "latest_start": "2026-11-28",
-        "earliest_start": "2026-09-27",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "City of Cambridge",
         "events": 1060,
@@ -4518,24 +4503,24 @@
         "latest_start": "2026-12-25",
         "earliest_start": "2026-10-26",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "City of Cambridge",
+        "events": 976,
+        "date_span_days": 61,
+        "max_events_one_day": 48,
+        "max_events_one_timestamp": 8,
+        "distinct_titles_ratio": 0.2941,
+        "distinct_venues": 49,
+        "distinct_images_ratio": 0.6895,
+        "median_description_len": 248,
+        "null_venue_rate": 0.041,
+        "latest_start": "2026-12-25",
+        "earliest_start": "2026-10-26",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Grolier Poetry Book Shop": [
-      {
-        "source": "Grolier Poetry Book Shop",
-        "events": 8,
-        "date_span_days": 70,
-        "max_events_one_day": 1,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 1.0,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 1.0,
-        "median_description_len": 216,
-        "null_venue_rate": 0.0,
-        "latest_start": "2026-12-10",
-        "earliest_start": "2026-10-02",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Grolier Poetry Book Shop",
         "events": 8,
@@ -4970,24 +4955,24 @@
         "latest_start": "2026-12-10",
         "earliest_start": "2026-11-05",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Grolier Poetry Book Shop",
+        "events": 6,
+        "date_span_days": 36,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 1.0,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 1.0,
+        "median_description_len": 348,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-12-10",
+        "earliest_start": "2026-11-05",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Harvard Square": [
-      {
-        "source": "Harvard Square",
-        "events": 206,
-        "date_span_days": 61,
-        "max_events_one_day": 11,
-        "max_events_one_timestamp": 4,
-        "distinct_titles_ratio": 0.7524,
-        "distinct_venues": 33,
-        "distinct_images_ratio": 0.7291,
-        "median_description_len": 946,
-        "null_venue_rate": 0.0,
-        "latest_start": "2026-11-29",
-        "earliest_start": "2026-09-30",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Harvard Square",
         "events": 204,
@@ -5422,24 +5407,24 @@
         "latest_start": "2026-12-27",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Harvard Square",
+        "events": 201,
+        "date_span_days": 61,
+        "max_events_one_day": 10,
+        "max_events_one_timestamp": 4,
+        "distinct_titles_ratio": 0.4975,
+        "distinct_venues": 31,
+        "distinct_images_ratio": 0.4747,
+        "median_description_len": 606,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-12-28",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Harvard-Radcliffe Dramatic Club": [
-      {
-        "source": "Harvard-Radcliffe Dramatic Club",
-        "events": 11,
-        "date_span_days": 41,
-        "max_events_one_day": 2,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 0.2727,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 0.0,
-        "median_description_len": 59,
-        "null_venue_rate": 0.0,
-        "latest_start": "2026-10-11",
-        "earliest_start": "2026-09-01",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Harvard-Radcliffe Dramatic Club",
         "events": 6,
@@ -5874,24 +5859,24 @@
         "latest_start": "2026-12-06",
         "earliest_start": "2026-10-01",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Harvard-Radcliffe Dramatic Club",
+        "events": 50,
+        "date_span_days": 67,
+        "max_events_one_day": 4,
+        "max_events_one_timestamp": 2,
+        "distinct_titles_ratio": 0.16,
+        "distinct_venues": 1,
+        "distinct_images_ratio": null,
+        "median_description_len": 67,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-12-06",
+        "earliest_start": "2026-10-01",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Longfellow House": [
-      {
-        "source": "Longfellow House",
-        "events": 133,
-        "date_span_days": 42,
-        "max_events_one_day": 8,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 0.0526,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 0.0526,
-        "median_description_len": 537,
-        "null_venue_rate": 0.0,
-        "latest_start": "2026-11-12",
-        "earliest_start": "2026-10-02",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Longfellow House",
         "events": 133,
@@ -6326,24 +6311,24 @@
         "latest_start": "2026-10-31",
         "earliest_start": "2026-10-30",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Longfellow House",
+        "events": 23,
+        "date_span_days": 2,
+        "max_events_one_day": 12,
+        "max_events_one_timestamp": 2,
+        "distinct_titles_ratio": 0.1739,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.1739,
+        "median_description_len": 537,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-10-31",
+        "earliest_start": "2026-10-30",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Regent Theatre": [
-      {
-        "source": "Regent Theatre",
-        "events": 26,
-        "date_span_days": 129,
-        "max_events_one_day": 2,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 0.8077,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 0.8077,
-        "median_description_len": 65,
-        "null_venue_rate": 0.0,
-        "latest_start": "2027-02-06",
-        "earliest_start": "2026-10-01",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Regent Theatre",
         "events": 26,
@@ -6778,24 +6763,24 @@
         "latest_start": "2027-05-07",
         "earliest_start": "2026-10-29",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Regent Theatre",
+        "events": 19,
+        "date_span_days": 191,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.9474,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.9474,
+        "median_description_len": 63,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-05-07",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "The Dance Complex": [
-      {
-        "source": "The Dance Complex",
-        "events": 814,
-        "date_span_days": 61,
-        "max_events_one_day": 19,
-        "max_events_one_timestamp": 4,
-        "distinct_titles_ratio": 0.102,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 0.0774,
-        "median_description_len": 1999,
-        "null_venue_rate": 0.0,
-        "latest_start": "2026-11-29",
-        "earliest_start": "2026-09-30",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "The Dance Complex",
         "events": 821,
@@ -7230,24 +7215,24 @@
         "latest_start": "2026-12-27",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "The Dance Complex",
+        "events": 856,
+        "date_span_days": 61,
+        "max_events_one_day": 21,
+        "max_events_one_timestamp": 5,
+        "distinct_titles_ratio": 0.1098,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.0841,
+        "median_description_len": 1999,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-12-28",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Theatre at First": [
-      {
-        "source": "Theatre at First",
-        "events": 4,
-        "date_span_days": 9,
-        "max_events_one_day": 1,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 0.25,
-        "distinct_venues": 1,
-        "distinct_images_ratio": 0.0,
-        "median_description_len": 70,
-        "null_venue_rate": 0.0,
-        "latest_start": "2026-10-11",
-        "earliest_start": "2026-10-03",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Theatre at First",
         "events": 4,
@@ -7682,24 +7667,24 @@
         "latest_start": "2026-11-17",
         "earliest_start": "2026-11-15",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Theatre at First",
+        "events": 2,
+        "date_span_days": 3,
+        "max_events_one_day": 1,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.5,
+        "distinct_venues": 1,
+        "distinct_images_ratio": null,
+        "median_description_len": 74,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-11-17",
+        "earliest_start": "2026-11-15",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Skip the Small Talk": [
-      {
-        "source": "Skip the Small Talk",
-        "events": 16,
-        "date_span_days": 100,
-        "max_events_one_day": 1,
-        "max_events_one_timestamp": 1,
-        "distinct_titles_ratio": 0.3125,
-        "distinct_venues": 4,
-        "distinct_images_ratio": 0.0,
-        "median_description_len": 276,
-        "null_venue_rate": 0.0,
-        "latest_start": "2027-01-08",
-        "earliest_start": "2026-10-01",
-        "run_id": "2026-09-30T12-24-04Z"
-      },
       {
         "source": "Skip the Small Talk",
         "events": 16,
@@ -8134,6 +8119,21 @@
         "latest_start": "2027-02-17",
         "earliest_start": "2026-10-01",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Skip the Small Talk",
+        "events": 30,
+        "date_span_days": 140,
+        "max_events_one_day": 1,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.4333,
+        "distinct_venues": 9,
+        "distinct_images_ratio": 1.0,
+        "median_description_len": 2000,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-02-17",
+        "earliest_start": "2026-10-01",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "City of Somerville": [
@@ -8496,6 +8496,21 @@
         "latest_start": "2027-06-23",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "City of Somerville",
+        "events": 206,
+        "date_span_days": 238,
+        "max_events_one_day": 10,
+        "max_events_one_timestamp": 4,
+        "distinct_titles_ratio": 0.3495,
+        "distinct_venues": 28,
+        "distinct_images_ratio": 0.2069,
+        "median_description_len": 294,
+        "null_venue_rate": 0.267,
+        "latest_start": "2027-06-23",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Somerville Public Library": [
@@ -8858,6 +8873,21 @@
         "latest_start": "2027-03-31",
         "earliest_start": "2026-10-01",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Somerville Public Library",
+        "events": 655,
+        "date_span_days": 182,
+        "max_events_one_day": 12,
+        "max_events_one_timestamp": 3,
+        "distinct_titles_ratio": 0.2947,
+        "distinct_venues": 7,
+        "distinct_images_ratio": 0.2484,
+        "median_description_len": 276,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-03-31",
+        "earliest_start": "2026-10-01",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Aeronaut Brewing": [
@@ -9190,6 +9220,21 @@
         "latest_start": "2026-11-19",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Aeronaut Brewing",
+        "events": 9,
+        "date_span_days": 23,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 1.0,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 1.0,
+        "median_description_len": 108,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-11-19",
+        "earliest_start": "2026-10-28",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "American Repertory Theater": [
@@ -9522,6 +9567,21 @@
         "latest_start": "2027-07-03",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "American Repertory Theater",
+        "events": 123,
+        "date_span_days": 248,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.0244,
+        "distinct_venues": 3,
+        "distinct_images_ratio": 0.0244,
+        "median_description_len": 171,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-07-03",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Arts at the Armory": [
@@ -9854,6 +9914,21 @@
         "latest_start": "2027-09-28",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Arts at the Armory",
+        "events": 99,
+        "date_span_days": 335,
+        "max_events_one_day": 4,
+        "max_events_one_timestamp": 2,
+        "distinct_titles_ratio": 0.5455,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.5253,
+        "median_description_len": 463,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-09-28",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Central Square Theater": [
@@ -10186,6 +10261,21 @@
         "latest_start": "2027-06-27",
         "earliest_start": "2026-10-01",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Central Square Theater",
+        "events": 113,
+        "date_span_days": 270,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.1593,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.0446,
+        "median_description_len": 656,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-06-27",
+        "earliest_start": "2026-10-01",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Harvard Athletics": [
@@ -10518,6 +10608,21 @@
         "latest_start": "2027-01-03",
         "earliest_start": "2026-10-29",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Harvard Athletics",
+        "events": 48,
+        "date_span_days": 67,
+        "max_events_one_day": 7,
+        "max_events_one_timestamp": 2,
+        "distinct_titles_ratio": 0.9792,
+        "distinct_venues": 4,
+        "distinct_images_ratio": null,
+        "median_description_len": 84,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-01-03",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Harvard Book Store": [
@@ -10850,6 +10955,21 @@
         "latest_start": "2026-10-31",
         "earliest_start": "2026-10-01",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Harvard Book Store",
+        "events": 44,
+        "date_span_days": 31,
+        "max_events_one_day": 3,
+        "max_events_one_timestamp": 2,
+        "distinct_titles_ratio": 0.9773,
+        "distinct_venues": 10,
+        "distinct_images_ratio": 0.9773,
+        "median_description_len": 88,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-10-31",
+        "earliest_start": "2026-10-01",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Harvard GSD": [
@@ -11182,6 +11302,21 @@
         "latest_start": "2026-11-23",
         "earliest_start": "2026-10-29",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Harvard GSD",
+        "events": 8,
+        "date_span_days": 22,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.875,
+        "distinct_venues": 2,
+        "distinct_images_ratio": 0.875,
+        "median_description_len": 1758,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-11-23",
+        "earliest_start": "2026-11-02",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Longy School of Music": [
@@ -11514,6 +11649,21 @@
         "latest_start": "2027-05-08",
         "earliest_start": "2026-10-29",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Longy School of Music",
+        "events": 33,
+        "date_span_days": 192,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.9394,
+        "distinct_venues": 3,
+        "distinct_images_ratio": 0.5625,
+        "median_description_len": 1362,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-05-08",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "MIT Events": [
@@ -11846,6 +11996,21 @@
         "latest_start": "2026-12-18",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "MIT Events",
+        "events": 117,
+        "date_span_days": 51,
+        "max_events_one_day": 8,
+        "max_events_one_timestamp": 4,
+        "distinct_titles_ratio": 0.6581,
+        "distinct_venues": 54,
+        "distinct_images_ratio": 0.812,
+        "median_description_len": 782,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-12-18",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "MIT Music & Theater": [
@@ -12178,6 +12343,21 @@
         "latest_start": "2027-05-15",
         "earliest_start": "2026-09-30",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "MIT Music & Theater",
+        "events": 45,
+        "date_span_days": 228,
+        "max_events_one_day": 3,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.7556,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.6889,
+        "median_description_len": 124,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-05-15",
+        "earliest_start": "2026-09-30",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "MIT Open Space": [
@@ -12510,6 +12690,21 @@
         "latest_start": "2026-12-10",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "MIT Open Space",
+        "events": 3,
+        "date_span_days": 72,
+        "max_events_one_day": 1,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 1.0,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 1.0,
+        "median_description_len": 219,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-01-12",
+        "earliest_start": "2026-11-02",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Mount Auburn Cemetery": [
@@ -12842,6 +13037,21 @@
         "latest_start": "2027-10-08",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Mount Auburn Cemetery",
+        "events": 22,
+        "date_span_days": 342,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.5455,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.5455,
+        "median_description_len": 1975,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-10-08",
+        "earliest_start": "2026-11-01",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Museum of Science": [
@@ -13174,6 +13384,21 @@
         "latest_start": "2026-11-20",
         "earliest_start": "2026-10-29",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Museum of Science",
+        "events": 15,
+        "date_span_days": 23,
+        "max_events_one_day": 3,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 1.0,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 1.0,
+        "median_description_len": 230,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-11-20",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Porter Square Books": [
@@ -13506,6 +13731,21 @@
         "latest_start": "2026-10-30",
         "earliest_start": "2026-10-01",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Porter Square Books",
+        "events": 46,
+        "date_span_days": 30,
+        "max_events_one_day": 4,
+        "max_events_one_timestamp": 2,
+        "distinct_titles_ratio": 0.913,
+        "distinct_venues": 4,
+        "distinct_images_ratio": 0.8889,
+        "median_description_len": 140,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-10-30",
+        "earliest_start": "2026-10-01",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Portico Brewing": [
@@ -13838,6 +14078,21 @@
         "latest_start": "2026-12-31",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Portico Brewing",
+        "events": 18,
+        "date_span_days": 64,
+        "max_events_one_day": 1,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.2778,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.2778,
+        "median_description_len": 350,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-12-31",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Sanders Theatre": [
@@ -14170,6 +14425,21 @@
         "latest_start": "2027-05-23",
         "earliest_start": "2026-10-29",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Sanders Theatre",
+        "events": 24,
+        "date_span_days": 207,
+        "max_events_one_day": 1,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 1.0,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 1.0,
+        "median_description_len": 151,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-05-23",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Somerville Theatre": [
@@ -14502,6 +14772,21 @@
         "latest_start": "2027-04-16",
         "earliest_start": "2026-10-31",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Somerville Theatre",
+        "events": 38,
+        "date_span_days": 168,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.4737,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.4595,
+        "median_description_len": 234,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-04-16",
+        "earliest_start": "2026-10-31",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "The Comedy Studio": [
@@ -14834,6 +15119,21 @@
         "latest_start": "2027-05-22",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "The Comedy Studio",
+        "events": 157,
+        "date_span_days": 206,
+        "max_events_one_day": 3,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.5287,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.4268,
+        "median_description_len": 895,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-05-22",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "The Lily Pad": [
@@ -15166,6 +15466,21 @@
         "latest_start": "2027-01-17",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "The Lily Pad",
+        "events": 98,
+        "date_span_days": 81,
+        "max_events_one_day": 4,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.449,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.4898,
+        "median_description_len": 861,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-01-17",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "The Mad Monkfish": [
@@ -15498,6 +15813,21 @@
         "latest_start": "2026-11-29",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "The Mad Monkfish",
+        "events": 42,
+        "date_span_days": 32,
+        "max_events_one_day": 3,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.7143,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.7381,
+        "median_description_len": 93,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-11-29",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "The Middle East": [
@@ -15830,6 +16160,21 @@
         "latest_start": "2027-06-26",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "The Middle East",
+        "events": 178,
+        "date_span_days": 241,
+        "max_events_one_day": 6,
+        "max_events_one_timestamp": 3,
+        "distinct_titles_ratio": 0.7978,
+        "distinct_venues": 5,
+        "distinct_images_ratio": 0.8708,
+        "median_description_len": 98,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-06-26",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "The Sinclair": [
@@ -16162,6 +16507,21 @@
         "latest_start": "2027-05-14",
         "earliest_start": "2026-10-28",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "The Sinclair",
+        "events": 68,
+        "date_span_days": 198,
+        "max_events_one_day": 2,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.9706,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 1.0,
+        "median_description_len": 64,
+        "null_venue_rate": 0.0,
+        "latest_start": "2027-05-14",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ],
     "Harvard Film Archive": [
@@ -16224,6 +16584,21 @@
         "latest_start": "2026-12-14",
         "earliest_start": "2026-10-29",
         "run_id": "2026-10-28T12-37-28Z"
+      },
+      {
+        "source": "Harvard Film Archive",
+        "events": 36,
+        "date_span_days": 47,
+        "max_events_one_day": 4,
+        "max_events_one_timestamp": 1,
+        "distinct_titles_ratio": 0.9444,
+        "distinct_venues": 1,
+        "distinct_images_ratio": 0.9444,
+        "median_description_len": 906,
+        "null_venue_rate": 0.0,
+        "latest_start": "2026-12-14",
+        "earliest_start": "2026-10-29",
+        "run_id": "2026-10-29T12-47-25Z"
       }
     ]
   }
