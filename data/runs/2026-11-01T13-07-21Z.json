@@ -1,0 +1,966 @@
+{
+  "run_id": "2026-11-01T13-07-21Z",
+  "started_at": "2026-11-01T13:07:21+00:00",
+  "finished_at": "2026-11-01T13:12:22+00:00",
+  "duration_s": 301.0,
+  "git_sha": "2293471",
+  "is_ci": true,
+  "scrapers": [
+    {
+      "source": "Lamplighter Brewing",
+      "status": "ok",
+      "returned": 22,
+      "duration_s": 9.4,
+      "error": null
+    },
+    {
+      "source": "The Comedy Studio",
+      "status": "ok",
+      "returned": 154,
+      "duration_s": 0.4,
+      "error": null
+    },
+    {
+      "source": "The Dance Complex",
+      "status": "ok",
+      "returned": 871,
+      "duration_s": 16.3,
+      "error": null
+    },
+    {
+      "source": "Theatre at First",
+      "status": "ok",
+      "returned": 2,
+      "duration_s": 0.5,
+      "error": null
+    },
+    {
+      "source": "First Parish in Cambridge",
+      "status": "ok",
+      "returned": 3,
+      "duration_s": 1.1,
+      "error": null
+    },
+    {
+      "source": "Harvard Art Museums",
+      "status": "ok",
+      "returned": 61,
+      "duration_s": 1.1,
+      "error": null
+    },
+    {
+      "source": "Brattle Theatre",
+      "status": "ok",
+      "returned": 85,
+      "duration_s": 12.6,
+      "error": null
+    },
+    {
+      "source": "Harvard Film Archive",
+      "status": "ok",
+      "returned": 33,
+      "duration_s": 12.7,
+      "error": null
+    },
+    {
+      "source": "Grolier Poetry Book Shop",
+      "status": "ok",
+      "returned": 11,
+      "duration_s": 0.4,
+      "error": null
+    },
+    {
+      "source": "Multicultural Arts Center",
+      "status": "ok",
+      "returned": 6,
+      "duration_s": 9.3,
+      "error": null
+    },
+    {
+      "source": "The Rockwell",
+      "status": "ok",
+      "returned": 142,
+      "duration_s": 2.9,
+      "error": null
+    },
+    {
+      "source": "The Mad Monkfish",
+      "status": "ok",
+      "returned": 36,
+      "duration_s": 2.1,
+      "error": null
+    },
+    {
+      "source": "Mount Auburn Cemetery",
+      "status": "ok",
+      "returned": 22,
+      "duration_s": 0.6,
+      "error": null
+    },
+    {
+      "source": "Harvard Athletics",
+      "status": "ok",
+      "returned": 47,
+      "duration_s": 3.3,
+      "error": null
+    },
+    {
+      "source": "Harvard GSD",
+      "status": "ok",
+      "returned": 8,
+      "duration_s": 1.0,
+      "error": null
+    },
+    {
+      "source": "The Sinclair",
+      "status": "ok",
+      "returned": 65,
+      "duration_s": 2.0,
+      "error": null
+    },
+    {
+      "source": "Harvard-Radcliffe Dramatic Club",
+      "status": "ok",
+      "returned": 26,
+      "duration_s": 1.0,
+      "error": null
+    },
+    {
+      "source": "City of Cambridge",
+      "status": "ok",
+      "returned": 890,
+      "duration_s": 65.3,
+      "error": null
+    },
+    {
+      "source": "Somerville Theatre",
+      "status": "ok",
+      "returned": 37,
+      "duration_s": 8.9,
+      "error": null
+    },
+    {
+      "source": "City of Somerville",
+      "status": "ok",
+      "returned": 223,
+      "duration_s": 32.0,
+      "error": null
+    },
+    {
+      "source": "Somerville Public Library",
+      "status": "ok",
+      "returned": 519,
+      "duration_s": 3.0,
+      "error": null
+    },
+    {
+      "source": "Museum of Science",
+      "status": "ok",
+      "returned": 14,
+      "duration_s": 0.6,
+      "error": null
+    },
+    {
+      "source": "Longy School of Music",
+      "status": "ok",
+      "returned": 31,
+      "duration_s": 0.7,
+      "error": null
+    },
+    {
+      "source": "Skip the Small Talk",
+      "status": "ok",
+      "returned": 47,
+      "duration_s": 0.5,
+      "error": null
+    },
+    {
+      "source": "MIT Events",
+      "status": "ok",
+      "returned": 114,
+      "duration_s": 7.9,
+      "error": null
+    },
+    {
+      "source": "MIT Music & Theater",
+      "status": "ok",
+      "returned": 67,
+      "duration_s": 0.5,
+      "error": null
+    },
+    {
+      "source": "MIT Open Space",
+      "status": "ok",
+      "returned": 11,
+      "duration_s": 0.4,
+      "error": null
+    },
+    {
+      "source": "The Lily Pad",
+      "status": "ok",
+      "returned": 96,
+      "duration_s": 0.6,
+      "error": null
+    },
+    {
+      "source": "The Middle East",
+      "status": "ok",
+      "returned": 173,
+      "duration_s": 16.4,
+      "error": null
+    },
+    {
+      "source": "Portico Brewing",
+      "status": "ok",
+      "returned": 16,
+      "duration_s": 0.4,
+      "error": null
+    },
+    {
+      "source": "Arts at the Armory",
+      "status": "ok",
+      "returned": 123,
+      "duration_s": 0.6,
+      "error": null
+    },
+    {
+      "source": "Central Square Theater",
+      "status": "ok",
+      "returned": 96,
+      "duration_s": 12.2,
+      "error": null
+    },
+    {
+      "source": "American Repertory Theater",
+      "status": "ok",
+      "returned": 120,
+      "duration_s": 3.2,
+      "error": null
+    },
+    {
+      "source": "Sanders Theatre",
+      "status": "ok",
+      "returned": 23,
+      "duration_s": 2.8,
+      "error": null
+    },
+    {
+      "source": "Longfellow House",
+      "status": "ok",
+      "returned": 1,
+      "duration_s": 6.9,
+      "error": null
+    },
+    {
+      "source": "Regent Theatre",
+      "status": "failed",
+      "returned": 0,
+      "duration_s": 27.1,
+      "error": "Regent Theatre: 0 events after HTTP 401 from https://regenttheatre.com/schedule/list/"
+    },
+    {
+      "source": "Harvard Square",
+      "status": "ok",
+      "returned": 267,
+      "duration_s": 5.7,
+      "error": null
+    },
+    {
+      "source": "BostonShows.org",
+      "status": "ok",
+      "returned": 1198,
+      "duration_s": 2.5,
+      "error": null
+    }
+  ],
+  "counts": {
+    "scraped": 5660,
+    "validated": 5613,
+    "deduplicated": 5337,
+    "final": 5794
+  },
+  "rejected": {
+    "Event date is too far in the past": 45,
+    "Title is too short": 2
+  },
+  "fingerprints": {
+    "Aeronaut Brewing": {
+      "source": "Aeronaut Brewing",
+      "events": 9,
+      "date_span_days": 23,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 1.0,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 1.0,
+      "median_description_len": 108,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-11-19",
+      "earliest_start": "2026-10-28"
+    },
+    "American Repertory Theater": {
+      "source": "American Repertory Theater",
+      "events": 120,
+      "date_span_days": 245,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.025,
+      "distinct_venues": 3,
+      "distinct_images_ratio": 0.025,
+      "median_description_len": 171,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-07-03",
+      "earliest_start": "2026-11-01"
+    },
+    "Arts at the Armory": {
+      "source": "Arts at the Armory",
+      "events": 123,
+      "date_span_days": 332,
+      "max_events_one_day": 4,
+      "max_events_one_timestamp": 2,
+      "distinct_titles_ratio": 0.4634,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.4472,
+      "median_description_len": 114,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-09-28",
+      "earliest_start": "2026-11-01"
+    },
+    "Boston Swing Central": {
+      "source": "Boston Swing Central",
+      "events": 2,
+      "date_span_days": 8,
+      "max_events_one_day": 1,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 1.0,
+      "distinct_venues": 1,
+      "distinct_images_ratio": null,
+      "median_description_len": 49,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-11-06",
+      "earliest_start": "2026-10-30"
+    },
+    "BostonShows.org": {
+      "source": "BostonShows.org",
+      "events": 1003,
+      "date_span_days": 237,
+      "max_events_one_day": 34,
+      "max_events_one_timestamp": 8,
+      "distinct_titles_ratio": 0.6171,
+      "distinct_venues": 44,
+      "distinct_images_ratio": null,
+      "median_description_len": 66,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-06-24",
+      "earliest_start": "2026-10-31"
+    },
+    "Brattle Theatre": {
+      "source": "Brattle Theatre",
+      "events": 85,
+      "date_span_days": 29,
+      "max_events_one_day": 5,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.4824,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.4824,
+      "median_description_len": 50,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-11-29",
+      "earliest_start": "2026-11-01"
+    },
+    "Central Square Theater": {
+      "source": "Central Square Theater",
+      "events": 96,
+      "date_span_days": 239,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.1667,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.0417,
+      "median_description_len": 656,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-06-27",
+      "earliest_start": "2026-11-01"
+    },
+    "City of Cambridge": {
+      "source": "City of Cambridge",
+      "events": 890,
+      "date_span_days": 60,
+      "max_events_one_day": 38,
+      "max_events_one_timestamp": 8,
+      "distinct_titles_ratio": 0.2787,
+      "distinct_venues": 34,
+      "distinct_images_ratio": 0.6944,
+      "median_description_len": 248,
+      "null_venue_rate": 0.0393,
+      "latest_start": "2026-12-31",
+      "earliest_start": "2026-11-02"
+    },
+    "City of Somerville": {
+      "source": "City of Somerville",
+      "events": 221,
+      "date_span_days": 234,
+      "max_events_one_day": 14,
+      "max_events_one_timestamp": 3,
+      "distinct_titles_ratio": 0.3801,
+      "distinct_venues": 27,
+      "distinct_images_ratio": 0.1852,
+      "median_description_len": 288,
+      "null_venue_rate": 0.2624,
+      "latest_start": "2027-06-23",
+      "earliest_start": "2026-11-02"
+    },
+    "First Parish in Cambridge": {
+      "source": "First Parish in Cambridge",
+      "events": 3,
+      "date_span_days": 15,
+      "max_events_one_day": 1,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 1.0,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 1.0,
+      "median_description_len": 358,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-11-15",
+      "earliest_start": "2026-11-01"
+    },
+    "Grolier Poetry Book Shop": {
+      "source": "Grolier Poetry Book Shop",
+      "events": 6,
+      "date_span_days": 36,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 1.0,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 1.0,
+      "median_description_len": 348,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-12-10",
+      "earliest_start": "2026-11-05"
+    },
+    "Harvard Art Museums": {
+      "source": "Harvard Art Museums",
+      "events": 61,
+      "date_span_days": 187,
+      "max_events_one_day": 4,
+      "max_events_one_timestamp": 2,
+      "distinct_titles_ratio": 0.7541,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 1.0,
+      "median_description_len": 842,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-05-06",
+      "earliest_start": "2026-11-01"
+    },
+    "Harvard Athletics": {
+      "source": "Harvard Athletics",
+      "events": 47,
+      "date_span_days": 70,
+      "max_events_one_day": 7,
+      "max_events_one_timestamp": 2,
+      "distinct_titles_ratio": 0.9787,
+      "distinct_venues": 4,
+      "distinct_images_ratio": null,
+      "median_description_len": 81,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-01-09",
+      "earliest_start": "2026-11-01"
+    },
+    "Harvard Book Store": {
+      "source": "Harvard Book Store",
+      "events": 44,
+      "date_span_days": 31,
+      "max_events_one_day": 3,
+      "max_events_one_timestamp": 2,
+      "distinct_titles_ratio": 0.9773,
+      "distinct_venues": 10,
+      "distinct_images_ratio": 0.9773,
+      "median_description_len": 88,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-10-31",
+      "earliest_start": "2026-10-01"
+    },
+    "Harvard Film Archive": {
+      "source": "Harvard Film Archive",
+      "events": 33,
+      "date_span_days": 44,
+      "max_events_one_day": 4,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.9697,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.9697,
+      "median_description_len": 984,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-12-14",
+      "earliest_start": "2026-11-01"
+    },
+    "Harvard GSD": {
+      "source": "Harvard GSD",
+      "events": 8,
+      "date_span_days": 22,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.875,
+      "distinct_venues": 2,
+      "distinct_images_ratio": 0.875,
+      "median_description_len": 1758,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-11-23",
+      "earliest_start": "2026-11-02"
+    },
+    "Harvard Square": {
+      "source": "Harvard Square",
+      "events": 192,
+      "date_span_days": 61,
+      "max_events_one_day": 10,
+      "max_events_one_timestamp": 4,
+      "distinct_titles_ratio": 0.4844,
+      "distinct_venues": 32,
+      "distinct_images_ratio": 0.4681,
+      "median_description_len": 614,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-12-31",
+      "earliest_start": "2026-11-01"
+    },
+    "Harvard-Radcliffe Dramatic Club": {
+      "source": "Harvard-Radcliffe Dramatic Club",
+      "events": 26,
+      "date_span_days": 36,
+      "max_events_one_day": 4,
+      "max_events_one_timestamp": 2,
+      "distinct_titles_ratio": 0.1923,
+      "distinct_venues": 1,
+      "distinct_images_ratio": null,
+      "median_description_len": 67,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-12-06",
+      "earliest_start": "2026-11-01"
+    },
+    "Lamplighter Brewing": {
+      "source": "Lamplighter Brewing",
+      "events": 22,
+      "date_span_days": 35,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.7273,
+      "distinct_venues": 2,
+      "distinct_images_ratio": 0.7273,
+      "median_description_len": 916,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-12-05",
+      "earliest_start": "2026-11-01"
+    },
+    "Longy School of Music": {
+      "source": "Longy School of Music",
+      "events": 31,
+      "date_span_days": 189,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.9355,
+      "distinct_venues": 3,
+      "distinct_images_ratio": 0.5667,
+      "median_description_len": 1320,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-05-08",
+      "earliest_start": "2026-11-01"
+    },
+    "MIT Events": {
+      "source": "MIT Events",
+      "events": 114,
+      "date_span_days": 48,
+      "max_events_one_day": 11,
+      "max_events_one_timestamp": 4,
+      "distinct_titles_ratio": 0.6842,
+      "distinct_venues": 55,
+      "distinct_images_ratio": 0.8158,
+      "median_description_len": 805,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-12-18",
+      "earliest_start": "2026-11-01"
+    },
+    "MIT Music & Theater": {
+      "source": "MIT Music & Theater",
+      "events": 43,
+      "date_span_days": 226,
+      "max_events_one_day": 3,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.7907,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.7209,
+      "median_description_len": 96,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-05-15",
+      "earliest_start": "2026-10-02"
+    },
+    "MIT Open Space": {
+      "source": "MIT Open Space",
+      "events": 7,
+      "date_span_days": 149,
+      "max_events_one_day": 1,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 1.0,
+      "distinct_venues": 2,
+      "distinct_images_ratio": 1.0,
+      "median_description_len": 219,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-03-30",
+      "earliest_start": "2026-11-02"
+    },
+    "Mount Auburn Cemetery": {
+      "source": "Mount Auburn Cemetery",
+      "events": 22,
+      "date_span_days": 342,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.5455,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.5455,
+      "median_description_len": 1975,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-10-08",
+      "earliest_start": "2026-11-01"
+    },
+    "Multicultural Arts Center": {
+      "source": "Multicultural Arts Center",
+      "events": 5,
+      "date_span_days": 208,
+      "max_events_one_day": 1,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 1.0,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 1.0,
+      "median_description_len": 1353,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-05-20",
+      "earliest_start": "2026-10-25"
+    },
+    "Museum of Science": {
+      "source": "Museum of Science",
+      "events": 14,
+      "date_span_days": 21,
+      "max_events_one_day": 3,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 1.0,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 1.0,
+      "median_description_len": 232,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-11-20",
+      "earliest_start": "2026-10-31"
+    },
+    "Porter Square Books": {
+      "source": "Porter Square Books",
+      "events": 46,
+      "date_span_days": 30,
+      "max_events_one_day": 4,
+      "max_events_one_timestamp": 2,
+      "distinct_titles_ratio": 0.913,
+      "distinct_venues": 4,
+      "distinct_images_ratio": 0.8889,
+      "median_description_len": 140,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-10-30",
+      "earliest_start": "2026-10-01"
+    },
+    "Portico Brewing": {
+      "source": "Portico Brewing",
+      "events": 16,
+      "date_span_days": 58,
+      "max_events_one_day": 1,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.25,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.25,
+      "median_description_len": 350,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-12-31",
+      "earliest_start": "2026-11-04"
+    },
+    "Regent Theatre": {
+      "source": "Regent Theatre",
+      "events": 16,
+      "date_span_days": 188,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.9375,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.9375,
+      "median_description_len": 64,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-05-07",
+      "earliest_start": "2026-11-01"
+    },
+    "Sanders Theatre": {
+      "source": "Sanders Theatre",
+      "events": 23,
+      "date_span_days": 204,
+      "max_events_one_day": 1,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 1.0,
+      "distinct_venues": 1,
+      "distinct_images_ratio": null,
+      "median_description_len": 150,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-05-23",
+      "earliest_start": "2026-11-01"
+    },
+    "Skip the Small Talk": {
+      "source": "Skip the Small Talk",
+      "events": 31,
+      "date_span_days": 139,
+      "max_events_one_day": 1,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.4516,
+      "distinct_venues": 9,
+      "distinct_images_ratio": 1.0,
+      "median_description_len": 2000,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-02-17",
+      "earliest_start": "2026-10-02"
+    },
+    "Somerville Public Library": {
+      "source": "Somerville Public Library",
+      "events": 519,
+      "date_span_days": 181,
+      "max_events_one_day": 11,
+      "max_events_one_timestamp": 3,
+      "distinct_titles_ratio": 0.2717,
+      "distinct_venues": 7,
+      "distinct_images_ratio": 0.2452,
+      "median_description_len": 275,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-04-30",
+      "earliest_start": "2026-11-01"
+    },
+    "Somerville Theatre": {
+      "source": "Somerville Theatre",
+      "events": 37,
+      "date_span_days": 167,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.4595,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.4595,
+      "median_description_len": 234,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-04-16",
+      "earliest_start": "2026-11-01"
+    },
+    "The Comedy Studio": {
+      "source": "The Comedy Studio",
+      "events": 153,
+      "date_span_days": 203,
+      "max_events_one_day": 3,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.5229,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.4314,
+      "median_description_len": 896,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-05-22",
+      "earliest_start": "2026-11-01"
+    },
+    "The Dance Complex": {
+      "source": "The Dance Complex",
+      "events": 863,
+      "date_span_days": 61,
+      "max_events_one_day": 21,
+      "max_events_one_timestamp": 5,
+      "distinct_titles_ratio": 0.1089,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.0834,
+      "median_description_len": 1999,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-12-31",
+      "earliest_start": "2026-11-01"
+    },
+    "The Lily Pad": {
+      "source": "The Lily Pad",
+      "events": 96,
+      "date_span_days": 126,
+      "max_events_one_day": 4,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.4583,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.5,
+      "median_description_len": 861,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-03-06",
+      "earliest_start": "2026-11-01"
+    },
+    "The Mad Monkfish": {
+      "source": "The Mad Monkfish",
+      "events": 36,
+      "date_span_days": 29,
+      "max_events_one_day": 3,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.7222,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.7778,
+      "median_description_len": 93,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-11-29",
+      "earliest_start": "2026-11-01"
+    },
+    "The Middle East": {
+      "source": "The Middle East",
+      "events": 173,
+      "date_span_days": 238,
+      "max_events_one_day": 6,
+      "max_events_one_timestamp": 3,
+      "distinct_titles_ratio": 0.7977,
+      "distinct_venues": 5,
+      "distinct_images_ratio": 0.8786,
+      "median_description_len": 97,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-06-26",
+      "earliest_start": "2026-11-01"
+    },
+    "The Rockwell": {
+      "source": "The Rockwell",
+      "events": 141,
+      "date_span_days": 380,
+      "max_events_one_day": 3,
+      "max_events_one_timestamp": 2,
+      "distinct_titles_ratio": 0.383,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 0.3786,
+      "median_description_len": 1380,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-11-15",
+      "earliest_start": "2026-11-01"
+    },
+    "The Sinclair": {
+      "source": "The Sinclair",
+      "events": 65,
+      "date_span_days": 195,
+      "max_events_one_day": 2,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.9692,
+      "distinct_venues": 1,
+      "distinct_images_ratio": 1.0,
+      "median_description_len": 62,
+      "null_venue_rate": 0.0,
+      "latest_start": "2027-05-14",
+      "earliest_start": "2026-11-01"
+    },
+    "Theatre at First": {
+      "source": "Theatre at First",
+      "events": 2,
+      "date_span_days": 3,
+      "max_events_one_day": 1,
+      "max_events_one_timestamp": 1,
+      "distinct_titles_ratio": 0.5,
+      "distinct_venues": 1,
+      "distinct_images_ratio": null,
+      "median_description_len": 74,
+      "null_venue_rate": 0.0,
+      "latest_start": "2026-11-17",
+      "earliest_start": "2026-11-15"
+    },
+    "User Submitted": {
+      "source": "User Submitted",
+      "events": 350,
+      "date_span_days": 675,
+      "max_events_one_day": 8,
+      "max_events_one_timestamp": 3,
+      "distinct_titles_ratio": 0.8829,
+      "distinct_venues": 168,
+      "distinct_images_ratio": 0.8439,
+      "median_description_len": 591,
+      "null_venue_rate": 0.0857,
+      "latest_start": "2027-11-13",
+      "earliest_start": "2026-01-08"
+    }
+  },
+  "gate": {
+    "decision": "pass",
+    "mode": "enforce",
+    "drift_enforced": false,
+    "passed": true,
+    "reasons": [
+      "3 source(s) drifted beyond tolerance \u2014 not blocking, set GATE_DRIFT=enforce to change that"
+    ],
+    "violations": [],
+    "drifts": [
+      {
+        "source": "Arts at the Armory",
+        "metric": "median_description_len",
+        "severity": "error",
+        "current": 114,
+        "baseline": 447,
+        "detail": "descriptions thinning out (26% of normal)"
+      },
+      {
+        "source": "Longfellow House",
+        "metric": "events",
+        "severity": "error",
+        "current": 0,
+        "baseline": 105.5,
+        "detail": "source disappeared from the data entirely"
+      },
+      {
+        "source": "Museum of Science",
+        "metric": "max_events_one_day",
+        "severity": "error",
+        "current": 3,
+        "baseline": 1,
+        "detail": "dates collapsing onto one day (300% of normal)"
+      },
+      {
+        "source": "Brattle Theatre",
+        "metric": "distinct_titles_ratio",
+        "severity": "warning",
+        "current": 0.4824,
+        "baseline": 0.9394,
+        "detail": "titles repeating \u2014 selector may have drifted (51% of normal)"
+      },
+      {
+        "source": "Brattle Theatre",
+        "metric": "distinct_images_ratio",
+        "severity": "warning",
+        "current": 0.4824,
+        "baseline": 0.877,
+        "detail": "images collapsing to a placeholder (55% of normal)"
+      },
+      {
+        "source": "Harvard-Radcliffe Dramatic Club",
+        "metric": "date_span_days",
+        "severity": "warning",
+        "current": 36,
+        "baseline": 67.0,
+        "detail": "reaching less far ahead \u2014 pagination or a crash mid-run (54% of normal)"
+      },
+      {
+        "source": "Lamplighter Brewing",
+        "metric": "date_span_days",
+        "severity": "warning",
+        "current": 35,
+        "baseline": 50.5,
+        "detail": "reaching less far ahead \u2014 pagination or a crash mid-run (69% of normal)"
+      },
+      {
+        "source": "Portico Brewing",
+        "metric": "events",
+        "severity": "warning",
+        "current": 16,
+        "baseline": 23,
+        "detail": "source is returning much less than usual (70% of normal)"
+      },
+      {
+        "source": "Regent Theatre",
+        "metric": "events",
+        "severity": "warning",
+        "current": 16,
+        "baseline": 25.0,
+        "detail": "source is returning much less than usual (64% of normal)"
+      }
+    ]
+  },
+  "diff": {
+    "added": 173,
+    "removed": 522,
+    "changed": 185,
+    "unchanged": 5436
+  }
+}
