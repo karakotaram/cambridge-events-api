@@ -1,22 +1,22 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-02T15:36:39.722211",
-  "total_events": 5714,
-  "total_sources": 42,
+  "timestamp": "2026-11-03T14:06:09.214326",
+  "total_events": 5715,
+  "total_sources": 43,
   "history_runs": 6,
   "alerts": [
     {
       "source": "Longfellow House",
-      "severity": "CRITICAL",
-      "current": 0,
-      "average": 20.2,
-      "message": "0 events (avg: 20) - scraper may be broken"
+      "severity": "WARNING",
+      "current": 2,
+      "average": 15.0,
+      "message": "2 events vs avg 15 (13%)"
     }
   ],
-  "diagnosis": "- **HTML structure changed** \u2013 the page\u2019s DOM (tags, classes, IDs, or layout) was updated, so the scraper\u2019s selectors no longer match any elements.  \n- **Dynamic content loading** \u2013 event data is now rendered via JavaScript (e.g., an API call or client\u2011side rendering) that the scraper (especially a simple requests\u2011based one) doesn\u2019t execute.  \n- **Anti\u2011scraping measures** \u2013 new bot detection (CAPTCHA, Cloudflare, IP rate\u2011limiting, required headers/cookies) blocks the request or returns an empty/placeholder page.  \n- **Source URL or pagination altered** \u2013 the endpoint URL, query parameters, or pagination scheme changed or was removed, causing the scraper to fetch a page with no event listings.",
+  "diagnosis": null,
   "summary": {
-    "critical": 1,
-    "warning": 0,
+    "critical": 0,
+    "warning": 1,
     "missing": 0
   }
 }

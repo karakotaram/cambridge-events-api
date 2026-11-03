@@ -1,13 +1,13 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-02T15:36:41.182655",
-  "total_events": 5714,
+  "timestamp": "2026-11-03T14:06:09.500050",
+  "total_events": 5715,
   "total_sources_registered": 43,
-  "total_sources_with_events": 42,
+  "total_sources_with_events": 43,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 22,
+      "event_count": 20,
       "days_since_scrape": 0
     },
     {
@@ -22,7 +22,7 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 861,
+      "event_count": 857,
       "days_since_scrape": 0
     },
     {
@@ -37,12 +37,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 59,
+      "event_count": 58,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 81,
+      "event_count": 80,
       "days_since_scrape": 0
     },
     {
@@ -62,7 +62,7 @@
     },
     {
       "source": "The Rockwell",
-      "event_count": 139,
+      "event_count": 136,
       "days_since_scrape": 0
     },
     {
@@ -82,12 +82,12 @@
     },
     {
       "source": "Harvard GSD",
-      "event_count": 8,
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
       "source": "The Sinclair",
-      "event_count": 64,
+      "event_count": 65,
       "days_since_scrape": 0
     },
     {
@@ -97,7 +97,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 891,
+      "event_count": 922,
       "days_since_scrape": 0
     },
     {
@@ -107,12 +107,12 @@
     },
     {
       "source": "City of Somerville",
-      "event_count": 223,
+      "event_count": 228,
       "days_since_scrape": 0
     },
     {
       "source": "Somerville Public Library",
-      "event_count": 519,
+      "event_count": 520,
       "days_since_scrape": 0
     },
     {
@@ -122,7 +122,7 @@
     },
     {
       "source": "Longy School of Music",
-      "event_count": 30,
+      "event_count": 29,
       "days_since_scrape": 0
     },
     {
@@ -132,27 +132,27 @@
     },
     {
       "source": "MIT Events",
-      "event_count": 113,
+      "event_count": 106,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Music & Theater",
-      "event_count": 41,
+      "event_count": 40,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Open Space",
-      "event_count": 7,
+      "event_count": 6,
       "days_since_scrape": 0
     },
     {
       "source": "The Lily Pad",
-      "event_count": 94,
+      "event_count": 91,
       "days_since_scrape": 0
     },
     {
       "source": "The Middle East",
-      "event_count": 169,
+      "event_count": 170,
       "days_since_scrape": 0
     },
     {
@@ -162,12 +162,12 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 122,
+      "event_count": 121,
       "days_since_scrape": 0
     },
     {
       "source": "Central Square Theater",
-      "event_count": 96,
+      "event_count": 98,
       "days_since_scrape": 0
     },
     {
@@ -177,7 +177,17 @@
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 22,
+      "event_count": 21,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "Longfellow House",
+      "event_count": 2,
+      "days_since_scrape": 0
+    },
+    {
+      "source": "Regent Theatre",
+      "event_count": 20,
       "days_since_scrape": 0
     },
     {
@@ -197,12 +207,12 @@
     },
     {
       "source": "Harvard Square",
-      "event_count": 171,
+      "event_count": 168,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 1009,
+      "event_count": 992,
       "days_since_scrape": 0
     },
     {
@@ -211,29 +221,13 @@
       "days_since_scrape": 2
     }
   ],
-  "stale": [
-    {
-      "source": "Regent Theatre",
-      "ci": true,
-      "event_count": 15,
-      "days_stale": 27,
-      "latest_scraped": "2026-10-06T14:24:43.824829",
-      "threshold_days": 3,
-      "issue": "Last scraped 27 days ago (threshold: 3)"
-    }
-  ],
-  "missing": [
-    {
-      "source": "Longfellow House",
-      "ci": true,
-      "issue": "No events in data"
-    }
-  ],
+  "stale": [],
+  "missing": [],
   "unregistered": [],
   "summary": {
-    "healthy": 41,
-    "stale": 1,
-    "missing": 1,
+    "healthy": 43,
+    "stale": 0,
+    "missing": 0,
     "unregistered": 0
   }
 }
