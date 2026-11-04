@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-03T14:06:09.214326",
-  "total_events": 5715,
+  "timestamp": "2026-11-04T14:20:54.655126",
+  "total_events": 5729,
   "total_sources": 43,
   "history_runs": 6,
   "alerts": [
@@ -9,8 +9,8 @@
       "source": "Longfellow House",
       "severity": "WARNING",
       "current": 2,
-      "average": 15.0,
-      "message": "2 events vs avg 15 (13%)"
+      "average": 9.8,
+      "message": "2 events vs avg 10 (21%)"
     }
   ],
   "diagnosis": null,
