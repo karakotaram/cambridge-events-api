@@ -1,28 +1,28 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-04T14:20:54.832409",
-  "total_events": 5729,
+  "timestamp": "2026-11-05T14:35:03.942217",
+  "total_events": 5753,
   "total_sources_registered": 43,
   "total_sources_with_events": 43,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 19,
+      "event_count": 18,
       "days_since_scrape": 0
     },
     {
       "source": "Boston Swing Central",
       "event_count": 5,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "The Comedy Studio",
-      "event_count": 151,
+      "event_count": 150,
       "days_since_scrape": 0
     },
     {
       "source": "The Dance Complex",
-      "event_count": 852,
+      "event_count": 841,
       "days_since_scrape": 0
     },
     {
@@ -37,12 +37,12 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 65,
+      "event_count": 63,
       "days_since_scrape": 0
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 79,
+      "event_count": 77,
       "days_since_scrape": 0
     },
     {
@@ -67,17 +67,17 @@
     },
     {
       "source": "The Mad Monkfish",
-      "event_count": 35,
+      "event_count": 34,
       "days_since_scrape": 0
     },
     {
       "source": "Mount Auburn Cemetery",
-      "event_count": 20,
+      "event_count": 19,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 46,
+      "event_count": 47,
       "days_since_scrape": 0
     },
     {
@@ -87,7 +87,7 @@
     },
     {
       "source": "The Sinclair",
-      "event_count": 65,
+      "event_count": 64,
       "days_since_scrape": 0
     },
     {
@@ -97,17 +97,17 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 935,
+      "event_count": 1003,
       "days_since_scrape": 0
     },
     {
       "source": "Somerville Theatre",
-      "event_count": 36,
+      "event_count": 35,
       "days_since_scrape": 0
     },
     {
       "source": "City of Somerville",
-      "event_count": 221,
+      "event_count": 213,
       "days_since_scrape": 0
     },
     {
@@ -132,37 +132,37 @@
     },
     {
       "source": "MIT Events",
-      "event_count": 104,
-      "days_since_scrape": 0
+      "event_count": 95,
+      "days_since_scrape": 1
     },
     {
       "source": "MIT Music & Theater",
-      "event_count": 40,
+      "event_count": 39,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Open Space",
-      "event_count": 7,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
       "source": "The Lily Pad",
-      "event_count": 94,
+      "event_count": 89,
       "days_since_scrape": 0
     },
     {
       "source": "The Middle East",
-      "event_count": 169,
-      "days_since_scrape": 0
+      "event_count": 164,
+      "days_since_scrape": 1
     },
     {
       "source": "Portico Brewing",
-      "event_count": 16,
+      "event_count": 15,
       "days_since_scrape": 0
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 119,
+      "event_count": 117,
       "days_since_scrape": 0
     },
     {
@@ -172,7 +172,7 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 118,
+      "event_count": 124,
       "days_since_scrape": 0
     },
     {
@@ -187,38 +187,38 @@
     },
     {
       "source": "Regent Theatre",
-      "event_count": 20,
-      "days_since_scrape": 1
+      "event_count": 19,
+      "days_since_scrape": 2
     },
     {
       "source": "Porter Square Books",
       "event_count": 29,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Harvard Book Store",
       "event_count": 26,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     },
     {
       "source": "Harvard Square",
-      "event_count": 236,
+      "event_count": 235,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 926,
+      "event_count": 927,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
       "event_count": 355,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [],
