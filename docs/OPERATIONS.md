@@ -115,8 +115,8 @@ Fix the scraper so it *skips* rather than guesses, add a fixture-backed test
 ## Runbook: local-only sources (weekly)
 
 Sources registered `runs_in_ci=False` never refresh in CI: Boston Swing Central
-blocks GitHub's IP ranges, and Porter Square Books, Harvard Book Store and
-Aeronaut need a visible browser window. `scripts/weekly_local_scrape.sh` pulls,
+and Regent Theatre block GitHub's IP ranges, and Porter Square Books, Harvard
+Book Store and Aeronaut need a visible browser window. `scripts/weekly_local_scrape.sh` pulls,
 runs `scrape_local.py`, and commits and pushes `data/events.json` if it changed.
 It refuses to run over uncommitted changes in `data/` or `src/`, and posts a
 macOS notification when anything fails.

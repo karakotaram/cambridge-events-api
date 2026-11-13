@@ -2,8 +2,8 @@
 # Refresh the local-only sources and publish them.
 #
 # CI cannot reach the sources registered runs_in_ci=False in src/sources.py:
-# Boston Swing Central blocks GitHub's IP ranges, and Porter Square Books,
-# Harvard Book Store and Aeronaut need a visible browser window. Their events
+# Boston Swing Central and Regent Theatre block GitHub's IP ranges, and Porter
+# Square Books, Harvard Book Store and Aeronaut need a visible browser window. Their events
 # only change when this runs on a Mac with someone logged in.
 #
 # Run weekly by the launchd agent com.cambridgecalendar.scrape-local (see

@@ -139,7 +139,9 @@ SOURCES: tuple[Source, ...] = (
     Source("Longfellow House", "src.scrapers.longfellow_house", "LongfellowHouseScraper", "playwright",
            notes="captures the NPS calendar JSON from the browser: parsing the cards "
                  "races a progressive render, and calling the API directly takes ~150s"),
-    Source("Regent Theatre", "src.scrapers.regent_theatre", "RegentTheatreScraper", "playwright"),
+    Source("Regent Theatre", "src.scrapers.regent_theatre", "RegentTheatreScraper", "playwright",
+           runs_in_ci=False, notes="HTTP 401 to GitHub cloud IPs since 2026-10-07, fine from a "
+                                   "home connection; run scrape_local.py"),
 
     # ---- Playwright, visible browser, local only -----------------------------
     # These venues' Cloudflare settings refuse plain HTTP and a browser that
