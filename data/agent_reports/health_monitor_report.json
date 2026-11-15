@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-14T13:28:13.940694",
-  "total_events": 5696,
+  "timestamp": "2026-11-15T13:54:01.213292",
+  "total_events": 5539,
   "total_sources": 43,
   "history_runs": 6,
   "alerts": [
@@ -9,8 +9,8 @@
       "source": "Harvard GSD",
       "severity": "WARNING",
       "current": 1,
-      "average": 3.7,
-      "message": "1 events vs avg 4 (27%)"
+      "average": 3.0,
+      "message": "1 events vs avg 3 (33%)"
     }
   ],
   "diagnosis": null,
