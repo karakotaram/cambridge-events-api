@@ -223,6 +223,22 @@ SOURCES: tuple[Source, ...] = (
            "UnionSquareMainStreetsScraper", "aggregator",
            notes="a community calendar anyone can submit to (eventscalendar.co), so an aggregator; "
                  "events whose location names no city are skipped"),
+    # ---- batch 2 · group B ----
+    Source("Boston Early Music Festival", "src.scrapers.bemf", "BEMFScraper", "requests",
+           notes="season page HTML plus BEMF's venue list; Boston and touring dates dropped"),
+    Source("Cambridge Society for Early Music", "src.scrapers.csem", "CSEMScraper", "requests",
+           notes="season page plus one page per program; each program tours, only Cambridge nights kept"),
+    Source("Blues Union Boston", "src.scrapers.blues_union", "BluesUnionScraper", "requests",
+           notes="Google Calendar iCal; weekly RRULE expanded 60 days ahead with the organizers' "
+                 "EXDATEs and 'No Blues Union' overrides applied; 16 Bow St entries only"),
+    Source("Dave Bryant Third Thursdays", "src.scrapers.dave_bryant", "DaveBryantScraper", "requests",
+           notes="GigPress RSS; its pubDate stamps local time as UTC, so the printed Date/Time are read"),
+    Source("NESFA", "src.scrapers.nesfa", "NESFAScraper", "requests",
+           notes="events page HTML; only entries at the Somerville clubhouse"),
+    Source("Hub Comics", "src.scrapers.hub_comics", "HubComicsScraper", "requests",
+           notes="WP REST posts in the Events category; date read from prose, year from the printed weekday"),
+    Source("Crystal Ballroom", "src.scrapers.crystal_ballroom", "CrystalBallroomScraper", "requests",
+           notes="events page HTML; its event post type is not exposed by the REST API"),
 
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),
