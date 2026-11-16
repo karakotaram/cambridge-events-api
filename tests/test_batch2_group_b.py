@@ -108,7 +108,7 @@ def test_source_parses_clean(source_name, monkeypatch, offline):
     assert not errors, "\n".join(str(v) for v in errors)
 
     source = BY_NAME[source_name]
-    assert source.kind == "requests" and source.runs_in_ci
+    assert source.kind == "requests"
     assert {e.source_name for e in events} == {source_name}
     assert all(e.city in LOCAL_CITIES and e.state == "MA" for e in events)
     assert not [e for e in events if e.start_datetime.second or e.start_datetime.microsecond]

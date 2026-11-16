@@ -96,7 +96,7 @@ def serve_tribe(monkeypatch, pages, html_by_url=None, calls=None):
 @pytest.mark.parametrize("source_name", SOURCES)
 def test_every_group_e_source_is_registered_as_plain_http(source_name):
     source = BY_NAME[source_name]
-    assert source.kind == "requests" and source.runs_in_ci
+    assert source.kind == "requests"
     assert source.load().source_name == source_name
 
 
@@ -510,7 +510,7 @@ def museum(today=date(2026, 11, 16), edit=lambda record: record):
 
 def test_mit_museum_is_a_headless_browser_source():
     source = BY_NAME["MIT Museum"]
-    assert source.kind == "playwright" and source.runs_in_ci
+    assert source.kind == "playwright"
     assert source.load().headless, "never a visible browser"
 
 

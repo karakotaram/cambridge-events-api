@@ -140,7 +140,9 @@ SOURCES: tuple[Source, ...] = (
            notes="Tribe API; tours, so only Cambridge/Somerville dates are kept"),
     Source("Gallery 263", "src.scrapers.gallery_263", "Gallery263Scraper", "requests", notes="Tribe API"),
     Source("Kendall Center", "src.scrapers.kendall_center", "KendallCenterScraper", "requests",
-           notes="Tribe API on a site set to UTC whose wall clock is Eastern; summer only"),
+           runs_in_ci=False,
+           notes="GitHub's servers get HTML, not the Tribe API's JSON (first CI run, 2026-11-16), fine locally; run scrape_local.py. "
+                 "Tribe API on a site set to UTC whose wall clock is Eastern; summer only"),
     Source("Cambridge Symphony Orchestra", "src.scrapers.cambridge_symphony", "CambridgeSymphonyScraper", "requests",
            notes="Squarespace JSON; plays Boston/Arlington/Watertown too, which are dropped"),
     Source("Canal District Kendall", "src.scrapers.canal_district", "CanalDistrictScraper", "requests",
@@ -239,7 +241,9 @@ SOURCES: tuple[Source, ...] = (
     Source("Hub Comics", "src.scrapers.hub_comics", "HubComicsScraper", "requests",
            notes="WP REST posts in the Events category; date read from prose, year from the printed weekday"),
     Source("Crystal Ballroom", "src.scrapers.crystal_ballroom", "CrystalBallroomScraper", "requests",
-           notes="events page HTML; its event post type is not exposed by the REST API"),
+           runs_in_ci=False,
+           notes="GitHub's servers get a page without the listings (first CI run, 2026-11-16), fine locally; run scrape_local.py. "
+                 "events page HTML; its event post type is not exposed by the REST API"),
     # ---- batch 2 · group D ----
     Source("Woodberry Poetry Room", "src.scrapers.woodberry_poetry_room", "WoodberryPoetryRoomScraper", "requests",
            notes="the room's events page lists its season; each listing links to Harvard "
@@ -272,10 +276,14 @@ SOURCES: tuple[Source, ...] = (
            "requests", notes="NeonCRM's public event RSS; the calendar grid's months are 0-based"),
     # ---- batch 2 · group G ----
     Source("Somerville Arts Council", "src.scrapers.somerville_arts_council", "SomervilleArtsCouncilScraper",
-           "requests", notes="Events Manager iCal feed (base_ical); phone-box art installations dated "
-                             "2015-2030 are dropped as standing listings"),
+           "requests", runs_in_ci=False,
+           notes="GitHub's servers get a page, not the iCal feed (first CI run, 2026-11-16), fine locally; run scrape_local.py. "
+                 "Events Manager iCal feed (base_ical); phone-box art installations dated "
+                 "2015-2030 are dropped as standing listings"),
     Source("SomArt Space", "src.scrapers.somart", "SomArtScraper", "requests",
-           notes="Events Manager iCal feed (base_ical), capped by the site at 50 events; "
+           runs_in_ci=False,
+           notes="GitHub's servers get a page, not the iCal feed (first CI run, 2026-11-16), fine locally; run scrape_local.py. "
+                 "Events Manager iCal feed (base_ical), capped by the site at 50 events; "
                  "space walkthroughs for renters dropped"),
     Source("Somerville Bike Kitchen", "src.scrapers.somerville_bike_kitchen", "SomervilleBikeKitchenScraper",
            "requests", notes="public Google Calendar iCal (base_ical); one-off events only, standing "
@@ -318,7 +326,9 @@ SOURCES: tuple[Source, ...] = (
     Source("Goofs Comedy Club", "src.scrapers.goofs", "GoofsComedyScraper", "requests",
            notes="the site's /api/public/shows endpoint"),
     Source("ManRay", "src.scrapers.manray", "ManRayScraper", "requests",
-           notes="Simple Calendar grid (Google Calendar), this month and next; site clock is "
+           runs_in_ci=False,
+           notes="GitHub's servers get a page without the calendar grid (first CI run, 2026-11-16), fine locally; run scrape_local.py. "
+                 "Simple Calendar grid (Google Calendar), this month and next; site clock is "
                  "America/Halifax, so the epoch is used, not the printed time"),
     Source("Lovestruck Books", "src.scrapers.lovestruck", "LovestruckBooksScraper", "requests",
            notes="BookManager event/v2/list; off-site events only at places we know"),
@@ -350,16 +360,24 @@ SOURCES: tuple[Source, ...] = (
                  "only: most rows are standing listings spanning months"),
     # ---- batch 2 · group E ----
     Source("MIT Art, Culture and Technology", "src.scrapers.mit_act", "MITACTScraper", "requests",
-           notes="Tribe API, lecture-series category; no Tribe venues, so each lecture's page "
+           runs_in_ci=False,
+           notes="times out from GitHub's servers (first CI run, 2026-11-16), fine locally; run scrape_local.py. "
+                 "Tribe API, lecture-series category; no Tribe venues, so each lecture's page "
                  "is read for its room"),
     Source("MIT Literature", "src.scrapers.mit_literature", "MITLiteratureScraper", "requests",
-           notes="Tribe API; drops the weekly 'Tea Time' socials (one recurs without end) "
+           runs_in_ci=False,
+           notes="times out from GitHub's servers (first CI run, 2026-11-16), fine locally; run scrape_local.py. "
+                 "Tribe API; drops the weekly 'Tea Time' socials (one recurs without end) "
                  "and partner events in Boston/Brookline"),
     Source("MIT List Visual Arts Center", "src.scrapers.mit_list_center", "MITListCenterScraper", "requests",
-           notes="Drupal calendar cards plus one page per event for its times and place; "
+           runs_in_ci=False,
+           notes="times out from GitHub's servers (first CI run, 2026-11-16), fine locally; run scrape_local.py. "
+                 "Drupal calendar cards plus one page per event for its times and place; "
                  "members' previews skipped"),
     Source("Venture Café Cambridge", "src.scrapers.venture_cafe", "VentureCafeScraper", "requests",
-           notes="Thursday Gathering programme page; rows print no year, so it comes from "
+           runs_in_ci=False,
+           notes="GitHub's servers get a different page (first CI run, 2026-11-16), fine locally; run scrape_local.py. "
+                 "Thursday Gathering programme page; rows print no year, so it comes from "
                  "the printed weekday (as art.py)"),
     Source("Cambridge Crossing", "src.scrapers.cambridge_crossing", "CambridgeCrossingScraper", "requests",
            notes="the theme's hand-kept events.json; season spans skipped; summer only"),
@@ -367,7 +385,9 @@ SOURCES: tuple[Source, ...] = (
            notes="presenter; homepage season list, one venue page per venue for its city, and a "
                  "run's own page for its performances. Its own venue is The Platform, Kendall Sq"),
     Source("MIT Museum", "src.scrapers.mit_museum", "MITMuseumScraper", "playwright",
-           notes="headless: plain HTTP gets a Vercel bot challenge (429). Reads the page's "
+           runs_in_ci=False,
+           notes="GitHub's servers get the bot challenge even headless (first CI run, 2026-11-16), fine locally; run scrape_local.py. "
+                 "headless: plain HTTP gets a Vercel bot challenge (429). Reads the page's "
                  "Next.js data, one program at a time; session years from the printed weekday"),
 
     # ---- aggregators (last, so original sources win deduplication) -----------
