@@ -198,6 +198,22 @@ SOURCES: tuple[Source, ...] = (
     # real times. Fixing it would have meant maintaining a second, worse path to
     # the same data. Library events still reach the calendar via City of Cambridge.
 
+    # ---- batch 2 · group D ----
+    Source("Woodberry Poetry Room", "src.scrapers.woodberry_poetry_room", "WoodberryPoetryRoomScraper", "requests",
+           notes="the room's events page lists its season; each listing links to Harvard "
+                 "Library's LibCal, whose JSON-LD supplies the year the card leaves out"),
+    Source("Harvard Museums of Science & Culture", "src.scrapers.hmsc", "HMSCScraper", "requests",
+           notes="Calendar+ listing (dates with year) plus one detail page per program for "
+                 "its Location line; HMNH, Peabody, Semitic and CHSI programs. hmnh.harvard.edu 403s"),
+    Source("Radcliffe Institute", "src.scrapers.radcliffe_institute", "RadcliffeInstituteScraper", "requests",
+           notes="server-rendered event cards; exhibitions (date ranges) are skipped"),
+    Source("Harvard-Radcliffe Orchestra", "src.scrapers.harvard_radcliffe_orchestra",
+           "HarvardRadcliffeOrchestraScraper", "requests",
+           notes="Webflow concerts page; four concerts a season, at Sanders Theatre"),
+    Source("Harvard Gazette", "src.scrapers.harvard_gazette", "HarvardGazetteScraper", "aggregator",
+           notes="Trumba JSON (web name 'gazette'), 60 days. University-wide: museums, "
+                 "libraries, Memorial Church, outside presenters. Exhibitions and runs skipped"),
+
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),
     Source("BostonShows.org", "src.scrapers.bostonshows", "BostonShowsScraper", "aggregator",
