@@ -1,17 +1,10 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-16T15:38:21.580703",
-  "total_events": 5465,
-  "total_sources": 42,
+  "timestamp": "2026-11-16T18:17:59.066126",
+  "total_events": 6679,
+  "total_sources": 97,
   "history_runs": 6,
   "alerts": [
-    {
-      "source": "Harvard GSD",
-      "severity": "WARNING",
-      "current": 1,
-      "average": 2.3,
-      "message": "1 events vs avg 2 (43%)"
-    },
     {
       "source": "First Parish in Cambridge",
       "severity": "MISSING",
@@ -23,7 +16,7 @@
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 1,
+    "warning": 0,
     "missing": 1
   }
 }
