@@ -186,10 +186,11 @@ SOURCES: tuple[Source, ...] = (
     # Retired 2026-09-01: "Harvard Memorial Church" returns 403 for every path on
     # memorialchurch.harvard.edu — homepage, calendar, RSS, REST — to plain HTTP
     # and to a real headless browser alike, from a residential IP as well as CI.
-    # That is a deliberate block, not a broken scraper, and the Harvard-wide
-    # calendar does not carry their listings either. Getting past it would mean
-    # working around protection the venue chose to put up. If they ever open
-    # access, git history has the scraper.
+    # That is a deliberate block, not a broken scraper. Getting past it would
+    # mean working around protection the venue chose to put up. If they ever
+    # open access, git history has the scraper. Since 2026-11-16 their public
+    # services and recitals arrive through the "Harvard Gazette" source, whose
+    # Trumba calendar carries them.
 
     # Retired 2026-09-01: "Cambridge Public Library" had its own scraper, but it
     # fabricated every date (datetime.now() at 10:00 for anything it could not
