@@ -214,7 +214,8 @@ def test_boston_calendar_midnight_start_means_no_time_given(offline):
 
 
 def test_boston_calendar_fetches_one_record_set_and_one_listing_per_day(offline):
-    """14 days, each read twice: the JSON records and the HTML listing."""
+    """WINDOW_DAYS days, each read twice: the JSON records and the HTML listing.
+    Captured days beyond the window are not asked for, so their events drop out."""
     from src.scrapers.boston_calendar import WINDOW_DAYS
 
     scraper = BY_NAME["The Boston Calendar"].load()
@@ -232,7 +233,9 @@ def test_boston_calendar_fetches_one_record_set_and_one_listing_per_day(offline)
     events = serve(scraper, pages, calls).scrape_events()
 
     assert len(calls) == 2 * WINDOW_DAYS and set(calls) == set(pages)
-    assert len(events) == len(boston_calendar_events()[3])
+    last = scraper.today + timedelta(days=WINDOW_DAYS - 1)
+    in_window = [e for e in boston_calendar_events()[3] if e.start_datetime.date() <= last]
+    assert in_window and len(events) == len(in_window)
 
 
 @pytest.mark.parametrize("text, clock", [

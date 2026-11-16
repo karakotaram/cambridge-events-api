@@ -345,7 +345,7 @@ SOURCES: tuple[Source, ...] = (
            notes="a hand-maintained swing-dance listings page (Swing City and others), so an "
                  "aggregator; special events only, place read from the prose address"),
     Source("The Boston Calendar", "src.scrapers.boston_calendar", "BostonCalendarScraper", "aggregator",
-           notes="Boston-wide listings site; events.json plus the HTML listing per day for 14 "
+           notes="Boston-wide listings site; events.json plus the HTML listing per day for 7 "
                  "days, kept only where the two agree. Single-day rows in Cambridge/Somerville "
                  "only: most rows are standing listings spanning months"),
     # ---- batch 2 · group E ----

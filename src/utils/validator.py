@@ -33,6 +33,10 @@ class EventValidator:
         if event.start_datetime.second or event.start_datetime.microsecond:
             return False, "Start datetime looks like a scrape timestamp, not a published time"
 
+        meridiem_error = EventValidator.meridiem_typo(event)
+        if meridiem_error:
+            return False, meridiem_error
+
         # Check date is not too far in past (using Eastern Time since all events are in Cambridge/Somerville)
         now_eastern = datetime.now(EASTERN_TZ)
 
@@ -57,6 +61,37 @@ class EventValidator:
             return False, "Title appears to be low quality"
 
         return True, None
+
+    @staticmethod
+    def meridiem_typo(event: EventCreate) -> Optional[str]:
+        """A start the venue typed with AM where it meant PM, or None.
+
+        Venues write "12:30 AM" for half past noon. Scrapers copy them
+        faithfully, so the listing says 12:30 AM — on 2026-11-16 a senior
+        centre social group (City of Cambridge, "12:30 AM - 1:30 AM") and a
+        museum gallery talk (Harvard Art Museums, "12:30am - 1:00pm"). Two
+        patterns are refused; neither occurred legitimately in two months of
+        published data (20 snapshots, Sept-Nov 2026):
+
+          - a start in 00:01-00:59, the "12:xx AM" minutes. Exactly 00:00 is
+            left alone: many sources stamp a date-only event at midnight.
+            Real late-night listings (The Mad Monkfish's "Midnight Hour")
+            start at 1 AM or later, which this does not touch.
+          - a start before 6 AM that ends in the daytime on the same day — a
+            twelve-hour gallery talk, or MIT's "Change The Lens" at 00:00-12:50.
+
+        Skipping costs one listing; publishing costs every reader who turns
+        up at midnight (CLAUDE.md, rule 1).
+        """
+        if event.all_day:
+            return None
+        start, end = event.start_datetime, event.end_datetime
+        if start.hour == 0 and start.minute > 0:
+            return "Start at 12:xx AM is almost always a mistyped 12:xx PM"
+        if (start.hour < 6 and end is not None and end.date() == start.date()
+                and end.hour >= 8 and end - start < timedelta(hours=23)):
+            return "Starts before 6 AM but ends in the daytime the same day - AM/PM mistyped"
+        return None
 
     @staticmethod
     def is_low_quality_title(title: str) -> bool:

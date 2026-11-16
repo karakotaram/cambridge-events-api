@@ -9,7 +9,9 @@ records for that day — `event_date`, `start_time` ("7:30pm"), `end_date`,
 `end_time`, a street address with its `city`, the admission. There is no week
 or month JSON (both 406), so the scraper asks for one day at a time over
 WINDOW_DAYS. Each JSON response is ~3 MB and takes the server ~6 s, because
-of the standing listings below; that is why the window is two weeks.
+of the standing listings below. Two weeks cost ~150 s and ~40 MB a run, so on
+2026-11-16 the owner cut the window to one week; the venues' own sources reach
+further ahead.
 
 **The JSON is checked against the page.** A recurring series is stored as one
 record per occurrence, and the page does not always show the occurrence's own
@@ -57,7 +59,7 @@ from src.scrapers.base_feed import LOCAL_CITIES, BaseFeedScraper
 logger = logging.getLogger(__name__)
 
 SITE = "https://www.thebostoncalendar.com"
-WINDOW_DAYS = 14
+WINDOW_DAYS = 7
 
 CLOCK = re.compile(r"^\s*(\d{1,2}):(\d{2})\s*([ap])m?\s*$", re.I)
 # A listing row's time: "Saturday, Nov 21, 2026 7:00p". Standing listings
