@@ -254,6 +254,21 @@ SOURCES: tuple[Source, ...] = (
     Source("Harvard Gazette", "src.scrapers.harvard_gazette", "HarvardGazetteScraper", "aggregator",
            notes="Trumba JSON (web name 'gazette'), 60 days. University-wide: museums, "
                  "libraries, Memorial Church, outside presenters. Exhibitions and runs skipped"),
+    # ---- batch 2 · group F ----
+    Source("Cambridge Foundry", "src.scrapers.cambridge_foundry", "CambridgeFoundryScraper", "requests",
+           notes="the two Softr lists embedded in its events page, read through the JSON "
+                 "endpoints the embeds call; multi-day runs (gallery shows, pop-ups) skipped"),
+    Source("Central Square BID", "src.scrapers.central_square_bid", "CentralSquareBIDScraper", "requests",
+           notes="Kirby calendar answers one day per request; the month grid marks no days, "
+                 "so each day of a four-week window is asked for"),
+    Source("Cambridge KiOSK", "src.scrapers.cambridge_kiosk", "CambridgeKioskScraper", "requests",
+           notes="listing + one detail page per event; the printed time is checked against "
+                 "the page's own Google Calendar link. Some events also reach City of Cambridge"),
+    Source("Cambridge Center for Adult Education", "src.scrapers.ccae", "CCAEScraper", "requests",
+           notes="public events and the Blacksmith House Poetry Series, not the course "
+                 "catalogue; dates from each event page's JSON-LD"),
+    Source("Cambridge Art Association", "src.scrapers.cambridge_art_association", "CambridgeArtAssociationScraper",
+           "requests", notes="NeonCRM's public event RSS; the calendar grid's months are 0-based"),
 
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),
