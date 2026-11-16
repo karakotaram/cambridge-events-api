@@ -198,6 +198,22 @@ SOURCES: tuple[Source, ...] = (
     # real times. Fixing it would have meant maintaining a second, worse path to
     # the same data. Library events still reach the calendar via City of Cambridge.
 
+    # ---- batch 2 · group F ----
+    Source("Cambridge Foundry", "src.scrapers.cambridge_foundry", "CambridgeFoundryScraper", "requests",
+           notes="the two Softr lists embedded in its events page, read through the JSON "
+                 "endpoints the embeds call; multi-day runs (gallery shows, pop-ups) skipped"),
+    Source("Central Square BID", "src.scrapers.central_square_bid", "CentralSquareBIDScraper", "requests",
+           notes="Kirby calendar answers one day per request; the month grid marks no days, "
+                 "so each day of a four-week window is asked for"),
+    Source("Cambridge KiOSK", "src.scrapers.cambridge_kiosk", "CambridgeKioskScraper", "requests",
+           notes="listing + one detail page per event; the printed time is checked against "
+                 "the page's own Google Calendar link. Some events also reach City of Cambridge"),
+    Source("Cambridge Center for Adult Education", "src.scrapers.ccae", "CCAEScraper", "requests",
+           notes="public events and the Blacksmith House Poetry Series, not the course "
+                 "catalogue; dates from each event page's JSON-LD"),
+    Source("Cambridge Art Association", "src.scrapers.cambridge_art_association", "CambridgeArtAssociationScraper",
+           "requests", notes="NeonCRM's public event RSS; the calendar grid's months are 0-based"),
+
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),
     Source("BostonShows.org", "src.scrapers.bostonshows", "BostonShowsScraper", "aggregator",
