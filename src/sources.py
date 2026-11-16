@@ -269,6 +269,38 @@ SOURCES: tuple[Source, ...] = (
                  "catalogue; dates from each event page's JSON-LD"),
     Source("Cambridge Art Association", "src.scrapers.cambridge_art_association", "CambridgeArtAssociationScraper",
            "requests", notes="NeonCRM's public event RSS; the calendar grid's months are 0-based"),
+    # ---- batch 2 · group G ----
+    Source("Somerville Arts Council", "src.scrapers.somerville_arts_council", "SomervilleArtsCouncilScraper",
+           "requests", notes="Events Manager iCal feed (base_ical); phone-box art installations dated "
+                             "2015-2030 are dropped as standing listings"),
+    Source("SomArt Space", "src.scrapers.somart", "SomArtScraper", "requests",
+           notes="Events Manager iCal feed (base_ical), capped by the site at 50 events; "
+                 "space walkthroughs for renters dropped"),
+    Source("Somerville Bike Kitchen", "src.scrapers.somerville_bike_kitchen", "SomervilleBikeKitchenScraper",
+           "requests", notes="public Google Calendar iCal (base_ical); one-off events only, standing "
+                             "open-shop hours and internal meetings dropped"),
+    Source("Farrington Nature Linc", "src.scrapers.farrington", "FarringtonScraper", "requests",
+           notes="Squarespace JSON (view=list); a Lincoln nature centre, kept only for its "
+                 "occasional Somerville/Cambridge events, so usually empty"),
+    Source("Mass Audubon Magazine Beach", "src.scrapers.mass_audubon_magazine_beach",
+           "MassAudubonMagazineBeachScraper", "requests",
+           notes="program cards; next-meeting stamp, its epoch and the printed date must agree. "
+                 "T-Stop Trek walks elsewhere are dropped"),
+    Source("Green Cambridge", "src.scrapers.green_cambridge", "GreenCambridgeScraper", "requests",
+           notes="Tockify public API behind its calendar page; meetings (City committees, board) "
+                 "and unplaced events dropped"),
+    Source("Earthwise Aware", "src.scrapers.earthwise_aware", "EarthwiseAwareScraper", "requests",
+           notes="Eventbrite collection (base_eventbrite); Somerville sessions kept, Medford "
+                 "and Cape Cod walks dropped"),
+    Source("CambridgeSide", "src.scrapers.cambridgeside", "CambridgeSideScraper", "requests",
+           notes="the mall's Placewise page (one-off events) plus its Eventbrite organizer "
+                 "(dated nights of weekly series), de-duplicated by linked ticket id"),
+    Source("Black History in Action", "src.scrapers.bhac", "BHACScraper", "requests",
+           notes="Webflow events page; follows only cards the site marks upcoming to their "
+                 "Qgiv/Eventbrite ticket page JSON-LD"),
+    Source("Activist Afternoons", "src.scrapers.activist_afternoons", "ActivistAfternoonsScraper", "requests",
+           notes="Mobilize public API (org 33342); in-person Cambridge/Somerville events only, "
+                 "usually none"),
 
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),
