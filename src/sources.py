@@ -132,6 +132,31 @@ SOURCES: tuple[Source, ...] = (
     Source("American Repertory Theater", "src.scrapers.art", "AmericanRepertoryTheaterScraper", "requests",
            notes="venue per show from the masthead; the year from the printed weekday"),
 
+    # ---- plain HTTP, shared feed readers (base_tribe / base_squarespace) -----
+    Source("Lizard Lounge", "src.scrapers.lizard_lounge", "LizardLoungeScraper", "requests",
+           notes="Tribe API; pads empty nights with 'No Event Tonight' placeholders"),
+    Source("Assembly Row", "src.scrapers.assembly_row", "AssemblyRowScraper", "requests", notes="Tribe API"),
+    Source("Blue Heron", "src.scrapers.blue_heron", "BlueHeronScraper", "requests",
+           notes="Tribe API; tours, so only Cambridge/Somerville dates are kept"),
+    Source("Gallery 263", "src.scrapers.gallery_263", "Gallery263Scraper", "requests", notes="Tribe API"),
+    Source("Kendall Center", "src.scrapers.kendall_center", "KendallCenterScraper", "requests",
+           notes="Tribe API on a site set to UTC whose wall clock is Eastern; summer only"),
+    Source("Cambridge Symphony Orchestra", "src.scrapers.cambridge_symphony", "CambridgeSymphonyScraper", "requests",
+           notes="Squarespace JSON; plays Boston/Arlington/Watertown too, which are dropped"),
+    Source("Canal District Kendall", "src.scrapers.canal_district", "CanalDistrictScraper", "requests",
+           notes="Squarespace JSON"),
+    Source("Somerville Museum", "src.scrapers.somerville_museum", "SomervilleMuseumScraper", "requests",
+           notes="Squarespace JSON"),
+    Source("Somerville Music Spaces", "src.scrapers.somerville_music_spaces", "SomervilleMusicSpacesScraper",
+           "requests", notes="Squarespace JSON"),
+    Source("Brickbottom Gallery", "src.scrapers.brickbottom", "BrickbottomScraper", "requests",
+           notes="Squarespace JSON"),
+    Source("Café Zing", "src.scrapers.cafe_zing", "CafeZingScraper", "requests", notes="Squarespace JSON"),
+    Source("Remnant Brewing", "src.scrapers.remnant", "RemnantScraper", "requests",
+           notes="Squarespace JSON; two rooms (Cambridge, Somerville), each event names its own"),
+    Source("First Street Market", "src.scrapers.first_street_market", "FirstStreetMarketScraper", "requests",
+           notes="Squarespace JSON"),
+
     # ---- Playwright ----------------------------------------------------------
     Source("Sanders Theatre", "src.scrapers.sanders_theatre", "SandersTheatreScraper", "playwright",
            notes="calendar.college.harvard.edu 404s; listings moved to the Harvard "

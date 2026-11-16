@@ -178,7 +178,11 @@ Other things worth knowing:
 ## Adding a new scraper
 
 1. Create `src/scrapers/venue_name.py`, extend `BaseScraper`, set `source_name`,
-   `source_url`, `use_selenium`.
+   `source_url`, `use_selenium`. If the site is WordPress with The Events
+   Calendar (`/wp-json/tribe/events/v1/events` answers) or a Squarespace events
+   page (`?format=json` has `upcoming`), subclass `BaseTribeScraper` or
+   `BaseSquarespaceScraper` instead: the venue file is a dozen lines, and the
+   area filter, placeholder filter and timezone guard come with it.
 2. Implement `scrape_events() -> List[EventCreate]`. Prefer a machine-readable
    date on the listing page over parsing a detail page — but verify it: the
    Cambridge.gov `<time datetime>` attribute is a 12-hour clock with no meridiem,
