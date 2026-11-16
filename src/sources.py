@@ -301,6 +301,30 @@ SOURCES: tuple[Source, ...] = (
     Source("Activist Afternoons", "src.scrapers.activist_afternoons", "ActivistAfternoonsScraper", "requests",
            notes="Mobilize public API (org 33342); in-person Cambridge/Somerville events only, "
                  "usually none"),
+    # ---- batch 2 · group C ----
+    Source("Club Passim", "src.scrapers.club_passim", "ClubPassimScraper", "requests",
+           notes="fullCalendar data embedded in /live-music/; off-site shows placed from the title, "
+                 "festival posts from their schedule; shows sold by other box offices skipped"),
+    Source("Passim Summer Series", "src.scrapers.club_passim", "PassimSummerSeriesScraper", "requests",
+           notes="four outdoor series pages; summer only; year from the printed weekday"),
+    Source("The Cantab Lounge", "src.scrapers.cantab_lounge", "CantabLoungeScraper", "requests",
+           notes="TuneHatch public shows API, both rooms (Lounge, Underground)"),
+    Source("The Burren", "src.scrapers.burren", "BurrenScraper", "requests",
+           notes="hand-built music.html table; year from the printed weekday"),
+    Source("24 Hour Music", "src.scrapers.twenty_four_hour_music", "TwentyFourHourMusicScraper", "aggregator",
+           notes="ShoWare box office for several rooms; only McCarthy's is kept — the Burren and the "
+                 "Armory have their own sources, Boston Harbor Distillery is out of area"),
+    Source("Goofs Comedy Club", "src.scrapers.goofs", "GoofsComedyScraper", "requests",
+           notes="the site's /api/public/shows endpoint"),
+    Source("ManRay", "src.scrapers.manray", "ManRayScraper", "requests",
+           notes="Simple Calendar grid (Google Calendar), this month and next; site clock is "
+                 "America/Halifax, so the epoch is used, not the printed time"),
+    Source("Lovestruck Books", "src.scrapers.lovestruck", "LovestruckBooksScraper", "requests",
+           notes="BookManager event/v2/list; off-site events only at places we know"),
+    Source("Pandemonium Books & Games", "src.scrapers.pandemonium", "PandemoniumScraper", "requests",
+           notes="BookThatApp schedule.json, 60 days"),
+    Source("All She Wrote Books", "src.scrapers.all_she_wrote", "AllSheWroteBooksScraper", "requests",
+           notes="Wix Events warm-up data; Boston book clubs dropped"),
 
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),
