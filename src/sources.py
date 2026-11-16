@@ -198,6 +198,29 @@ SOURCES: tuple[Source, ...] = (
     # real times. Fixing it would have meant maintaining a second, worse path to
     # the same data. Library events still reach the calendar via City of Cambridge.
 
+    # ---- batch 2 · group H ----
+    Source("New School of Music", "src.scrapers.new_school_of_music", "NewSchoolOfMusicScraper", "requests",
+           notes="Wix Events data rendered into the calendar page (base_wix_events_page); the "
+                 "widget's first page only, about four months"),
+    Source("MetaMovements", "src.scrapers.metamovements", "MetamovementsScraper", "requests",
+           notes="Wix Events month calendar on the homepage; teaches across MA, only "
+                 "Cambridge/Somerville dates kept"),
+    Source("Thursday Morning Talks", "src.scrapers.thursday_morning_talks", "ThursdayMorningTalksScraper",
+           "requests", notes="data.yml behind a static page. January-February only: the rest of "
+                             "the year it returns the last season, which validation drops as past"),
+    Source("American Classics", "src.scrapers.american_classics", "AmericanClassicsScraper", "requests",
+           notes="hand-typed season page; Cambridge performances kept, Bedford repeats dropped"),
+    Source("Boston Lindy Hop", "src.scrapers.boston_lindy_hop", "BostonLindyHopScraper", "requests",
+           notes="FullCalendar JSON; socials only (classes are registration series in Brookline "
+                 "and Harvard Square); venue from each event's page. Often empty between postings"),
+    Source("Have to Dance", "src.scrapers.have_to_dance", "HaveToDanceScraper", "aggregator",
+           notes="a hand-maintained swing-dance listings page (Swing City and others), so an "
+                 "aggregator; special events only, place read from the prose address"),
+    Source("The Boston Calendar", "src.scrapers.boston_calendar", "BostonCalendarScraper", "aggregator",
+           notes="Boston-wide listings site; events.json plus the HTML listing per day for 14 "
+                 "days, kept only where the two agree. Single-day rows in Cambridge/Somerville "
+                 "only: most rows are standing listings spanning months"),
+
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),
     Source("BostonShows.org", "src.scrapers.bostonshows", "BostonShowsScraper", "aggregator",

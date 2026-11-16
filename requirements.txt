@@ -12,6 +12,8 @@ alembic==1.12.1
 email-validator==2.1.0
 python-multipart==0.0.6
 cloudscraper==1.2.71
+# Thursday Morning Talks publishes its season as data.yml (also arrives via uvicorn[standard])
+PyYAML>=6.0
 groq>=1.5.0  # needs reasoning_effort support for openai/gpt-oss-120b
 # Google Sheets API for user-submitted events
 google-auth>=2.23.0
