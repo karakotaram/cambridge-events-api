@@ -347,6 +347,27 @@ SOURCES: tuple[Source, ...] = (
            notes="Boston-wide listings site; events.json plus the HTML listing per day for 14 "
                  "days, kept only where the two agree. Single-day rows in Cambridge/Somerville "
                  "only: most rows are standing listings spanning months"),
+    # ---- batch 2 · group E ----
+    Source("MIT Art, Culture and Technology", "src.scrapers.mit_act", "MITACTScraper", "requests",
+           notes="Tribe API, lecture-series category; no Tribe venues, so each lecture's page "
+                 "is read for its room"),
+    Source("MIT Literature", "src.scrapers.mit_literature", "MITLiteratureScraper", "requests",
+           notes="Tribe API; drops the weekly 'Tea Time' socials (one recurs without end) "
+                 "and partner events in Boston/Brookline"),
+    Source("MIT List Visual Arts Center", "src.scrapers.mit_list_center", "MITListCenterScraper", "requests",
+           notes="Drupal calendar cards plus one page per event for its times and place; "
+                 "members' previews skipped"),
+    Source("Venture Café Cambridge", "src.scrapers.venture_cafe", "VentureCafeScraper", "requests",
+           notes="Thursday Gathering programme page; rows print no year, so it comes from "
+                 "the printed weekday (as art.py)"),
+    Source("Cambridge Crossing", "src.scrapers.cambridge_crossing", "CambridgeCrossingScraper", "requests",
+           notes="the theme's hand-kept events.json; season spans skipped; summer only"),
+    Source("Global Arts Live", "src.scrapers.global_arts_live", "GlobalArtsLiveScraper", "requests",
+           notes="presenter; homepage season list, one venue page per venue for its city, and a "
+                 "run's own page for its performances. Its own venue is The Platform, Kendall Sq"),
+    Source("MIT Museum", "src.scrapers.mit_museum", "MITMuseumScraper", "playwright",
+           notes="headless: plain HTTP gets a Vercel bot challenge (429). Reads the page's "
+                 "Next.js data, one program at a time; session years from the printed weekday"),
 
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),
