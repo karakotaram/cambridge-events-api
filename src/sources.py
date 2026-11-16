@@ -198,6 +198,32 @@ SOURCES: tuple[Source, ...] = (
     # real times. Fixing it would have meant maintaining a second, worse path to
     # the same data. Library events still reach the calendar via City of Cambridge.
 
+    # ---- batch 2 · group A ----
+    Source("Arrow Street Arts", "src.scrapers.arrow_street_arts", "ArrowStreetArtsScraper", "requests",
+           notes="Tockify iCal feed behind the Squarespace /shows page"),
+    Source("Bow Market", "src.scrapers.bow_market", "BowMarketScraper", "requests",
+           notes="eventscalendar.co embed JSON; a repeating event gives its first date only"),
+    Source("The Jungle", "src.scrapers.jungle", "JungleScraper", "requests",
+           notes="SociableKit's copy of its Eventbrite listings, the feed its own calendar widget reads"),
+    Source("Spectrum Singers", "src.scrapers.spectrum_singers", "SpectrumSingersScraper", "requests",
+           notes="OvationTix storefront API (clientId header); Brookline concerts dropped"),
+    Source("Sarasa Ensemble", "src.scrapers.sarasa", "SarasaScraper", "requests",
+           notes="season page -> program pages, one dated line per performance; "
+                 "Brattleboro and Lexington dates dropped"),
+    Source("Non-Event", "src.scrapers.nonevent", "NonEventScraper", "requests",
+           notes="Squarespace blog; each post's body states its date and time, checked against "
+                 "the post date. Mostly Boston, which is dropped"),
+    Source("McCarthy's Toad", "src.scrapers.mccarthys_toad", "McCarthysToadScraper", "requests",
+           notes="Elfsight widget JSON; one-off shows only, as the weekly sessions repeat without end"),
+    Source("Native Plant Community Gardeners", "src.scrapers.native_plant_gardeners",
+           "NativePlantGardenersScraper", "requests",
+           notes="Squarespace JSON on a site set to Los Angeles time whose wall clock is Eastern; "
+                 "spring to autumn only"),
+    Source("Union Square Main Streets", "src.scrapers.union_square_main_streets",
+           "UnionSquareMainStreetsScraper", "aggregator",
+           notes="a community calendar anyone can submit to (eventscalendar.co), so an aggregator; "
+                 "events whose location names no city are skipped"),
+
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),
     Source("BostonShows.org", "src.scrapers.bostonshows", "BostonShowsScraper", "aggregator",
