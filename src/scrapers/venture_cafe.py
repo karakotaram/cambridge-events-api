@@ -132,7 +132,10 @@ class VentureCafeScraper(BaseFeedScraper):
         if year is None:
             return None
         hour = int(clock.group(1)) % 12 + (12 if clock.group(3).upper() == "P" else 0)
-        start = datetime(year, month, int(day), hour, int(clock.group(2)))
+        try:
+            start = datetime(year, month, int(day), hour, int(clock.group(2)))
+        except ValueError:
+            return None
         # A mistyped weekday can match the wrong year ("Friday, 19 NOV" is
         # 2027). The page lists gatherings weeks ahead, not a year.
         if not timedelta(days=-WINDOW_BEFORE_DAYS) <= start.date() - reference <= timedelta(days=WINDOW_AFTER_DAYS):

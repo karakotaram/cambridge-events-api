@@ -10,6 +10,12 @@ tested against recent past listings served as if current:
     holds the fall's earlier three, with their pages.
   - Cambridge Crossing: a summer programme; the file holds 2025-2026 seasons.
 
+Global Arts Live's fixtures are every page one live run read (the season list,
+venue pages, runs' pages), trimmed to their content blocks, with a manifest
+from URL to file. MIT Museum's is the listing and program data one live run
+fetched through the browser, trimmed to the fields read; no browser starts in
+these tests.
+
 The tests assert behaviour (what is kept, dropped, placed and timed), not
 counts typed from a live site.
 """
@@ -479,3 +485,85 @@ def test_global_arts_live_fixture_manifest_points_at_real_files():
     for name in GAL_MANIFEST.values():
         assert (FIXTURES / GAL_DIR / name).exists()
         gzip.decompress((FIXTURES / GAL_DIR / name).read_bytes())
+
+
+# --------------------------------------------------------------------------- #
+# MIT Museum
+# --------------------------------------------------------------------------- #
+
+def museum(today=date(2026, 11, 16), edit=lambda record: record):
+    """The scraper over the recorded listing and program data; no browser starts."""
+    from src.scrapers.mit_museum import MITMuseumScraper
+
+    record = edit(json.loads(read_fixture("mit_museum", "programs-2026-11-16.json.gz")))
+    scraper = MITMuseumScraper(today=today)
+    scraper.fetched = []
+    scraper.fetch_listing = lambda: record["listing"]
+
+    def program(build_id, uri):
+        scraper.fetched.append((build_id, uri))
+        return record["programs"].get(uri)
+
+    scraper.fetch_program = program
+    return scraper, record
+
+
+def test_mit_museum_is_a_headless_browser_source():
+    source = BY_NAME["MIT Museum"]
+    assert source.kind == "playwright" and source.runs_in_ci
+    assert source.load().headless, "never a visible browser"
+
+
+def test_mit_museum_one_event_per_dated_session(offline):
+    scraper, record = museum()
+    events = scraper.scrape_events()
+    assert_clean(events, "MIT Museum")
+
+    programs = record["listing"]["props"]["pageProps"]["programs"]
+    assert [uri for _, uri in scraper.fetched] == [p["uri"] for p in programs]
+    assert {b for b, _ in scraper.fetched} == {record["listing"]["buildId"]}
+
+    when = {(e.title, e.start_datetime, e.end_datetime) for e in events}
+    assert ("Author Talk | A Pox on Fools", datetime(2026, 11, 18, 18, 0), datetime(2026, 11, 18, 19, 0)) in when
+    # "Thursday November 19" and "Friday January 29": two different years
+    assert ("Science Paint Night: Seascapes", datetime(2026, 11, 19, 18, 0), datetime(2026, 11, 19, 20, 30)) in when
+    assert ("Science Paint Night: Seascapes", datetime(2027, 1, 29, 18, 0), datetime(2027, 1, 29, 20, 30)) in when
+    assert {(e.venue_name, e.street_address, e.city, e.zip_code) for e in events} == \
+        {("MIT Museum", "314 Main St", "Cambridge", "02142")}
+
+
+def test_mit_museum_old_sessions_never_borrow_this_years_calendar(offline):
+    """Gallery Talks and Making Studio keep years of past sessions with no year
+    printed ("Saturday March 21", "Monday December 15"). Each matches its own
+    weekday only in a past year, so none is published."""
+    scraper, record = museum()
+    events = scraper.scrape_events()
+    gallery = [s for s in record["programs"]["programs/gallery-talks"]["pageProps"]["entry"]["sessions"]
+               if s["sessionStartDate"]]
+    assert len(gallery) > 3
+    published = [e for e in events if e.title.startswith("Gallery Talks")]
+    assert [e.start_datetime for e in published] == [datetime(2026, 12, 4, 11, 0)]
+    assert all(datetime(2026, 11, 9) <= e.start_datetime <= datetime(2027, 9, 12) for e in events)
+
+
+def test_mit_museum_prose_schedule_is_not_dated(offline):
+    """'Weekly, Wednesdays and Saturdays' on the card produces nothing by itself."""
+    def drop_sessions(record):
+        record["programs"]["programs/gallery-talks"]["pageProps"]["entry"]["sessions"] = []
+        return record
+
+    scraper, record = museum(edit=drop_sessions)
+    card = next(p for p in record["listing"]["props"]["pageProps"]["programs"] if p["uri"] == "programs/gallery-talks")
+    assert card["programDate"].startswith("Weekly")
+    assert not [e for e in scraper.scrape_events() if e.title.startswith("Gallery Talks")]
+
+
+def test_mit_museum_program_data_refused_skips_that_program_only(offline):
+    def refuse(record):
+        record["programs"]["programs/a-pox-on-fools"] = None
+        return record
+
+    scraper, _ = museum(edit=refuse)
+    titles = {e.title for e in scraper.scrape_events()}
+    assert "Author Talk | A Pox on Fools" not in titles
+    assert "Science Paint Night: Seascapes" in titles

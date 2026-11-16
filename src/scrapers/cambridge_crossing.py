@@ -100,8 +100,12 @@ class CambridgeCrossingScraper(BaseFeedScraper):
             return None
         end_hm = self.read_time(item.get("end_time"))
         all_day = start_hm is None
-        start = day if all_day else day.replace(hour=start_hm[0], minute=start_hm[1])
-        end = day.replace(hour=end_hm[0], minute=end_hm[1]) if (end_hm and not all_day) else None
+        try:
+            start = day if all_day else day.replace(hour=start_hm[0], minute=start_hm[1])
+            end = day.replace(hour=end_hm[0], minute=end_hm[1]) if (end_hm and not all_day) else None
+        except ValueError:
+            logger.warning(f"Skipping '{title}' - impossible time {item.get('start_time')!r} ({FEED})")
+            return None
 
         where = self.HOME
         description = self.text(item.get("content"))

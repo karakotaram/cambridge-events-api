@@ -216,6 +216,9 @@ SOURCES: tuple[Source, ...] = (
     Source("Global Arts Live", "src.scrapers.global_arts_live", "GlobalArtsLiveScraper", "requests",
            notes="presenter; homepage season list, one venue page per venue for its city, and a "
                  "run's own page for its performances. Its own venue is The Platform, Kendall Sq"),
+    Source("MIT Museum", "src.scrapers.mit_museum", "MITMuseumScraper", "playwright",
+           notes="headless: plain HTTP gets a Vercel bot challenge (429). Reads the page's "
+                 "Next.js data, one program at a time; session years from the printed weekday"),
 
     # ---- aggregators (last, so original sources win deduplication) -----------
     Source("Harvard Square", "src.scrapers.harvard_square", "HarvardSquareScraper", "aggregator"),

@@ -237,16 +237,16 @@ class MITListCenterScraper(BaseFeedScraper):
         if times is None:
             logger.warning(f"Skipping '{title}' {line!r} - unreadable time ({url})")
             return None
+        start_hm, end_hm = times
         try:
             day_start = datetime(year, month, day)
+            start = day_start.replace(hour=start_hm[0], minute=start_hm[1]) if start_hm else day_start
+            end = day_start.replace(hour=end_hm[0], minute=end_hm[1]) if end_hm else None
         except ValueError:
-            logger.warning(f"Skipping '{title}' {line!r} - no such date in {year} ({url})")
+            logger.warning(f"Skipping '{title}' {line!r} - no such date or time in {year} ({url})")
             return None
-        start_hm, end_hm = times
         if start_hm is None:
             return day_start, None, True
-        start = day_start.replace(hour=start_hm[0], minute=start_hm[1])
-        end = day_start.replace(hour=end_hm[0], minute=end_hm[1]) if end_hm else None
         listed = card["starts"].get(start.date())
         if listed is not None and listed != start:
             logger.warning(f"Skipping '{title}' {line!r} - the calendar card says {listed} ({url})")
