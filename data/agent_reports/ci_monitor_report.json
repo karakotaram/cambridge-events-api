@@ -1,28 +1,28 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-20T15:25:27.478382",
-  "total_events": 6846,
+  "timestamp": "2026-11-21T14:38:14.408153",
+  "total_events": 6814,
   "total_sources_registered": 116,
-  "total_sources_with_events": 103,
+  "total_sources_with_events": 101,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
-      "event_count": 18,
+      "event_count": 17,
       "days_since_scrape": 0
     },
     {
       "source": "Boston Swing Central",
       "event_count": 4,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "The Comedy Studio",
-      "event_count": 138,
+      "event_count": 136,
       "days_since_scrape": 0
     },
     {
       "source": "The Dance Complex",
-      "event_count": 781,
+      "event_count": 793,
       "days_since_scrape": 0
     },
     {
@@ -32,7 +32,7 @@
     },
     {
       "source": "Harvard Art Museums",
-      "event_count": 50,
+      "event_count": 51,
       "days_since_scrape": 0
     },
     {
@@ -42,7 +42,7 @@
     },
     {
       "source": "Harvard Film Archive",
-      "event_count": 15,
+      "event_count": 14,
       "days_since_scrape": 0
     },
     {
@@ -57,12 +57,12 @@
     },
     {
       "source": "The Rockwell",
-      "event_count": 127,
+      "event_count": 125,
       "days_since_scrape": 0
     },
     {
       "source": "The Mad Monkfish",
-      "event_count": 50,
+      "event_count": 48,
       "days_since_scrape": 0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "source": "Harvard Athletics",
-      "event_count": 39,
+      "event_count": 43,
       "days_since_scrape": 0
     },
     {
@@ -92,7 +92,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 922,
+      "event_count": 924,
       "days_since_scrape": 0
     },
     {
@@ -102,12 +102,12 @@
     },
     {
       "source": "City of Somerville",
-      "event_count": 207,
+      "event_count": 206,
       "days_since_scrape": 0
     },
     {
       "source": "Somerville Public Library",
-      "event_count": 529,
+      "event_count": 532,
       "days_since_scrape": 0
     },
     {
@@ -117,22 +117,22 @@
     },
     {
       "source": "Longy School of Music",
-      "event_count": 46,
+      "event_count": 47,
       "days_since_scrape": 0
     },
     {
       "source": "Skip the Small Talk",
-      "event_count": 26,
+      "event_count": 25,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Events",
-      "event_count": 67,
+      "event_count": 62,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Music & Theater",
-      "event_count": 35,
+      "event_count": 34,
       "days_since_scrape": 0
     },
     {
@@ -147,7 +147,7 @@
     },
     {
       "source": "The Middle East",
-      "event_count": 162,
+      "event_count": 159,
       "days_since_scrape": 0
     },
     {
@@ -157,7 +157,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 99,
+      "event_count": 100,
       "days_since_scrape": 0
     },
     {
@@ -167,13 +167,13 @@
     },
     {
       "source": "American Repertory Theater",
-      "event_count": 107,
+      "event_count": 106,
       "days_since_scrape": 0
     },
     {
       "source": "Lizard Lounge",
-      "event_count": 29,
-      "days_since_scrape": 2
+      "event_count": 28,
+      "days_since_scrape": 3
     },
     {
       "source": "Assembly Row",
@@ -186,28 +186,18 @@
       "days_since_scrape": 0
     },
     {
-      "source": "Gallery 263",
-      "event_count": 1,
-      "days_since_scrape": 0
-    },
-    {
       "source": "Cambridge Symphony Orchestra",
       "event_count": 2,
       "days_since_scrape": 0
     },
     {
       "source": "Canal District Kendall",
-      "event_count": 3,
+      "event_count": 4,
       "days_since_scrape": 0
     },
     {
       "source": "Somerville Museum",
       "event_count": 6,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Somerville Music Spaces",
-      "event_count": 1,
       "days_since_scrape": 0
     },
     {
@@ -227,7 +217,7 @@
     },
     {
       "source": "Sanders Theatre",
-      "event_count": 18,
+      "event_count": 17,
       "days_since_scrape": 0
     },
     {
@@ -238,22 +228,22 @@
     {
       "source": "Regent Theatre",
       "event_count": 20,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Porter Square Books",
       "event_count": 30,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Harvard Book Store",
       "event_count": 27,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 9,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Arrow Street Arts",
@@ -262,12 +252,12 @@
     },
     {
       "source": "Bow Market",
-      "event_count": 67,
+      "event_count": 66,
       "days_since_scrape": 0
     },
     {
       "source": "The Jungle",
-      "event_count": 32,
+      "event_count": 31,
       "days_since_scrape": 0
     },
     {
@@ -307,12 +297,12 @@
     },
     {
       "source": "Blues Union Boston",
-      "event_count": 8,
+      "event_count": 7,
       "days_since_scrape": 0
     },
     {
       "source": "NESFA",
-      "event_count": 62,
+      "event_count": 61,
       "days_since_scrape": 0
     },
     {
@@ -323,7 +313,7 @@
     {
       "source": "Crystal Ballroom",
       "event_count": 28,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Woodberry Poetry Room",
@@ -347,17 +337,17 @@
     },
     {
       "source": "Harvard Gazette",
-      "event_count": 105,
+      "event_count": 98,
       "days_since_scrape": 0
     },
     {
       "source": "Cambridge Foundry",
-      "event_count": 108,
+      "event_count": 105,
       "days_since_scrape": 0
     },
     {
       "source": "Central Square BID",
-      "event_count": 4,
+      "event_count": 1,
       "days_since_scrape": 0
     },
     {
@@ -373,7 +363,7 @@
     {
       "source": "SomArt Space",
       "event_count": 48,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Somerville Bike Kitchen",
@@ -382,7 +372,7 @@
     },
     {
       "source": "Mass Audubon Magazine Beach",
-      "event_count": 10,
+      "event_count": 9,
       "days_since_scrape": 0
     },
     {
@@ -407,12 +397,12 @@
     },
     {
       "source": "Club Passim",
-      "event_count": 86,
+      "event_count": 84,
       "days_since_scrape": 0
     },
     {
       "source": "The Cantab Lounge",
-      "event_count": 136,
+      "event_count": 135,
       "days_since_scrape": 0
     },
     {
@@ -433,16 +423,16 @@
     {
       "source": "ManRay",
       "event_count": 44,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Lovestruck Books",
-      "event_count": 14,
+      "event_count": 16,
       "days_since_scrape": 0
     },
     {
       "source": "Pandemonium Books & Games",
-      "event_count": 166,
+      "event_count": 162,
       "days_since_scrape": 0
     },
     {
@@ -463,7 +453,7 @@
     {
       "source": "Thursday Morning Talks",
       "event_count": 8,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "American Classics",
@@ -477,48 +467,48 @@
     },
     {
       "source": "The Boston Calendar",
-      "event_count": 151,
+      "event_count": 140,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Art, Culture and Technology",
       "event_count": 1,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "MIT List Visual Arts Center",
       "event_count": 4,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Venture Caf\u00e9 Cambridge",
       "event_count": 4,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Global Arts Live",
-      "event_count": 77,
+      "event_count": 75,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Museum",
       "event_count": 15,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Harvard Square",
-      "event_count": 157,
+      "event_count": 151,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 537,
+      "event_count": 546,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
       "event_count": 386,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     }
   ],
   "stale": [],
@@ -529,8 +519,18 @@
       "issue": "No events in data"
     },
     {
+      "source": "Gallery 263",
+      "ci": true,
+      "issue": "No events in data"
+    },
+    {
       "source": "Kendall Center",
       "ci": false,
+      "issue": "No events in data"
+    },
+    {
+      "source": "Somerville Music Spaces",
+      "ci": true,
       "issue": "No events in data"
     },
     {
@@ -591,9 +591,9 @@
   ],
   "unregistered": [],
   "summary": {
-    "healthy": 103,
+    "healthy": 101,
     "stale": 0,
-    "missing": 13,
+    "missing": 15,
     "unregistered": 0
   }
 }
