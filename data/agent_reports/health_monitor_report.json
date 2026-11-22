@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-21T14:38:14.080441",
-  "total_events": 6814,
+  "timestamp": "2026-11-22T14:34:19.076772",
+  "total_events": 6586,
   "total_sources": 101,
   "history_runs": 6,
   "alerts": [
@@ -9,39 +9,18 @@
       "source": "Central Square BID",
       "severity": "WARNING",
       "current": 1,
-      "average": 6.7,
-      "message": "1 events vs avg 7 (15%)"
-    },
-    {
-      "source": "Dave Bryant Third Thursdays",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 1.0,
-      "message": "Source disappeared from data (avg: 1)"
-    },
-    {
-      "source": "Theatre at First",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 1.3,
-      "message": "Source disappeared from data (avg: 1)"
+      "average": 5.2,
+      "message": "1 events vs avg 5 (19%)"
     },
     {
       "source": "Gallery 263",
       "severity": "MISSING",
       "current": 0,
-      "average": 2.2,
+      "average": 2.0,
       "message": "Source disappeared from data (avg: 2)"
     },
     {
-      "source": "Somerville Music Spaces",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 1.0,
-      "message": "Source disappeared from data (avg: 1)"
-    },
-    {
-      "source": "Cambridge KiOSK",
+      "source": "Dave Bryant Third Thursdays",
       "severity": "MISSING",
       "current": 0,
       "average": 1.0,
@@ -53,12 +32,26 @@
       "current": 0,
       "average": 1.0,
       "message": "Source disappeared from data (avg: 1)"
+    },
+    {
+      "source": "Somerville Music Spaces",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 1.0,
+      "message": "Source disappeared from data (avg: 1)"
+    },
+    {
+      "source": "Theatre at First",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 1.0,
+      "message": "Source disappeared from data (avg: 1)"
     }
   ],
   "diagnosis": null,
   "summary": {
     "critical": 0,
     "warning": 1,
-    "missing": 6
+    "missing": 5
   }
 }
