@@ -1,23 +1,16 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-22T14:34:19.076772",
-  "total_events": 6586,
+  "timestamp": "2026-11-23T18:04:23.525292",
+  "total_events": 6469,
   "total_sources": 101,
   "history_runs": 6,
   "alerts": [
     {
-      "source": "Central Square BID",
+      "source": "24 Hour Music",
       "severity": "WARNING",
-      "current": 1,
-      "average": 5.2,
-      "message": "1 events vs avg 5 (19%)"
-    },
-    {
-      "source": "Gallery 263",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 2.0,
-      "message": "Source disappeared from data (avg: 2)"
+      "current": 2,
+      "average": 4.5,
+      "message": "2 events vs avg 4 (44%)"
     },
     {
       "source": "Dave Bryant Third Thursdays",
@@ -27,7 +20,14 @@
       "message": "Source disappeared from data (avg: 1)"
     },
     {
-      "source": "Somerville Arts Council",
+      "source": "Central Square BID",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 4.2,
+      "message": "Source disappeared from data (avg: 4)"
+    },
+    {
+      "source": "Non-Event",
       "severity": "MISSING",
       "current": 0,
       "average": 1.0,
@@ -41,11 +41,11 @@
       "message": "Source disappeared from data (avg: 1)"
     },
     {
-      "source": "Theatre at First",
+      "source": "Gallery 263",
       "severity": "MISSING",
       "current": 0,
-      "average": 1.0,
-      "message": "Source disappeared from data (avg: 1)"
+      "average": 1.7,
+      "message": "Source disappeared from data (avg: 2)"
     }
   ],
   "diagnosis": null,
