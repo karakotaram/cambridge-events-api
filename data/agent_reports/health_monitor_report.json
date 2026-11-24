@@ -1,16 +1,30 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-23T18:04:23.525292",
-  "total_events": 6469,
-  "total_sources": 101,
+  "timestamp": "2026-11-24T17:34:14.305150",
+  "total_events": 6500,
+  "total_sources": 99,
   "history_runs": 6,
   "alerts": [
     {
-      "source": "24 Hour Music",
-      "severity": "WARNING",
-      "current": 2,
-      "average": 4.5,
-      "message": "2 events vs avg 4 (44%)"
+      "source": "Harvard GSD",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 1.0,
+      "message": "Source disappeared from data (avg: 1)"
+    },
+    {
+      "source": "Gallery 263",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 1.5,
+      "message": "Source disappeared from data (avg: 2)"
+    },
+    {
+      "source": "Somerville Music Spaces",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 1.0,
+      "message": "Source disappeared from data (avg: 1)"
     },
     {
       "source": "Dave Bryant Third Thursdays",
@@ -23,8 +37,15 @@
       "source": "Central Square BID",
       "severity": "MISSING",
       "current": 0,
-      "average": 4.2,
-      "message": "Source disappeared from data (avg: 4)"
+      "average": 3.2,
+      "message": "Source disappeared from data (avg: 3)"
+    },
+    {
+      "source": "Somerville Arts Council",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 1.0,
+      "message": "Source disappeared from data (avg: 1)"
     },
     {
       "source": "Non-Event",
@@ -32,26 +53,12 @@
       "current": 0,
       "average": 1.0,
       "message": "Source disappeared from data (avg: 1)"
-    },
-    {
-      "source": "Somerville Music Spaces",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 1.0,
-      "message": "Source disappeared from data (avg: 1)"
-    },
-    {
-      "source": "Gallery 263",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 1.7,
-      "message": "Source disappeared from data (avg: 2)"
     }
   ],
   "diagnosis": null,
   "summary": {
     "critical": 0,
-    "warning": 1,
-    "missing": 5
+    "warning": 0,
+    "missing": 7
   }
 }

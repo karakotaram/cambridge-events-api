@@ -1,9 +1,9 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-23T18:04:23.839372",
-  "total_events": 6469,
+  "timestamp": "2026-11-24T17:34:14.615849",
+  "total_events": 6500,
   "total_sources_registered": 116,
-  "total_sources_with_events": 101,
+  "total_sources_with_events": 99,
   "healthy": [
     {
       "source": "Lamplighter Brewing",
@@ -13,16 +13,16 @@
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "The Comedy Studio",
-      "event_count": 135,
+      "event_count": 134,
       "days_since_scrape": 0
     },
     {
       "source": "The Dance Complex",
-      "event_count": 778,
+      "event_count": 761,
       "days_since_scrape": 0
     },
     {
@@ -47,7 +47,7 @@
     },
     {
       "source": "Harvard Film Archive",
-      "event_count": 11,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
@@ -62,7 +62,7 @@
     },
     {
       "source": "The Rockwell",
-      "event_count": 128,
+      "event_count": 127,
       "days_since_scrape": 0
     },
     {
@@ -72,17 +72,12 @@
     },
     {
       "source": "Mount Auburn Cemetery",
-      "event_count": 13,
+      "event_count": 14,
       "days_since_scrape": 0
     },
     {
       "source": "Harvard Athletics",
       "event_count": 46,
-      "days_since_scrape": 0
-    },
-    {
-      "source": "Harvard GSD",
-      "event_count": 1,
       "days_since_scrape": 0
     },
     {
@@ -97,7 +92,7 @@
     },
     {
       "source": "City of Cambridge",
-      "event_count": 765,
+      "event_count": 818,
       "days_since_scrape": 0
     },
     {
@@ -107,12 +102,12 @@
     },
     {
       "source": "City of Somerville",
-      "event_count": 205,
+      "event_count": 196,
       "days_since_scrape": 0
     },
     {
       "source": "Somerville Public Library",
-      "event_count": 535,
+      "event_count": 536,
       "days_since_scrape": 0
     },
     {
@@ -127,17 +122,17 @@
     },
     {
       "source": "Skip the Small Talk",
-      "event_count": 24,
+      "event_count": 23,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Events",
-      "event_count": 67,
+      "event_count": 66,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Music & Theater",
-      "event_count": 32,
+      "event_count": 33,
       "days_since_scrape": 0
     },
     {
@@ -147,7 +142,7 @@
     },
     {
       "source": "The Lily Pad",
-      "event_count": 116,
+      "event_count": 113,
       "days_since_scrape": 0
     },
     {
@@ -162,7 +157,7 @@
     },
     {
       "source": "Arts at the Armory",
-      "event_count": 90,
+      "event_count": 89,
       "days_since_scrape": 0
     },
     {
@@ -207,12 +202,12 @@
     },
     {
       "source": "Caf\u00e9 Zing",
-      "event_count": 2,
+      "event_count": 5,
       "days_since_scrape": 0
     },
     {
       "source": "Remnant Brewing",
-      "event_count": 22,
+      "event_count": 21,
       "days_since_scrape": 0
     },
     {
@@ -228,26 +223,26 @@
     {
       "source": "Regent Theatre",
       "event_count": 17,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Porter Square Books",
       "event_count": 30,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Harvard Book Store",
       "event_count": 28,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 8,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Arrow Street Arts",
-      "event_count": 7,
+      "event_count": 10,
       "days_since_scrape": 0
     },
     {
@@ -257,7 +252,7 @@
     },
     {
       "source": "The Jungle",
-      "event_count": 27,
+      "event_count": 29,
       "days_since_scrape": 0
     },
     {
@@ -272,12 +267,12 @@
     },
     {
       "source": "McCarthy's Toad",
-      "event_count": 57,
+      "event_count": 55,
       "days_since_scrape": 0
     },
     {
       "source": "Union Square Main Streets",
-      "event_count": 29,
+      "event_count": 30,
       "days_since_scrape": 0
     },
     {
@@ -308,7 +303,7 @@
     {
       "source": "Crystal Ballroom",
       "event_count": 28,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Woodberry Poetry Room",
@@ -332,12 +327,12 @@
     },
     {
       "source": "Harvard Gazette",
-      "event_count": 96,
+      "event_count": 95,
       "days_since_scrape": 0
     },
     {
       "source": "Cambridge Foundry",
-      "event_count": 92,
+      "event_count": 87,
       "days_since_scrape": 0
     },
     {
@@ -351,14 +346,9 @@
       "days_since_scrape": 0
     },
     {
-      "source": "Somerville Arts Council",
-      "event_count": 1,
-      "days_since_scrape": 0
-    },
-    {
       "source": "SomArt Space",
       "event_count": 48,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Somerville Bike Kitchen",
@@ -392,17 +382,17 @@
     },
     {
       "source": "Club Passim",
-      "event_count": 81,
+      "event_count": 80,
       "days_since_scrape": 0
     },
     {
       "source": "The Cantab Lounge",
-      "event_count": 132,
+      "event_count": 136,
       "days_since_scrape": 0
     },
     {
       "source": "The Burren",
-      "event_count": 134,
+      "event_count": 126,
       "days_since_scrape": 0
     },
     {
@@ -418,16 +408,16 @@
     {
       "source": "ManRay",
       "event_count": 44,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Lovestruck Books",
-      "event_count": 17,
+      "event_count": 16,
       "days_since_scrape": 0
     },
     {
       "source": "Pandemonium Books & Games",
-      "event_count": 164,
+      "event_count": 165,
       "days_since_scrape": 0
     },
     {
@@ -463,17 +453,17 @@
     {
       "source": "MIT Art, Culture and Technology",
       "event_count": 1,
-      "days_since_scrape": 6
+      "days_since_scrape": 7
     },
     {
       "source": "MIT List Visual Arts Center",
       "event_count": 5,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Venture Caf\u00e9 Cambridge",
       "event_count": 3,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Global Arts Live",
@@ -483,22 +473,22 @@
     {
       "source": "MIT Museum",
       "event_count": 14,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Harvard Square",
-      "event_count": 145,
+      "event_count": 153,
       "days_since_scrape": 0
     },
     {
       "source": "BostonShows.org",
-      "event_count": 488,
+      "event_count": 493,
       "days_since_scrape": 0
     },
     {
       "source": "User Submitted",
-      "event_count": 389,
-      "days_since_scrape": 1
+      "event_count": 393,
+      "days_since_scrape": 0
     }
   ],
   "stale": [
@@ -506,22 +496,27 @@
       "source": "Lizard Lounge",
       "ci": true,
       "event_count": 26,
-      "days_stale": 6,
+      "days_stale": 7,
       "latest_scraped": "2026-11-17T15:59:42.031840",
       "threshold_days": 3,
-      "issue": "Last scraped 6 days ago (threshold: 3)"
+      "issue": "Last scraped 7 days ago (threshold: 3)"
     },
     {
       "source": "Thursday Morning Talks",
       "ci": true,
       "event_count": 8,
-      "days_stale": 4,
+      "days_stale": 5,
       "latest_scraped": "2026-11-19T15:47:52.081826",
       "threshold_days": 3,
-      "issue": "Last scraped 4 days ago (threshold: 3)"
+      "issue": "Last scraped 5 days ago (threshold: 3)"
     }
   ],
   "missing": [
+    {
+      "source": "Harvard GSD",
+      "ci": true,
+      "issue": "No events in data"
+    },
     {
       "source": "Gallery 263",
       "ci": true,
@@ -568,6 +563,11 @@
       "issue": "No events in data"
     },
     {
+      "source": "Somerville Arts Council",
+      "ci": false,
+      "issue": "No events in data"
+    },
+    {
       "source": "Farrington Nature Linc",
       "ci": true,
       "issue": "No events in data"
@@ -600,9 +600,9 @@
   ],
   "unregistered": [],
   "summary": {
-    "healthy": 99,
+    "healthy": 97,
     "stale": 2,
-    "missing": 15,
+    "missing": 17,
     "unregistered": 0
   }
 }
