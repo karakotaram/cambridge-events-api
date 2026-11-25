@@ -1,10 +1,17 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-24T17:34:14.305150",
-  "total_events": 6500,
+  "timestamp": "2026-11-25T17:11:36.364549",
+  "total_events": 6512,
   "total_sources": 99,
   "history_runs": 6,
   "alerts": [
+    {
+      "source": "Gallery 263",
+      "severity": "MISSING",
+      "current": 0,
+      "average": 1.0,
+      "message": "Source disappeared from data (avg: 1)"
+    },
     {
       "source": "Harvard GSD",
       "severity": "MISSING",
@@ -13,21 +20,7 @@
       "message": "Source disappeared from data (avg: 1)"
     },
     {
-      "source": "Gallery 263",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 1.5,
-      "message": "Source disappeared from data (avg: 2)"
-    },
-    {
-      "source": "Somerville Music Spaces",
-      "severity": "MISSING",
-      "current": 0,
-      "average": 1.0,
-      "message": "Source disappeared from data (avg: 1)"
-    },
-    {
-      "source": "Dave Bryant Third Thursdays",
+      "source": "Somerville Arts Council",
       "severity": "MISSING",
       "current": 0,
       "average": 1.0,
@@ -37,11 +30,11 @@
       "source": "Central Square BID",
       "severity": "MISSING",
       "current": 0,
-      "average": 3.2,
-      "message": "Source disappeared from data (avg: 3)"
+      "average": 2.0,
+      "message": "Source disappeared from data (avg: 2)"
     },
     {
-      "source": "Somerville Arts Council",
+      "source": "Somerville Music Spaces",
       "severity": "MISSING",
       "current": 0,
       "average": 1.0,
@@ -59,6 +52,6 @@
   "summary": {
     "critical": 0,
     "warning": 0,
-    "missing": 7
+    "missing": 6
   }
 }
