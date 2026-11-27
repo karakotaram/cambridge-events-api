@@ -1,7 +1,7 @@
 {
   "status": "ok",
-  "timestamp": "2026-11-26T16:53:23.873566",
-  "total_events": 6501,
+  "timestamp": "2026-11-27T16:38:17.527654",
+  "total_events": 6509,
   "total_sources_registered": 116,
   "total_sources_with_events": 100,
   "healthy": [
@@ -13,7 +13,7 @@
     {
       "source": "Boston Swing Central",
       "event_count": 3,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "The Comedy Studio",
@@ -22,7 +22,7 @@
     },
     {
       "source": "The Dance Complex",
-      "event_count": 755,
+      "event_count": 769,
       "days_since_scrape": 0
     },
     {
@@ -42,7 +42,7 @@
     },
     {
       "source": "Brattle Theatre",
-      "event_count": 98,
+      "event_count": 93,
       "days_since_scrape": 0
     },
     {
@@ -102,7 +102,7 @@
     },
     {
       "source": "City of Somerville",
-      "event_count": 190,
+      "event_count": 191,
       "days_since_scrape": 0
     },
     {
@@ -147,7 +147,7 @@
     },
     {
       "source": "The Middle East",
-      "event_count": 147,
+      "event_count": 145,
       "days_since_scrape": 0
     },
     {
@@ -223,22 +223,22 @@
     {
       "source": "Regent Theatre",
       "event_count": 17,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Porter Square Books",
       "event_count": 30,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Harvard Book Store",
       "event_count": 28,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Aeronaut Brewing",
       "event_count": 8,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Arrow Street Arts",
@@ -278,7 +278,7 @@
     {
       "source": "Boston Early Music Festival",
       "event_count": 5,
-      "days_since_scrape": 0
+      "days_since_scrape": 1
     },
     {
       "source": "Cambridge Society for Early Music",
@@ -292,7 +292,7 @@
     },
     {
       "source": "NESFA",
-      "event_count": 55,
+      "event_count": 54,
       "days_since_scrape": 0
     },
     {
@@ -303,7 +303,7 @@
     {
       "source": "Crystal Ballroom",
       "event_count": 28,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Woodberry Poetry Room",
@@ -353,7 +353,7 @@
     {
       "source": "SomArt Space",
       "event_count": 48,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Somerville Bike Kitchen",
@@ -392,7 +392,7 @@
     },
     {
       "source": "The Cantab Lounge",
-      "event_count": 137,
+      "event_count": 136,
       "days_since_scrape": 0
     },
     {
@@ -413,7 +413,7 @@
     {
       "source": "ManRay",
       "event_count": 44,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Lovestruck Books",
@@ -432,7 +432,7 @@
     },
     {
       "source": "New School of Music",
-      "event_count": 21,
+      "event_count": 20,
       "days_since_scrape": 0
     },
     {
@@ -452,23 +452,23 @@
     },
     {
       "source": "The Boston Calendar",
-      "event_count": 125,
+      "event_count": 131,
       "days_since_scrape": 0
     },
     {
       "source": "MIT Art, Culture and Technology",
       "event_count": 1,
-      "days_since_scrape": 9
+      "days_since_scrape": 10
     },
     {
       "source": "MIT List Visual Arts Center",
       "event_count": 5,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Venture Caf\u00e9 Cambridge",
       "event_count": 3,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Global Arts Live",
@@ -478,11 +478,11 @@
     {
       "source": "MIT Museum",
       "event_count": 14,
-      "days_since_scrape": 3
+      "days_since_scrape": 4
     },
     {
       "source": "Harvard Square",
-      "event_count": 149,
+      "event_count": 146,
       "days_since_scrape": 0
     },
     {
@@ -493,7 +493,7 @@
     {
       "source": "User Submitted",
       "event_count": 394,
-      "days_since_scrape": 1
+      "days_since_scrape": 2
     }
   ],
   "stale": [
@@ -501,19 +501,19 @@
       "source": "Lizard Lounge",
       "ci": true,
       "event_count": 24,
-      "days_stale": 9,
+      "days_stale": 10,
       "latest_scraped": "2026-11-17T15:59:42.031840",
       "threshold_days": 3,
-      "issue": "Last scraped 9 days ago (threshold: 3)"
+      "issue": "Last scraped 10 days ago (threshold: 3)"
     },
     {
       "source": "Thursday Morning Talks",
       "ci": true,
       "event_count": 8,
-      "days_stale": 7,
+      "days_stale": 8,
       "latest_scraped": "2026-11-19T15:47:52.081826",
       "threshold_days": 3,
-      "issue": "Last scraped 7 days ago (threshold: 3)"
+      "issue": "Last scraped 8 days ago (threshold: 3)"
     }
   ],
   "missing": [
